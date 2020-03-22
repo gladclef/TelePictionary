@@ -1,0 +1,1227 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"delay",
+				"delayedUpdated\tabc"
+			],
+			[
+				"handle",
+				"handleMessage\tabc"
+			],
+			[
+				"long",
+				"longPollClient\tabc"
+			],
+			[
+				"checkT",
+				"checkTimeKillAll\tabc"
+			],
+			[
+				"try",
+				"tryRemove\tabc"
+			],
+			[
+				"create",
+				"create_time\tabc"
+			],
+			[
+				"other",
+				"otherClient\tabc"
+			],
+			[
+				"parse",
+				"parsed_data\tabc"
+			],
+			[
+				"i_",
+				"i_message_idx\t(derekdnd.php)"
+			],
+			[
+				"message",
+				"message_idx\t(pushPull.js)"
+			],
+			[
+				"json_",
+				"json_decode"
+			],
+			[
+				"tryre",
+				"tryRecv\tabc"
+			],
+			[
+				"start",
+				"startswith\tabc"
+			],
+			[
+				"get",
+				"getVals\tabc"
+			],
+			[
+				"size",
+				"sizeof\t(server.php)"
+			],
+			[
+				"s_cam",
+				"s_camera"
+			],
+			[
+				"poll",
+				"pollXhrs\tabc"
+			],
+			[
+				"s_camera",
+				"s_cameraName\tabc"
+			],
+			[
+				"i_pan",
+				"i_panRange\tabc"
+			],
+			[
+				"i_til",
+				"i_tiltRange\tabc"
+			],
+			[
+				"cam",
+				"cameraName\tabc"
+			],
+			[
+				"Client",
+				"ClientConn\tabc"
+			],
+			[
+				"msg",
+				"msgsock\tabc"
+			],
+			[
+				"songs",
+				"songsPending\tabc"
+			],
+			[
+				"getT",
+				"getTrack\tabc"
+			],
+			[
+				"song",
+				"songsAdded\tabc"
+			],
+			[
+				"s_",
+				"s_progtext\tabc"
+			],
+			[
+				"us",
+				"userID\tabc"
+			],
+			[
+				"b_",
+				"b_found\tabc"
+			],
+			[
+				"set",
+				"setProgress\tabc"
+			],
+			[
+				"pop",
+				"populatePlaylist\tabc"
+			],
+			[
+				"opt",
+				"optName\tabc"
+			],
+			[
+				"succes",
+				"successCallback\tabc"
+			],
+			[
+				"aja",
+				"ajaxOptions\tabc"
+			],
+			[
+				"aj",
+				"ajaxErr\tabc"
+			],
+			[
+				"ret",
+				"retryFunc\tabc"
+			],
+			[
+				"jpro",
+				"jprogText\tabc"
+			],
+			[
+				"progres",
+				"progressValue\tabc"
+			],
+			[
+				"progress",
+				"progressStatus\tabc"
+			],
+			[
+				"font-",
+				"font-style\tproperty"
+			],
+			[
+				"libr",
+				"librarySize\tabc"
+			],
+			[
+				"i_size",
+				"i_sizeUpper\tabc"
+			],
+			[
+				"i_siz",
+				"i_sizeLower\tabc"
+			],
+			[
+				"lib",
+				"librarySize\tabc"
+			],
+			[
+				"i_si",
+				"i_sizeLower\tabc"
+			],
+			[
+				"comple",
+				"completeCallback\tabc"
+			],
+			[
+				"succ",
+				"successCallback\tabc"
+			],
+			[
+				"ajax",
+				"ajaxErr\tabc"
+			],
+			[
+				"s_log",
+				"s_login_url\tabc"
+			],
+			[
+				"show",
+				"show_dialog\tabc"
+			],
+			[
+				"acc",
+				"accessToken\tabc"
+			],
+			[
+				"access",
+				"access_token\tabc"
+			],
+			[
+				"conso",
+				"console.log\t(ajax.js)"
+			],
+			[
+				"proto",
+				"prototype\tabc"
+			],
+			[
+				"trim",
+				"trimStart\tabc"
+			],
+			[
+				"pro",
+				"prototype\tabc"
+			],
+			[
+				"int",
+				"intval\tabc"
+			],
+			[
+				"campa",
+				"campaign_funcs\tabc"
+			],
+			[
+				"baseC",
+				"baseCampaign\tabc"
+			],
+			[
+				"upload",
+				"uploadFile\tabc"
+			],
+			[
+				"stop",
+				"stopPropagation\t(character_funcs.php)"
+			],
+			[
+				"jupload",
+				"juploadButton\tabc"
+			],
+			[
+				"juplo",
+				"juploadButton\tabc"
+			],
+			[
+				"jim",
+				"jimgBox\tabc"
+			],
+			[
+				"font-siz",
+				"font-size:30px\t(character_funcs.php)"
+			],
+			[
+				"s_filenew",
+				"s_fileNewName\tabc"
+			],
+			[
+				"updateIm",
+				"updateImgLastTime\tabc"
+			],
+			[
+				"s_file",
+				"s_fileNewPath\tabc"
+			],
+			[
+				"s_fil",
+				"s_file_extension\tabc"
+			],
+			[
+				"camp",
+				"campaign_funcs\tabc"
+			],
+			[
+				"error",
+				"error_log\t(character_funcs.php)"
+			],
+			[
+				"or",
+				"originalEvent\tabc"
+			],
+			[
+				"wi",
+				"width\tabc"
+			],
+			[
+				"paddingTop",
+				"paddingTopPlusBottom\t(jqueryExtension.js)"
+			],
+			[
+				"substr",
+				"substring\t(javascriptExtension.js)"
+			],
+			[
+				"isSel",
+				"isSelection\t(jqueryExtension.js)"
+			],
+			[
+				"load",
+				"loadCallback"
+			],
+			[
+				"junder",
+				"junderstandingParent"
+			],
+			[
+				"jund",
+				"junderstanding"
+			],
+			[
+				"a_char",
+				"a_character"
+			],
+			[
+				"backgrou",
+				"background-image\tproperty"
+			],
+			[
+				"inline",
+				"inline-block\tdisplay"
+			],
+			[
+				"display",
+				"display:inline-block"
+			],
+			[
+				"remove",
+				"removeClass"
+			],
+			[
+				"back",
+				"background-color"
+			],
+			[
+				"jother",
+				"jotherAdvanceTypes"
+			],
+			[
+				"all",
+				"allTimeouts"
+			],
+			[
+				"pr",
+				"println"
+			]
+		]
+	},
+	"buffers":
+	[
+		{
+			"file": "sftp-config.json",
+			"settings":
+			{
+				"buffer_size": 1371,
+				"encoding": "UTF-8",
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "index.php",
+			"settings":
+			{
+				"buffer_size": 1000,
+				"encoding": "UTF-8",
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "control.js",
+			"settings":
+			{
+				"buffer_size": 2436,
+				"encoding": "UTF-8",
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "communication/longPoll/pushPull.js",
+			"settings":
+			{
+				"buffer_size": 3408,
+				"encoding": "UTF-8",
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "resources/install.php",
+			"settings":
+			{
+				"buffer_size": 6009,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "resources/database_structure.php",
+			"settings":
+			{
+				"buffer_size": 619,
+				"encoding": "UTF-8",
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "resources/other.php",
+			"settings":
+			{
+				"buffer_size": 3381,
+				"encoding": "UTF-8",
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "resources/globals.php",
+			"settings":
+			{
+				"buffer_size": 2156,
+				"line_ending": "Windows"
+			}
+		}
+	],
+	"build_system": "Packages/arduino-cli/arduino-cli.sublime-build",
+	"build_system_choices":
+	[
+		[
+			[
+				[
+					"Packages/arduino-cli/arduino-cli.sublime-build",
+					""
+				],
+				[
+					"Packages/arduino-cli/arduino-cli.sublime-build",
+					"just build"
+				],
+				[
+					"Packages/arduino-cli/arduino-cli.sublime-build",
+					"build and upload"
+				]
+			],
+			[
+				"Packages/arduino-cli/arduino-cli.sublime-build",
+				"just build"
+			]
+		]
+	],
+	"build_varint": "",
+	"command_palette":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+			[
+				"insta",
+				"Package Control: Install Package"
+			],
+			[
+				"remo",
+				"Package Control: Remove Package"
+			],
+			[
+				"inst",
+				"Package Control: Install Package"
+			],
+			[
+				"instal",
+				"Package Control: Install Package"
+			],
+			[
+				"pack",
+				"Package Control: Install Package"
+			],
+			[
+				"install",
+				"Package Control: Install Package"
+			]
+		],
+		"width": 0.0
+	},
+	"console":
+	{
+		"height": 0.0,
+		"history":
+		[
+		]
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"expanded_folders":
+	[
+		"/C/Users/gladc/Documents/TelePictionary",
+		"/C/Users/gladc/Documents/TelePictionary/objects",
+		"/C/Users/gladc/Documents/TelePictionary/resources"
+	],
+	"file_history":
+	[
+		"/C/Users/gladc/Documents/TelePictionary/objects/command.php",
+		"/C/Users/gladc/Documents/TelePictionary/img/.htaccess",
+		"/C/Users/gladc/Documents/TelePictionary/img/getImage.php",
+		"/C/Users/gladc/Documents/TelePictionary/resources/ajax.php",
+		"/C/Users/gladc/Documents/TelePictionary/resources/common_functions.php",
+		"/C/Users/gladc/OneDrive/Desktop/uprisingEventCharacters.txt",
+		"/C/Users/gladc/OneDrive/Desktop/uprisingEventCharacters",
+		"/C/Users/gladc/OneDrive/Desktop/archivesEventCharacters.txt",
+		"/C/Users/gladc/Documents/TelePictionary/status.php",
+		"/C/Users/gladc/Documents/TelePictionary/update.php",
+		"/C/Users/gladc/Documents/TelePictionary/control.php",
+		"/C/Users/gladc/Documents/TelePictionary/TelePictionary.php",
+		"/C/Users/gladc/Documents/TelePictionary/resources/globals.php",
+		"/C/Users/gladc/Documents/TelePictionary/derekdnd",
+		"/C/Users/gladc/Documents/TelePictionary/TelePictionary.sublime-project",
+		"/C/Users/gladc/Documents/TelePictionary/cameraControl.sublime-project",
+		"/C/Users/gladc/Documents/TelePictionary/cameraControl.sublime-workspace",
+		"/C/Users/gladc/OneDrive/Documents/Arduino/libraries/NRFLite/src/NRFLite.cpp",
+		"/C/Users/gladc/OneDrive/Documents/EAGLE/projects/turn_signals/.gitignore",
+		"/C/Users/gladc/Documents/Arduino/sketches/cameraControl/pythonClient/WebsocketsToSerialMiddleMan/longPollClient.py",
+		"/C/Users/gladc/AppData/Local/Arduino15/preferences.txt",
+		"/D/Users/gladc/AppData/Roaming/Fantasy Grounds/portraits/Examples.ppk",
+		"/C/Users/gladc/Documents/Arduino/sketches/cameraControl/pythonClient/WebsocketsToSerialMiddleMan/mySerial.py",
+		"/C/Users/gladc/Documents/Arduino/sketches/cameraControl/pythonClient/WebsocketsToSerialMiddleMan/SerialConnection.py",
+		"/C/Users/gladc/Documents/Arduino/sketches/cameraControl/pythonClient/WebsocketsToSerialMiddleMan/message.py",
+		"/C/Users/gladc/Documents/Arduino/sketches/cameraControl/cameraControl.sublime-project",
+		"/C/Users/gladc/Documents/Arduino/sketches/ArduinoPanAndTiltControl/SerialControl/SerialControlPorts.cpp",
+		"/C/Users/gladc/Documents/Arduino/sketches/cameraControl/communication/longPoll/pushPull.js",
+		"/C/Users/gladc/Documents/Arduino/sketches/cameraControl/communication/longPoll/server.php",
+		"/C/Users/gladc/Documents/Arduino/sketches/cameraControl/control.php",
+		"/C/Users/gladc/Documents/Arduino/sketches/cameraControl/derekdnd.php",
+		"/C/Users/gladc/Documents/Arduino/sketches/cameraControl/control.js",
+		"/C/Users/gladc/Documents/Arduino/sketches/cameraControl/communication/longPoll/server.py",
+		"/C/Users/gladc/Documents/Arduino/sketches/cameraControl/pythonClient/WebsocketsToSerialMiddleMan/main.py",
+		"/C/Users/gladc/Documents/Arduino/sketches/ArduinoPanAndTiltControl/SerialControl/SerialControlMessages.hpp",
+		"/C/Users/gladc/Documents/Arduino/sketches/ArduinoPanAndTiltControl/SerialControl/SerialControlMessages.cpp",
+		"/C/Users/gladc/Documents/Arduino/sketches/cameraControl/pythonClient/WebsocketsToSerialMiddleMan/CurrentValue.py",
+		"/C/Users/gladc/Documents/Arduino/sketches/cameraControl/pythonClient/WebsocketsToSerialMiddleMan/testHttps.py",
+		"/C/Users/gladc/Documents/Arduino/sketches/cameraControl/communication/websocket.js",
+		"/C/Users/gladc/Documents/Arduino/sketches/cameraControl/resources/common_functions.php",
+		"/C/Users/gladc/Documents/Arduino/sketches/cameraControl/toExec.js",
+		"/C/Users/gladc/Downloads/Lattice_Anatase.csv",
+		"/C/Users/gladc/Downloads/Lattice_ Anatase.csv",
+		"/C/Users/gladc/Documents/Arduino/sketches/cameraControl/communication/phpclasses/exampleChatRoom.html",
+		"/C/Users/gladc/Documents/Arduino/sketches/cameraControl/communication/src/Chat.php",
+		"/C/Users/gladc/Documents/Arduino/sketches/cameraControl/communication/composer.json",
+		"/C/Users/gladc/Documents/Arduino/sketches/cameraControl/communication/bin/chat-server.php",
+		"/C/Users/gladc/Documents/Arduino/sketches/cameraControl/communication/phpclasses/example.php",
+		"/C/Users/gladc/Documents/Arduino/sketches/cameraControl/communication/phpclasses/WebSocket.class.php",
+		"/C/Users/gladc/Documents/Arduino/sketches/cameraControl/communication/phpclasses/WebClientService.class.php",
+		"/C/Users/gladc/Documents/Arduino/sketches/cameraControl/communication/phpclasses/README.txt",
+		"/C/Users/gladc/Documents/Arduino/sketches/cameraControl/communication/phpclasses/panTiltComm.php",
+		"/C/Users/gladc/Documents/Arduino/sketches/cameraControl/communication/phpclasses/GPLv3.txt",
+		"/C/Users/gladc/Documents/Arduino/sketches/cameraControl/communication/src/MyApp/Chat.php",
+		"/C/Users/gladc/Documents/Arduino/sketches/cameraControl/communication/chatServer.php",
+		"/C/Users/gladc/Documents/Arduino/sketches/cameraControl/derekdnd",
+		"/C/Users/gladc/Documents/Arduino/sketches/cameraControl/pythonClient/WebsocketsToSerialMiddleMan/defaultWebsocketApp.py",
+		"/C/Users/gladc/Documents/Arduino/sketches/cameraControl/sftp-config.json",
+		"/C/Users/gladc/OneDrive/Documents/Spotify/rando_lists/RandoLists/secret.ini.example",
+		"/C/Users/gladc/OneDrive/Documents/Spotify/rando_lists/RandoLists/index.php",
+		"/C/Users/gladc/OneDrive/Documents/Spotify/rando_lists/index.php",
+		"/C/Users/gladc/OneDrive/Documents/Spotify/rando_lists.sublime-project",
+		"/C/Users/gladc/OneDrive/Documents/Spotify/rando_lists/secret.ini.example",
+		"/C/Users/gladc/OneDrive/Documents/Spotify/rando_lists/secret.ini",
+		"/C/Users/gladc/OneDrive/Documents/Spotify/rando_lists/sftp-config.json",
+		"/C/Users/gladc/OneDrive/Documents/Spotify/rando_lists/secret.example.ini",
+		"/C/Users/gladc/Documents/NumNum/server/NumaneraSheets/pages/campaigns/ajax.php",
+		"/C/Users/gladc/Documents/NumNum/server/NumaneraSheets/css/descriptor_group.css",
+		"/C/Users/gladc/Documents/NumNum/server/NumaneraSheets/js/common_functions.js",
+		"/C/Users/gladc/Documents/NumNum/server/NumaneraSheets/pages/campaigns/campaign_funcs.php",
+		"/C/Users/gladc/Documents/NumNum/server/numaneraSheets.sublime-project",
+		"/C/Users/gladc/Documents/NumNum/server/NumaneraSheets/js/ajax.js",
+		"/C/Users/gladc/Documents/NumNum/server/NumaneraSheets/sftp-config.json",
+		"/C/Users/gladc/OneDrive/Desktop/health_by_age.csv",
+		"/C/Users/gladc/OneDrive/Desktop/ticktock",
+		"/C/Users/gladc/Documents/NumNum/server/NumaneraSheets/pages/campaigns/character_funcs.php",
+		"/C/Users/gladc/Documents/NumNum/server/NumaneraSheets/js/javascriptExtension.js",
+		"/C/Users/gladc/Documents/NumNum/server/NumaneraSheets/js/jqueryExtension.js",
+		"/C/Users/gladc/Documents/NumNum/server/NumaneraSheets/userImages/.htaccess",
+		"/C/Users/gladc/Documents/NumNum/server/NumaneraSheets/resources/common_functions.php",
+		"/C/Users/gladc/Documents/NumNum/server/NumaneraSheets/resources/db_query.php",
+		"/C/Users/gladc/Documents/NumNum/server/NumaneraSheets/pages/campaigns/campaign.php",
+		"/C/Users/gladc/Documents/NumNum/server/NumaneraSheets/userImages/getImage.php",
+		"/C/Users/gladc/Documents/NumNum/server/NumaneraSheets/pages/campaigns/modify_campaign.php",
+		"/C/Users/gladc/Documents/NumNum/server/NumaneraSheets/.htaccess",
+		"/C/Users/gladc/Documents/NumNum/server/NumaneraSheets/objects/user.php",
+		"/C/Users/gladc/Documents/NumNum/server/NumaneraSheets/resources/server_config.ini",
+		"/C/Users/gladc/Documents/NumNum/server/NumaneraSheets/resources/server_config_example.ini",
+		"/C/Users/gladc/Documents/NumNum/server/NumaneraSheets/css/auto_table.css",
+		"/C/Users/gladc/Documents/NumNum/server/NumaneraSheets/jquery/development-bundle/demos/effect/easing.html",
+		"/C/Users/gladc/AppData/Roaming/Sublime Text 3/Packages/User/Default (Windows).sublime-keymap",
+		"/C/Users/gladc/AppData/Roaming/Sublime Text 3/Packages/User/SFTP.sublime-settings",
+		"/C/Users/gladc/AppData/Roaming/Sublime Text 3/Packages/SFTP/SFTP.sublime-settings",
+		"/C/Users/gladc/AppData/Roaming/Sublime Text 3/Packages/SFTP/Default (Windows).sublime-keymap",
+		"/C/Users/gladc/OneDrive/Documents/Arduino/sketches/Rotary-Encoder-Buffer/rotaryEncoderBuffer/rotaryEncoderBuffer.ino",
+		"/C/Users/gladc/OneDrive/Documents/Arduino/sketches/NeoPixel-Monitor-Riser/monitorRiser/monitorRiser.ino",
+		"/C/Users/gladc/AppData/Roaming/Sublime Text 3/Packages/User/arduino-cli.sublime-settings",
+		"/C/Users/gladc/AppData/Roaming/Sublime Text 3/Packages/User/Stino/app_dir.stino-settings"
+	],
+	"find":
+	{
+		"height": 39.0
+	},
+	"find_in_files":
+	{
+		"height": 101.0,
+		"where_history":
+		[
+			"<open folders>",
+			"C:\\Users\\gladc\\Documents\\NumNum\\server\\NumaneraSheets\\js\\",
+			"C:\\Users\\gladc\\Documents\\NumNum\\server\\NumaneraSheets\\*\\.js",
+			"C:\\Users\\gladc\\Documents\\NumNum\\server\\NumaneraSheets\\.*\\.js",
+			"C:\\Users\\gladc\\Documents\\NumNum\\server\\NumaneraSheets",
+			"C:\\Users\\gladc\\Documents\\NumNum\\server\\NumaneraSheets,*.php",
+			"C:\\Users\\gladc\\Documents\\NumNum\\server\\NumaneraSheets"
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+			"command",
+			"get_post_",
+			"serverStats",
+			"initPushPull",
+			"a_basic_tables_structure",
+			"waitfortxtocomplete",
+			"\\\\",
+			"console.log",
+			"otherclient",
+			"error_log",
+			"messageIndex",
+			"\");\n",
+			"setPanAndTilt",
+			"serverStats",
+			"\");\n",
+			"lastMsgIdx",
+			"bad request",
+			"\\t+(.*): \"?(.*)\"?,?",
+			">>> ",
+			"\\$socket",
+			"msgsock",
+			"\\t",
+			",,,,,,,",
+			"console.log",
+			"localUpdate",
+			"mousedown",
+			"  ",
+			"    ",
+			"as_scopes",
+			");\n",
+			" ",
+			"setUpdateTimeout",
+			"noupdate",
+			"kill.*children",
+			"\\|\\|",
+			"\\\\n",
+			"db_query.*\\n?.*TRUE\\)",
+			"jpg",
+			"png",
+			"\\.([a-z]+)",
+			"\\.([a-z])+",
+			"fill",
+			"if.*ip",
+			"if (.*ip",
+			"if (.*addr",
+			"174.56.26.166",
+			"<?php echo $s_colspan; ?>",
+			"\"([a-z]+)\"(,)? ?",
+			"\"[a-z]\"",
+			"#floater",
+			"id=\"floater\"",
+			"#floater",
+			"jqueryExtension",
+			"global_user",
+			"/jquery/js/jquery",
+			"src=\"/jquery/js/jquery-1.9.0.js",
+			"(\".*): (.*),",
+			":",
+			"id=\"floater\"",
+			"sendUpdate",
+			"col6",
+			"checkcirclecontainer",
+			"calculate_center",
+			"REMOTE_ADDR",
+			"j_obj",
+			"ctrl+s",
+			"saved!",
+			"saved",
+			"ctrl",
+			"ctrl+s",
+			"jqueryExtension",
+			"common_functions.js",
+			"remote",
+			"remoteaddr",
+			"174.56.26.166",
+			"checked",
+			"['\"]\\|\\|['\"]",
+			"update_character",
+			"||",
+			"implodeIds",
+			"hidden",
+			"join",
+			"split",
+			"(split.*\"|\")",
+			"split.*\"|\"",
+			"join(\"|\"",
+			"join('|'",
+			"checkcircle",
+			"updateCircleWaiting",
+			"updateCircleTimeout",
+			"font-size",
+			".endButton {",
+			"draw_character",
+			"#floater",
+			"draw_floater",
+			"draw_character",
+			"id=\"floater\"",
+			"draw_character",
+			"update_character_sheet",
+			"id=\"character_id\"",
+			"#character_id",
+			"dragLink",
+			"id=\"floater\"",
+			"174.56.26.166",
+			" onclick=\"$(this).prev().click();\"",
+			"ctrl+s",
+			"draw_character",
+			"interpret_commands",
+			"addNew",
+			"add new",
+			"setUpdateTimeout",
+			"other",
+			"left",
+			"dialCheckBrightness",
+			"LIGHT_G",
+			"BNT_ON",
+			"BNT_OFF",
+			"TURN_ON_OFF",
+			"ON_DIAL",
+			"OFF",
+			"ON",
+			"strip_on",
+			"STRIP_ON_OFF",
+			"^(//)?([ \\t]+)?  "
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": true,
+		"replace_history":
+		[
+			"/",
+			"message_idx",
+			"'@\\1': '\\2',",
+			"",
+			"$o_socket",
+			"o_socket",
+			",",
+			"",
+			"\\t",
+			",",
+			"\\n",
+			".\\1|.\\1",
+			"\\.$1|\\.$1",
+			"col6",
+			"image/\\1\\2",
+			"posts.append(\\1, \\2);",
+			",",
+			"jobj",
+			"",
+			"BTN_ON",
+			"BTN_OFF",
+			"BTN_TURN_ON_OFF",
+			"BTN_ON_DIAL",
+			"BNT_OFF",
+			"BNT_ON",
+			"turned_on",
+			"TURN_ON_OFF",
+			"$1$2\\t"
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"selected": 6,
+			"sheets":
+			[
+				{
+					"buffer": 0,
+					"file": "sftp-config.json",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1371,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								588,
+								588
+							]
+						],
+						"settings":
+						{
+							"WordCount":
+							{
+								"changes": -1,
+								"modified": true,
+								"selection": true,
+								"status": -1,
+								"syntax": "json"
+							},
+							"incomplete_sync": null,
+							"remote_loading": false,
+							"synced": false,
+							"syntax": "Packages/JavaScript/JSON.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 7,
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "index.php",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1000,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								591,
+								577
+							]
+						],
+						"settings":
+						{
+							"WordCount":
+							{
+								"changes": -1,
+								"modified": true,
+								"selection": true,
+								"status": -1,
+								"syntax": "php"
+							},
+							"incomplete_sync": null,
+							"remote_loading": false,
+							"synced": false,
+							"syntax": "Packages/PHP/PHP.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 6,
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "control.js",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 2436,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1493,
+								1510
+							]
+						],
+						"settings":
+						{
+							"WordCount":
+							{
+								"changes": -1,
+								"modified": true,
+								"selection": true,
+								"status": -1,
+								"syntax": "javascript"
+							},
+							"incomplete_sync": null,
+							"remote_loading": false,
+							"synced": false,
+							"syntax": "Packages/JavaScript/JavaScript.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 1512.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 5,
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "communication/longPoll/pushPull.js",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 3408,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								2781,
+								2785
+							]
+						],
+						"settings":
+						{
+							"WordCount":
+							{
+								"changes": -1,
+								"modified": true,
+								"selection": true,
+								"status": -1,
+								"syntax": "javascript"
+							},
+							"incomplete_sync": null,
+							"remote_loading": false,
+							"synced": false,
+							"syntax": "Packages/JavaScript/JavaScript.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 378.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 3,
+					"type": "text"
+				},
+				{
+					"buffer": 4,
+					"file": "resources/install.php",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 6009,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								2183,
+								2207
+							]
+						],
+						"settings":
+						{
+							"WordCount":
+							{
+								"changes": -1,
+								"modified": true,
+								"selection": true,
+								"status": -1,
+								"syntax": "php"
+							},
+							"incomplete_sync": null,
+							"remote_loading": false,
+							"synced": false,
+							"syntax": "Packages/PHP/PHP.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 4,
+					"type": "text"
+				},
+				{
+					"buffer": 5,
+					"file": "resources/database_structure.php",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 619,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								122,
+								122
+							]
+						],
+						"settings":
+						{
+							"WordCount":
+							{
+								"changes": -1,
+								"modified": true,
+								"selection": true,
+								"status": -1,
+								"syntax": "php"
+							},
+							"incomplete_sync": null,
+							"remote_loading": false,
+							"synced": false,
+							"syntax": "Packages/PHP/PHP.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 1,
+					"type": "text"
+				},
+				{
+					"buffer": 6,
+					"file": "resources/other.php",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 3381,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1451,
+								1451
+							]
+						],
+						"settings":
+						{
+							"WordCount":
+							{
+								"changes": -1,
+								"modified": true,
+								"selection": true,
+								"status": -1,
+								"syntax": "php"
+							},
+							"incomplete_sync": null,
+							"remote_loading": false,
+							"synced": false,
+							"syntax": "Packages/PHP/PHP.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 630.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 0,
+					"type": "text"
+				},
+				{
+					"buffer": 7,
+					"file": "resources/globals.php",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 2156,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"WordCount":
+							{
+								"changes": -1,
+								"modified": true,
+								"selection": true,
+								"status": -1,
+								"syntax": "php"
+							},
+							"incomplete_sync": null,
+							"remote_loading": false,
+							"synced": false,
+							"syntax": "Packages/PHP/PHP.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 2,
+					"type": "text"
+				}
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 27.0
+	},
+	"input":
+	{
+		"height": 39.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"output.exec":
+	{
+		"height": 126.0
+	},
+	"output.find_results":
+	{
+		"height": 0.0
+	},
+	"output.sftp":
+	{
+		"height": 126.0
+	},
+	"pinned_build_system": "",
+	"project": "TelePictionary.sublime-project",
+	"replace":
+	{
+		"height": 70.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+			[
+				"campaing",
+				"NumaneraSheets\\pages\\campaigns\\campaign_funcs.php"
+			]
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_symbol":
+	{
+		"height": 392.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 592.0
+	},
+	"selected_group": 0,
+	"settings":
+	{
+	},
+	"show_minimap": true,
+	"show_open_files": false,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 245.0,
+	"status_bar_visible": true,
+	"template_settings":
+	{
+	}
+}
