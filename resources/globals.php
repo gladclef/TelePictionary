@@ -1,11 +1,9 @@
 <?php
 require_once(dirname(__FILE__)."/debug.php");
 define_global_vars();
-require_once(dirname(__FILE__)."/common_functions.php");
-require_once(dirname(__FILE__)."/../objects/user.php");
+
 function define_global_vars() {
 	global $maindb;
-	global $global_user;
 	global $global_opened_db;
 	global $session_started;
 	global $global_path_to_jquery;
@@ -14,6 +12,7 @@ function define_global_vars() {
 	global $global_loaded_server_settings;
 	global $mysqli;
 	global $fqdn;
+
 	$maindb = "";
 	$global_path_to_jquery = "";
 	$global_user = NULL;
@@ -24,6 +23,7 @@ function define_global_vars() {
 	$mysqli = NULL;
 	$a_configs = array();
 	$filename = dirname(__FILE__) . "/server_config.ini";
+
 	if (file_exists($filename)) {
 		$a_configs = parse_ini_file($filename);
 	} else {

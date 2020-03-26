@@ -1,3 +1,5 @@
+if (window.serverStats === undefined) window.serverStats = {};
+
 window["pushPull.js"] = true;
 
 function initPushPull(onmessageCallback, pushObj, onerror, onclose)
@@ -6,15 +8,17 @@ function initPushPull(onmessageCallback, pushObj, onerror, onclose)
 	var addr = "https://bbean.us/TelePictionary/communication/longPoll/server.php";
 	var myId = Math.floor(Math.random() * 100000000);
 	var lastSendTime = 0;
-	var latest_indexes = parseInt(serverStats['latest_indexes']);
+	var latestIndexes = serverStats['latestIndexes'];
 	var sendRate = 50; // 50ms minimum delay between sent messages
 	var delayedUpdated = null;
 	var pollXhrs = [];
 	var pushTimer = null;
 	var pushVals = {};
 	var startTime = Date.now();
+	var pollInterval = null;
 
 	window.addEventListener("beforeunload", function (e) {
+		clearInterval(pollInterval);
 		for (var i = 0; i < pollXhrs.length; i++) {
 			if (pollXhrs[i] !== null) {
 				pollXhrs[i].abort(); // todo
@@ -22,7 +26,7 @@ function initPushPull(onmessageCallback, pushObj, onerror, onclose)
 		}
 	});
 
-	pushData = function(data)
+	pushObj.pushData = function(data)
 	{
 		pushTimer = null;
 		$.ajax({
@@ -33,10 +37,19 @@ function initPushPull(onmessageCallback, pushObj, onerror, onclose)
 			'type': "POST",
 			'timeout': 10000,
 			'success': function(data) {
-				if (data == "success") {
-					// console.log("remote position updated");
+				var o_data = null;
+				try
+				{
+					o_data = JSON.parse(data);
+				}
+				catch (error)
+				{
+					// pass
+				}
+				if (o_data != null && o_data.command !== undefined && o_data.command != "error") {
+					commands[o_data.command](o_data);
 				} else {
-					console.error("Error! " + data);
+					commands.showError(data);
 				}
 			},
 			'error': function(xhr, ajaxOptions, thrownError) {
@@ -51,6 +64,7 @@ function initPushPull(onmessageCallback, pushObj, onerror, onclose)
 		});
 	};
 
+	pushObj.pushEvent = {};
 	pushObj.pushEvent = function(e)
 	{
 		// limit the outgoing message rate
@@ -72,26 +86,26 @@ function initPushPull(onmessageCallback, pushObj, onerror, onclose)
 		lastSendTime = time;
 
 		// add the new index to the front, and remove the oldest index from the back
-		latest_indexes.unshift({
+		latestIndexes.unshift({
 			'idx': Math.floor(Math.random() * 100000000),
 			'clientId': myId,
 			'time': time
 		});
-		latest_indexes.splice(100, 1);
+		latestIndexes.splice(100, 1);
 
 		// prepare json data
 		var data = {
-			'command': 'push',
+			'command': 'pushEvent',
+			'event': JSON.stringify(e),
 			'key': e.key,
-			'value': e.value,
 			'remote': false,
 			'clientId': myId,
-			'message_idx': latest_indexes[0].idx,
-			'message_time': latest_indexes[0].time
+			'message_idx': latestIndexes[0].idx,
+			'message_time': latestIndexes[0].time
 		};
 
 		// convert and send data to server
-		pushData(data);
+		pushObj.pushData(data);
 	};
 	
 	var pollData = null;
@@ -102,7 +116,7 @@ function initPushPull(onmessageCallback, pushObj, onerror, onclose)
 			var data = {
 				'command': 'pull',
 				'clientId': myId,
-				'latest_indexes': latest_indexes
+				'latestIndexes': JSON.stringify(latestIndexes)
 			};
 
 			// send ajax request
@@ -112,7 +126,7 @@ function initPushPull(onmessageCallback, pushObj, onerror, onclose)
 				'cache': false,
 				'data': data,
 				'type': "POST",
-				'timeout': 60000,
+				'timeout': 2000,
 				'success': function(data) {
 					pollXhrs[0] = null;
 					onmessageCallback(data, true);
@@ -131,5 +145,5 @@ function initPushPull(onmessageCallback, pushObj, onerror, onclose)
 			pollXhrs[0] = jqXHR;
 		}
 	};
-	setInterval(pollData, 10);
+	pollInterval = setInterval(pollData, 10);
 }

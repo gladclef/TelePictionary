@@ -1,7 +1,9 @@
 <?php
+
 require_once(dirname(__FILE__)."/globals.php");
 require_once(dirname(__FILE__)."/common_functions.php");
 require_once(dirname(__FILE__)."/db_query.php");
+
 class ProjectInstaller {
 	/***************************************************************************
 	 ********************* P U B L I C   F U N C T I O N S *********************
@@ -48,7 +50,7 @@ class ProjectInstaller {
 	 */
 	public function check_jquery_path_validity() {
 		global $global_path_to_jquery;
-		return file_exists(dirname(__FILE__) . "/../../../$global_path_to_jquery");
+		return file_exists(dirname(__FILE__) . "/../../$global_path_to_jquery");
 	}
 	/**
 	 * Checks for the existance of tables (and table columns) in the database and
@@ -60,6 +62,7 @@ class ProjectInstaller {
 	{
 		global $maindb;
 		global $mysqli;
+		error_log(DIRNAME(__FILE__)."/database_structure.php");
 		require_once(DIRNAME(__FILE__)."/database_structure.php");
 
 		$retval = TRUE;
@@ -121,7 +124,6 @@ class ProjectInstaller {
 					db_query("ALTER TABLE `[maindb]`.`[table]` ADD PRIMARY KEY `[column_name]` (`[column_name]`)", $a_vars);
 				}
 			} // save each column
-			return $retval;
 		} // save each table
 		// insert predefined values
 		foreach ($a_database_insert_values as $s_table_name => $a_rows)
@@ -141,6 +143,7 @@ class ProjectInstaller {
 				}
 			}
 		}
+		return $retval;
 	} // check init database
 	public function check_installed() {
 		$retval = TRUE;

@@ -1,0 +1,39 @@
+body {
+	background-color: #8888FF;
+}
+
+.centered {
+	text-align: center;
+	margin: 0 auto;
+}
+
+.bordered {
+	border: 1px solid #AAAAAA;
+	border-radius: 5px;
+	padding: 10px;
+}
+
+.generalError {
+	display: none;
+	width: 800px;
+	margin: 20px auto;
+	padding: 10px 0;
+	background-color: #FFBBBB;
+	font-weight: bold;
+	border: 2px solid red;
+	border-radius: 10px;
+	box-shadow: 0px 0px 5px black;
+}
+
+.content {
+	width: 800px;
+	margin: 0 auto;
+	background-color: white;
+	border: 1px solid #888888;
+	border-radius: 10px;
+	box-shadow: 0px 0px 5px black;
+}
+
+input:text {
+	border-radius: 6px;
+}

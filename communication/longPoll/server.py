@@ -6,61 +6,100 @@ from SocketServer import ThreadingMixIn
 import select
 import json
 from datetime import datetime
+import time
 
 TCP_IP = '127.0.0.1'
-TCP_PORT = 12345
-clients = { "": [] }
+TCP_PORT = 23456
+
+class Room():
+    s_roomCode = ""
+    a_clients = []
+    a_indexes = []
+    t_createTime = None
+
+    def __init__(self, s_roomCode):
+        self.s_roomCode = s_roomCode
+        self.t_createTime = datetime.now()
+
+    def checkTimeKill(self):
+        if (self.s_roomCode == ""):
+            return False
+        if (len(self.a_clients) == 0):
+            t_delta = datetime.now() - self.t_createTime
+            if (t_delta.total_seconds() > 300):
+                return True
+        return True
+
+    def checkTimeKillAll(self):
+        roomsToRemove = []
+        for roomCode in a_rooms:
+            room = a_rooms[roomCode]
+            if (room.checkTimeKill()):
+                roomsToRemove.append(room)
+        for roomCode in roomsToRemove:
+            del a_rooms[roomCode]
+
+    def getLaterIndex(self, time):
+        for index in self.a_indexes:
+            if (index.message_time > latestTime):
+                return index
+        return None
+
+    def appendIndex(self, key, event):
+        self.a_indexes.append(event)
+        while (len(self.a_indexes) > 100):
+            self.a_indexes.remove(self.a_indexes[0])
 
 # Multithreaded Python server : TCP Server Socket Thread Pool
 class ClientThread(Thread):
     conn = None
     ip = "127.0.0.1"
     port = 0
-    camera = ""
-    s_last_data = None
-    i_last_message_idx = -1;
-    t_create_time = None
+    abort = False
+    s_roomCode = ""
+    a_latestIndexes = []
+    t_createTime = None
  
-    def __init__(self,conn,ip,port,camera=""):
+    def __init__(self, conn, ip, port):
         Thread.__init__(self)
         if (ip != "127.0.0.1"):
             raise Exception()
         self.conn = conn
         self.ip = ip
         self.port = port
-        self.camera = camera
-        self.s_last_data = None
-        self.i_last_message_idx = -1
-        self.t_create_time = datetime.now()
-        # print "[+] New server socket thread started for " + ip + ":" + str(port)
+        self.t_createTime = datetime.now()
+        print "[+] New client socket thread started for " + ip + ":" + str(port)
 
     def __del__(self):
         self.conn.close()
         self.tryRemove()
-        # print("[-] Client connection closed")
+        print("[-] Client connection closed")
+        if (self in a_threads):
+            a_threads.remove(self)
 
-    def tryRemove(self, s_camera = None):
-        if (s_camera is None):
-            s_camera = self.camera;
+    def tryRemove(self, s_roomCode = None):
+        if (s_roomCode is None):
+            s_roomCode = self.s_roomCode;
         try:
-            clients[s_camera].remove(self)
+            a_rooms[s_roomCode].a_clients.remove(self)
         except Exception as e:
             pass
 
-    def checkTimeKill(self, s_camera, i_timeoutSecs):
-        if (s_camera != self.camera):
+    def checkTimeKill(self, s_roomCode, i_timeoutSecs):
+        if (s_roomCode != self.s_roomCode):
             # print(">>>>>>>>>>>>>>>>>>>")
-            print("client camera " + self.camera + " != " + s_camera)
-            self.tryRemove(s_camera)
-            if not self in clients[self.camera]:
-                clients[self.camera].append(self)
-        t_delta = datetime.now() - self.t_create_time
+            print("client s_roomCode " + self.s_roomCode + " != " + s_roomCode)
+            self.tryRemove(s_roomCode)
+            if not self in a_rooms[self.s_roomCode].a_clients:
+                a_rooms[self.s_roomCode].a_clients.append(self)
+        t_delta = datetime.now() - self.t_createTime
         if (t_delta.total_seconds() > i_timeoutSecs):
             self.__del__()
 
-    def checkTimeKillAll(self, s_camera, i_timeoutSecs):
-        for other in clients[s_camera]:
-            other.checkTimeKill(s_camera, i_timeoutSecs)
+    def checkTimeKillAll(self, s_roomCode, i_timeoutSecs):
+        for client in a_rooms[s_roomCode].a_clients:
+            client.checkTimeKill(s_roomCode, i_timeoutSecs)
+        a_rooms[""].checkTimeKillAll()
 
     def checkConn(self):
         try:
@@ -76,63 +115,90 @@ class ClientThread(Thread):
         except Exception as e:
             return default
 
-    def trySend(self, msg):
+    def trySend(self, value):
         try:
-            self.conn.send(msg)
+            # try to send the message
+            self.conn.send(json.dumps(value))
             return True
         except Exception as e:
             return False
+
+    def checkLatestIndexes(self):
+        room = a_rooms[self.s_roomCode]
+
+        # find the latest index time from my latest_indexes
+        latestTime = 0
+        for index in self.a_latestIndexes:
+            if (index.message_time > latestTime):
+                latestTime = index.message_time
+
+        # check for indexes that have a later time than my latest time
+        laterIndex = room.getLaterIndex(latestTime)
+        if (laterIndex != None):
+            # found a later index, send it back to the PHP client
+            return self.trySend(laterIndex)
+
+        return False
+
+    def pushIndex(self, key, event):
+        pass
  
     def run(self):
         while True:
             if not self.checkConn():
                 break
+
             ready = select.select([self.conn], [], [], 1)
+            b_stop = False
             if ready[0]:
-                data = self.tryRecv()
-                a_data = data.split("\n")
-                b_stop = False
-                for s_data in a_data:
-                    s_data = s_data.strip()
-                    if (len(s_data) <= 0):
-                        continue
-                    # print("[:] Received message \"" + s_data + "\" from client")
-                    if (s_data.startswith("disconnect")):
+                s_data = self.tryRecv()
+                s_data = s_data.strip()
+                if (len(s_data) <= 0):
+                    continue
+
+                print("[:] Received message \"" + s_data + "\" from client")
+                if (s_data.startswith("disconnect")):
+                    b_stop = True
+
+                elif (s_data.startswith("subscribe ")):
+                    self.tryRemove()
+                    a_data = json.loads(s_data[len("subscribe "):])
+                    self.s_roomCode = a_data['roomCode']
+                    self.a_latestIndexes = a_data['latestIndexes']
+                    if not (self.s_roomCode in a_rooms):
+                        a_rooms[self.s_roomCode] = Room(self.s_roomCode)
+                    room = a_rooms[self.s_roomCode]
+                    self.checkTimeKillAll(self.s_roomCode, 2)
+                    room.a_clients.append(self)
+                    if (self.checkLatestIndexes()):
+                        # successfully sent a message, so we know PHP client has disconnected and is no longer listening
+                        # remove this instance
                         b_stop = True
-                        break
-                    if (s_data.startswith("subscribe ")):
-                        self.tryRemove()
-                        a_data = json.loads(s_data[len("subscribe "):])
-                        self.camera = a_data['camera']
-                        # print("b.4: " + str(clients))
-                        if not (self.camera in clients):
-                            clients[self.camera] = []
-                        elif (len(clients[self.camera]) > 0):
-                            first_client = clients[self.camera][0]
-                            if (first_client.i_last_message_idx > a_data['message_idx'] and first_client.s_last_data != None):
-                                self.trySend(clients[self.camera][0].s_last_data)
-                        self.checkTimeKillAll(self.camera, 70)
-                        clients[self.camera].append(self)
-                        continue
-                    a_data = json.loads(s_data)
-                    self.s_last_data = s_data
-                    self.i_last_message_idx = a_data['message_idx']
-                    for otherClient in clients[self.camera]:
-                        if (otherClient != self):
-                            otherClient.s_last_data = self.s_last_data
-                            otherClient.i_last_message_idx = self.i_last_message_idx
-                            if not otherClient.trySend(s_data):
-                                otherClient.__del__()
-                if b_stop:
-                    break
+                
+                elif (s_data.startswith("push ")):
+                    room = a_rooms[self.s_roomCode]
+                    a_data = json.loads(s_data[len("push "):])
+                    room.appendIndex(a_data['key'], a_data)
+                    for client in room.a_clients:
+                        client.pushIndex(a_data['key'], a_data)
+            else:
+                time.sleep(50)
+                
+            if b_stop or self.abort:
+                break
         self.__del__()
 
 # Multithreaded Python server : TCP Server Socket Program Stub
 tcpServer = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 tcpServer.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 tcpServer.bind((TCP_IP, TCP_PORT))
- 
+
+a_rooms = { "": Room("") }
+a_threads = []
+
 while True:
+    print("server listening at " + TCP_IP + ":" + str(TCP_PORT) + " (" + str(datetime.now()) + ")")
+
     conn = None
     try:
         tcpServer.listen(4)
@@ -144,8 +210,9 @@ while True:
             conn.setblocking(0)
             newthread = ClientThread(conn,ip,port)
             newthread.start()
-            newthread.checkTimeKillAll("", 70)
-            clients[""].append(newthread)
+            newthread.checkTimeKillAll("", 2)
+            a_rooms[""].a_clients.append(newthread)
+            a_threads.append(newthread)
         except Exception as e:
             print "Bad ip \"" + str(ip) + "\", port \"" + str(port) + "\", or camera name \"\": " + str(e)
     except KeyboardInterrupt:
@@ -153,6 +220,5 @@ while True:
             conn.close()
         break
 
-for camName in clients:
-    for t in clients[camName]:
-        t.join()
+for t in a_threads:
+    t.abort = True

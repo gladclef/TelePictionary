@@ -2,126 +2,127 @@
 
 require_once(dirname(__FILE__) . "/../../resources/common_functions.php");
 require_once(dirname(__FILE__) . "/../../resources/globals.php");
-require_once(dirname(__FILE__) . "/../../derekdnd.php");
+require_once(dirname(__FILE__) . "/../../objects/player.php");
+require_once(dirname(__FILE__) . "/../../objects/command.php");
+require_once(dirname(__FILE__) . "/../../objects/game.php");
 
 // only functions within this class can be called by ajax
 class ajax {
 
-    function setPanTilt() {
+    function setUsername() {
         global $maindb;
-        global $cameraName;
+        global $o_globalPlayer;
 
-        $s_pan = get_post_var("pan");
-        $s_tilt = get_post_var("tilt");
-        $s_camera = get_post_var("camera");
-        $i_clientId = intval(get_post_var("clientId"));
-        $i_message_idx = intval(get_post_var("message_idx"));
-        $i_pan = intval($s_pan);
-        $i_tilt = intval($s_tilt);
+        $s_username = intval(get_post_var("username"));
         
-        // validate parameters
-        if ($s_pan == "" || $s_tilt == "" || $s_camera == "")
-            return "\"pan\", \"tilt\", and \"camera\" post variables must be set!";
-        if ($s_camera != $cameraName)
-            return "\"camera\" post variable must match selected camera name!";
-        $where = ["name"=>"${cameraName}"];
-        $a_rows = db_query("SELECT `id`,`pan_range`,`tilt_range` FROM `${maindb}`.`cameras` WHERE " . array_to_where_clause($where), $where);
-        if (!is_array($a_rows) || sizeof($a_rows) == 0)
-            return "Could not find camera with name \"${s_camera}";
-        $i_panRange = intval($a_rows[0]["pan_range"]);
-        $i_tiltRange = intval($a_rows[0]["tilt_range"]);
-        if ($i_pan < -$i_panRange || $i_pan > $i_panRange || $i_tilt < -$i_tiltRange || $i_tilt > $i_tiltRange)
-            return "\"pan\" and \"tilt\" must be between +-${i_panRange} and ${i_tiltRange}, respectively";
+        // get user
+        player::getGlobalPlayer();
+        $o_globalPlayer->s_name = $s_username;
 
-        // update the database
-        $ab_success = setPanAndTilt($i_pan, $i_tilt, $i_message_idx, FALSE, $s_camera);
-        if ($ab_success === FALSE)
-            return "failed to update database";
-
-        // let all the other clients know
-        try
-        {
-            $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
-            if(is_resource($socket)) {
-                if (socket_connect($socket, "127.0.0.1", 12345)) {
-                    $a_camera = getVals($s_camera);
-                    $a_camera['camera'] = $s_camera;
-                    $a_camera['clientId'] = $i_clientId;
-                    $a_camera['message_idx'] = $i_message_idx;
-                    $s_encoded = json_encode($a_camera);
-                    socket_write($socket, "subscribe ${s_encoded}\n"); // used to register this client with the camera name
-                    socket_write($socket, "${s_encoded}\n");
-                    socket_write($socket, "disconnect\n");
-                } else {
-                    error_log("Failed to connect to 127.0.0.1:12345 to propogate message");
-                }
-            } else {
-                error_log("Failed to create socket to propogate message");
-            }
-        }
-        finally
-        {
-            return "success";
-        }
+        return json_encode(new command("success", ""));
     }
 
-    function getPanTilt() {
+    function createGame() {
         global $maindb;
-        global $cameraName;
+        global $o_globalPlayer;
 
-        $s_camera = get_post_var("camera");
-        
-        // validate parameters
-        if ($s_camera != $cameraName)
-            return "\"camera\" post variable must match selected camera name!";
-        $a_camera = getVals($s_camera);
+        // get user
+        player::getGlobalPlayer();
 
-        // return camera values
-        return json_encode($a_camera);
+        // check to make sure that the player isn't already in a game
+        $a_gameState = $o_globalPlayer->getGameState();
+        if ($a_gameState[0] >= 2 && $a_gameState[0] <= 4)
+        {
+            return json_encode(new command("showError", "Can't create a game while in a game."));
+        }
+
+        // create a new game
+        $o_game = $o_globalPlayer->getGame();
+        $s_gameName = $o_globalPlayer->getName() + "'s Game";
+        if ($o_game != null && $o_game->getPlayer1Id() == $o_globalPlayer->getId())
+        {
+            $s_gameName = $o_game->getName();
+        }
+        $o_game = new game($s_gameName, $o_globalPlayer->getId());
+        $o_game->save();
+
+        // join the game
+        $o_globalPlayer->joinGame($o_game);
     }
 
-    function subscribePanTilt() {
+    function pushEvent() {
         global $maindb;
-        global $cameraName;
+        global $o_globalPlayer;
 
-        $s_camera = get_post_var("camera");
-        $i_clientId = intval(get_post_var("clientId"));
-        $i_message_idx = intval(get_post_var("lastMessageId"));
+        $i_clientId = intval(get_post_var("clienId"));
+        $s_latestIndexes = get_post_var("latestIndexes");
+        $s_key = get_post_var("key");
+        $s_event = get_post_var("event");
+        $o_event = json_decode($s_event);
         
-        // validate parameters
-        if ($s_camera != $cameraName)
-            return "\"camera\" post variable must match selected camera name!";
-        $where = ["name"=>"${cameraName}"];
-        $a_rows = db_query("SELECT `id`,`pan_range`,`tilt_range` FROM `${maindb}`.`cameras` WHERE " . array_to_where_clause($where), $where);
-        if (!is_array($a_rows) || sizeof($a_rows) == 0)
-            return "Could not find camera with name \"${s_camera}";
+        // get user
+        player::getGlobalPlayer();
 
         // listen for the next camera value update
         $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
         if(is_resource($socket)) {
-            if (socket_connect($socket, "127.0.0.1", 12345)) {
-                $s_encoded = json_encode([ "camera"=>$s_camera, "message_idx"=>$i_message_idx ]);
-                socket_write($socket, "subscribe ${s_encoded}\n");
-                socket_set_option($socket,SOL_SOCKET, SO_RCVTIMEO, array("sec"=>60, "usec"=>0));
-                while (true) {
-                    $s_ret = socket_read($socket, 2048);
-                    $i_newlinePos = strpos($s_ret, "\n");
-                    if ($i_newlinePos !== FALSE)
-                        $s_ret = substr($s_ret, 0, $i_newlinePos);
-                    $a_ret = json_decode($s_ret, TRUE);
-                    if (intval($a_ret['clientId']) != $i_clientId) {
-                        socket_write($socket, "disconnect\n");
-                        return $s_ret;
-                    }
-                }
+            if (socket_connect($socket, "127.0.0.1", 23456)) {
+                $s_encoded = json_encode([ "clientId"=>$i_clientId, "latestIndexes"=>$s_latestIndexes, "key"=>$s_key, "event"=>$o_event ]);
+                socket_write($socket, "push ${s_encoded}\n");
             } else {
-                error_log("Failed to connect to 127.0.0.1:12345 to propogate message");
+                error_log("Failed to connect to 127.0.0.1:23456 to propogate message");
             }
         } else {
             error_log("Failed to create socket to propogate message");
         }
     }
 
+    function pull() {
+        global $maindb;
+        global $o_globalPlayer;
+
+        $i_clientId = intval(get_post_var("clienId"));
+        $s_latestIndexes = get_post_var("latestIndexes");
+        
+        // get user
+        player::getGlobalPlayer();
+        if ($o_globalPlayer->getGameState()[0] < 2)
+        {
+            sleep(1);
+            return "";
+        }
+
+        // listen for the next camera value update
+        $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
+        if(is_resource($socket)) {
+            if (socket_connect($socket, "127.0.0.1", 23456)) {
+                $s_encoded = json_encode([ "clientId"=>$i_clientId, "latestIndexes"=>$s_latestIndexes ]);
+                socket_write($socket, "subscribe ${s_encoded}\n");
+                socket_set_option($socket,SOL_SOCKET, SO_RCVTIMEO, array("sec"=>2, "usec"=>0));
+                while (true) {
+                    $s_ret = socket_read($socket, 2048);
+                    $i_newlinePos = strpos($s_ret, "\n");
+                    if ($i_newlinePos !== FALSE)
+                        $s_ret = substr($s_ret, 0, $i_newlinePos);
+
+                    // only return values not created by this same client 
+                    // $a_ret = json_decode($s_ret, TRUE);
+                    // if (intval($a_ret['clientId']) != $i_clientId) {
+                    //     socket_write($socket, "disconnect\n");
+                    //     return $s_ret;
+                    // }
+
+                    // return all values, including those created by this same client
+                    socket_write($socket, "disconnect\n");
+                    return $s_ret;
+                }
+            } else {
+                error_log("Failed to connect to 127.0.0.1:23456 to propogate message");
+            }
+        } else {
+            error_log("Failed to create socket to propogate message");
+        }
+    }
 }
 
 $s_command = get_post_var("command");

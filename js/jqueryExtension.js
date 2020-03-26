@@ -137,14 +137,18 @@ loadJqueryExtensions = function()
     };
 };
 
-(function() {
-	var loadCallback = function()
-	{
-		if (window.jQuery) {
-			loadJqueryExtensions();
-		} else {
-			setTimeout(loadCallback, 1);
-		}
-	};
-	loadCallback();
-})();
+a_toExec[a_toExec.length] = {
+    "name": "jqueryExtension.js",
+    "dependencies": ["jQuery"],
+    "function": function() {
+        var loadCallback = function()
+        {
+            if (window.jQuery) {
+                loadJqueryExtensions();
+            } else {
+                setTimeout(loadCallback, 1);
+            }
+        };
+        loadCallback();
+    }
+};

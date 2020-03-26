@@ -1,4 +1,5 @@
 <?php
+
 require_once(dirname(__FILE__)."/globals.php");
 
 function get_post_var($postname, $s_default = '') {
