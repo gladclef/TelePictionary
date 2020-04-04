@@ -47,7 +47,7 @@ class game
 		$this->a_players = array();
 		for ($i = 0; $i < count($this->a_playerIds); $i++)
 		{
-			$this->a_players[$i] = player::loadFromId($this->a_playerIds[$i]);
+			$this->a_players[$i] = player::loadById($this->a_playerIds[$i]);
 		}
 		return $this->a_players;
 	}
@@ -61,7 +61,7 @@ class game
 		return $this->i_cardStartType;
 	}
 	public function getPlayer1() {
-		return player::loadFromId($this->i_player1Id);
+		return player::loadById($this->i_player1Id);
 	}
 	public function getPlayer1Id() {
 		return $this->i_player1Id;
@@ -105,6 +105,22 @@ class game
 
 		return array(-1, 'Error: unknown game state');
 	}
+	public function toJsonObj()
+	{
+		return array(
+			"roomCode" => $this->s_roomCode,
+			"name" => $this->s_name,
+			"playerIds" => implodeIds($this->a_playerIds),
+			"playerOrder" => implodeIds($this->a_playerOrder),
+			"startTime" => self::getStringFromDateTime($this->d_startTime),
+			"cardStartType" => $this->i_cardStartType,
+			"player1Id" => $this->i_player1Id,
+			"drawTimerLen" => $this->i_drawTimerLen,
+			"textTimerLen" => $this->i_textTimerLen,
+			"turnStart" => self::getStringFromDateTime($this->d_turnStart),
+			"currentTurn" => $this->i_currentTurn
+		);
+	}
 
 	public function addPlayer($i_playerId) {
 		if (in_array($i_playerId, $this->a_playerIds))
@@ -118,8 +134,8 @@ class game
 			return $a_canAddPlayer;
 		}
 
-		$this->a_playerIds[count($this->a_playerIds)-1] = $i_playerId;
-		$this->a_playerOrder[count($this->a_playerOrder)-1] = $i_playerId;
+		array_push($this->a_playerIds, $i_playerId);
+		array_push($this->a_playerOrder, $i_playerId);
 		return array(TRUE, "Player added");
 	}
 	public function save()
@@ -148,8 +164,8 @@ class game
 		);
 		$s_updateClause = array_to_update_clause($a_updateVals);
 
-		create_row_if_not_existing(array_merge($a_whereVals, $a_createVals), TRUE);
-		db_query("UPDATE {$maindb}.games SET {$s_updateClause} WHERE {$s_whereClause}", array_merge($a_updateVals, $a_whereVals), TRUE);
+		create_row_if_not_existing(array_merge($a_whereVals, $a_createVals));
+		db_query("UPDATE {$maindb}.games SET {$s_updateClause} WHERE {$s_whereClause}", array_merge($a_updateVals, $a_whereVals));
 	}
 
 	/*******************************************************
@@ -242,7 +258,7 @@ class game
 			$o_game->d_turnStart = self::getDateTimeFromString($a_games[0]['turnStart']);
 			$o_game->i_currentTurn = $a_games[0]['currentTurn'];
 
-			$a_staticGames[$i_playerId] = $o_game;
+			$a_staticGames[$s_roomCode] = $o_game;
 		}
 		return $o_game;
 	}

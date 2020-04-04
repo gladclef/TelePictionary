@@ -48,7 +48,7 @@ class player
 		$this->a_cards = array();
 		for (var $i = 0; $i < count($a_cardIds); $i++)
 		{
-			$this->a_cards[$i] = card::loadFromId($a_cardIds[$i]);
+			$this->a_cards[$i] = card::loadById($a_cardIds[$i]);
 		}
 		return $this->a_cards;
 	}
@@ -91,6 +91,14 @@ class player
 		}
 
 		return array(-1, 'Error: unknown story reveal state');
+	}
+	public function toJsonObj() {
+		return array(
+			"roomCode" => $this->s_roomCode,
+			"name" => $this->s_name,
+			"playerId" => $this->i_playerId,
+			"cardIds" => implodeIds($this->a_cardIds),
+		);
 	}
 
 	/*******************************************************

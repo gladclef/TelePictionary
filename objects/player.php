@@ -70,7 +70,7 @@ class player
 			return array(1, 'Ready to join game');
 		}
 
-		$a_gameState = $o_game->getGameStatus();
+		$a_gameState = $o_game->getGameState();
 		if ($a_gameState[0] == 1)
 		{
 			return array(2, 'Ready to begin');
@@ -93,16 +93,28 @@ class player
 
 		return array(-1, 'Error: unknown player game state');
 	}
+	public function toJsonObj()
+	{
+		return array(
+			'name' => $this->s_name,
+			'id' => $this->i_id,
+			'roomCode' => $this->s_roomCode,
+			'leftNeighbor' => $this->i_leftNeighbor,
+			'rightNeighbor' => $this->i_rightNeighbor,
+			'storyId' => $this->i_storyId,
+			'storyName' => $this->s_storyName
+		);
+	}
 
 	public function joinGame($o_game)
 	{
-		$this->s_roomCode = $o_game->s_roomCode;
 		$o_game->addPlayer($this->i_id);
-		$this->save();
+		$this->s_roomCode = $o_game->s_roomCode;
 	}
 	public function save()
 	{
 		global $maindb;
+		$b_isNew = FALSE;
 
 		$a_whereVals = array(
 			"id" => $this->i_id
@@ -116,12 +128,29 @@ class player
 		);
 		$s_updateClause = array_to_update_clause($a_updateVals);
 
-		$a_players = db_query("SELECT * FROM `{$maindb}`.`players` WHERE `id`='[id]'", array("id"=>$this->i_id), TRUE);
+		// insert this player as a new row if necessary
+		$a_players = db_query("SELECT * FROM `{$maindb}`.`players` WHERE `id`='[id]'", array("id"=>$this->i_id));
 		if (!is_array($a_players) || count($a_players) == 0) {
+			// insert a new row for this player
 			$s_setClause = array_to_set_clause($a_updateVals);
-			db_query("INSERT INTO `{$maindb}`.`players` {$s_setClause}", $a_updateVals, TRUE);
+			db_query("INSERT INTO `{$maindb}`.`players` {$s_setClause}", $a_updateVals);
+
+			// update the player id with the mysql id
+			$s_whereClause2 = array_to_where_clause($a_updateVals);
+			$a_players2 = db_query("SELECT `id` FROM `{$maindb}`.`players` WHERE {$s_whereClause2} ORDER BY `id` DESC", $a_updateVals);
+			if (is_array($a_players2) && count($a_players2) > 0) {
+				$this->i_id = $a_players2[0]['id'];
+				$a_whereVals['id'] = $this->i_id;
+				$s_whereClause = array_to_where_clause($a_whereVals);
+			}
+
+			$b_isNew = TRUE;
 		}
-		db_query("UPDATE {$maindb}.players SET {$s_updateClause} WHERE {$s_whereClause}", array_merge($a_updateVals, $a_whereVals), TRUE);
+
+		// update the player
+		db_query("UPDATE `{$maindb}`.`players` SET {$s_updateClause} WHERE {$s_whereClause}", array_merge($a_updateVals, $a_whereVals));
+
+		return $b_isNew;
 	}
 
 	/*******************************************************
@@ -144,7 +173,7 @@ class player
 		{
 			return array(FALSE, "Error: player already in a game");
 		}
-		if ($a_gameState[0] != 0)
+		if ($a_gameState[0] != 1)
 		{
 			return array(FALSE, $a_gameState[1]);
 		}

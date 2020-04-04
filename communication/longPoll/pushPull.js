@@ -6,9 +6,8 @@ function initPushPull(onmessageCallback, pushObj, onerror, onclose)
 {
 	//create a new long-poll object
 	var addr = "https://bbean.us/TelePictionary/communication/longPoll/server.php";
-	var myId = Math.floor(Math.random() * 100000000);
 	var lastSendTime = 0;
-	var latestIndexes = serverStats['latestIndexes'];
+	var latestEvents = serverStats['latestEvents'];
 	var sendRate = 50; // 50ms minimum delay between sent messages
 	var delayedUpdated = null;
 	var pollXhrs = [];
@@ -16,6 +15,8 @@ function initPushPull(onmessageCallback, pushObj, onerror, onclose)
 	var pushVals = {};
 	var startTime = Date.now();
 	var pollInterval = null;
+	var pollData = null;
+	var noPoll = null;
 
 	window.addEventListener("beforeunload", function (e) {
 		clearInterval(pollInterval);
@@ -25,6 +26,27 @@ function initPushPull(onmessageCallback, pushObj, onerror, onclose)
 			}
 		}
 	});
+
+	getCommand = function(data)
+	{
+		var o_data = null;
+		try
+		{
+			o_data = JSON.parse(data);
+		}
+		catch (error)
+		{
+			// pass
+		}
+		if (o_data != null && o_data.command !== undefined && o_data.command != "error") {
+			return o_data;
+		} else {
+			return {
+				command: 'showError',
+				action: data
+			}
+		}
+	}
 
 	pushObj.pushData = function(data)
 	{
@@ -37,20 +59,8 @@ function initPushPull(onmessageCallback, pushObj, onerror, onclose)
 			'type': "POST",
 			'timeout': 10000,
 			'success': function(data) {
-				var o_data = null;
-				try
-				{
-					o_data = JSON.parse(data);
-				}
-				catch (error)
-				{
-					// pass
-				}
-				if (o_data != null && o_data.command !== undefined && o_data.command != "error") {
-					commands[o_data.command](o_data);
-				} else {
-					commands.showError(data);
-				}
+				o_command = getCommand(data);
+				commands[o_command.command](o_command.action);
 			},
 			'error': function(xhr, ajaxOptions, thrownError) {
 				if (parseInt(xhr.status) == 0 && thrownError) {
@@ -65,58 +75,82 @@ function initPushPull(onmessageCallback, pushObj, onerror, onclose)
 	};
 
 	pushObj.pushEvent = {};
-	pushObj.pushEvent = function(e)
+	pushObj.pushEvent = function(s_command, o_data)
 	{
 		// limit the outgoing message rate
 		// limit by time per message type
 		var time = (new Date()).getTime();
 		if (time - lastSendTime < sendRate)
 		{
-			if (delayedUpdated == null || delayedUpdated == undefined)
-				delayedUpdated = {}
-			if (delayedUpdated[e.key] == null || delayedUpdated[e.key] == undefined)
-				delayedUpdated[e.key] = null;
+			if (delayedUpdated === undefined)
+				delayedUpdated = null;
 
-			clearTimeout(delayedUpdated[e.key]);
-			delayedUpdated[e.key] = setTimeout(function() {
-				pushObj.pushEvent(e);
+			clearTimeout(delayedUpdated);
+			delayedUpdated = setTimeout(function() {
+				pushObj.pushEvent(s_command, o_data);
 			}, sendRate - (time - lastSendTime));
 			return;
 		}
 		lastSendTime = time;
 
-		// add the new index to the front, and remove the oldest index from the back
-		latestIndexes.unshift({
-			'idx': Math.floor(Math.random() * 100000000),
-			'clientId': myId,
-			'time': time
-		});
-		latestIndexes.splice(100, 1);
-
 		// prepare json data
 		var data = {
 			'command': 'pushEvent',
-			'event': JSON.stringify(e),
-			'key': e.key,
-			'remote': false,
-			'clientId': myId,
-			'message_idx': latestIndexes[0].idx,
-			'message_time': latestIndexes[0].time
+			'event': JSON.stringify({
+				'command': s_command,
+				'action': o_data
+			})
 		};
 
 		// convert and send data to server
 		pushObj.pushData(data);
 	};
+
+	pushPullInterpret = function(data) {
+		data = data.trimStart('\0', '\n');
+		o_command = getCommand(data);
+
+		if (o_command.command == 'noPoll')
+		{
+			// get the no-poll timeout
+			i_noPollTime = 3;
+			try
+			{
+				i_noPollTime = parseInt(o_command.action)
+			}
+			catch (error)
+			{
+				// pass
+			}
+			if (i_noPollTime < 0 || i_noPollTime > 10)
+			{
+				i_noPollTime = 3;
+			}
+
+			// set no-pull and set a timeout to unset no-poll
+			noPoll = true;
+			setTimeout(function() {
+				noPoll = null;
+			}, i_noPollTime * 1000);
+
+			return true;
+		}
+
+		return false;
+	};
 	
-	var pollData = null;
 	pollData = function() {
+		if (noPoll != null)
+		{
+			return;
+		}
+
 		if (pollXhrs.length < 1 || pollXhrs[0] == null) {
 
 			//prepare json data
 			var data = {
 				'command': 'pull',
-				'clientId': myId,
-				'latestIndexes': JSON.stringify(latestIndexes)
+				'latestEvents': JSON.stringify(latestEvents)
 			};
 
 			// send ajax request
@@ -126,10 +160,13 @@ function initPushPull(onmessageCallback, pushObj, onerror, onclose)
 				'cache': false,
 				'data': data,
 				'type': "POST",
-				'timeout': 2000,
+				'timeout': 10000,
 				'success': function(data) {
 					pollXhrs[0] = null;
-					onmessageCallback(data, true);
+					if (!pushPullInterpret(data))
+					{
+						onmessageCallback(getCommand(data), true);
+					}
 				},
 				'error': function(xhr, ajaxOptions, thrownError) {
 					pollXhrs[0] = null;

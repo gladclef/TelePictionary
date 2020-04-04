@@ -8,7 +8,7 @@
 			setUsername: function() {
 				var jPlayerTag = $('#aboutPlayerTag');
 				outgoingMessenger.pushData({
-					command: "setUsername",
+					command: 'setUsername',
 					username: jPlayerTag.val()
 				});
 			},
@@ -16,8 +16,8 @@
 			joinGame: function() {
 				var jRoomCode = $('#aboutRoomCode');
 				about.setUsername();
-				outgoingMessenger.pushEvent({
-					key: 'joinGame',
+				outgoingMessenger.pushData({
+					command: 'joinGame',
 					roomCode: jRoomCode.val()
 				});
 			},
@@ -25,7 +25,7 @@
 			createGame: function() {
 				about.setUsername();
 				outgoingMessenger.pushData({
-					command: "createGame"
+					command: 'createGame'
 				});
 			}
 		};

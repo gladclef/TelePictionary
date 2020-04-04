@@ -33,7 +33,7 @@ class card
 		return player::loadById($this->i_authorId);
 	}
 	public function getStory() {
-		return story::loadFromId($this->i_storyId);
+		return story::loadById($this->i_storyId);
 	}
 	public function getStoryId() {
 		reutrn $this->i_storyId;
@@ -88,6 +88,17 @@ class card
 			return array(1, 'Card is already revealed');
 		}
 		return array(-1, 'Error: uknown card reveal state');
+	}
+	public function toJsonObj() {
+		return array(
+			"roomCode" => $this->s_roomCode,
+			"storyId" => $this->i_storyId,
+			"authorId" => $this->i_authorId,
+			"type" => $this->i_type,
+			"text" => $this->s_text,
+			"imageId" => $this->i_imageId,
+			"isRevealed" => $this->i_isRevealed
+		);
 	}
 
 	/*******************************************************

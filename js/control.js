@@ -30,9 +30,9 @@ function initWatchers()
 	});
 }
 
-function update(e)
+function update(o_command)
 {
-	// TODO process update
+	commands[o_command.command](o_command.action);
 }
 
 function processClick(e)
