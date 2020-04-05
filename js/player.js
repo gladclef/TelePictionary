@@ -12,7 +12,7 @@ playerFuncs.clearPlayers = function()
 
 playerFuncs.addPlayer = function(o_player)
 {
-	var i_id = o_player.i_id;
+	var i_id = o_player.id;
 	var b_old = false;
 
 	if (players.players[i_id] !== undefined)

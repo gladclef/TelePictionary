@@ -109,3 +109,46 @@ Array.prototype.pushIfNotExisting = function(element) {
     }
     return false;
 }
+Array.prototype.removeAtIndex = function(idx, count) {
+    if (arguments.length === 1)
+    {
+        count = 1;
+    }
+    // splice returns the removed elements
+    this.splice(idx, count);
+    // return this array with the values removed
+    return this;
+}
+Array.prototype.pushFront = function(value) {
+    this.splice(0, 0, value);
+    // return this array with the value added
+    return this;
+}
+Array.prototype.pushBack = function(value) {
+    this.push(value);
+    return this;
+}
+Array.prototype.pop = function() {
+    if (this.length === 0)
+        return undefined;
+    // opposite of push
+    // remove and return the last element
+    // splice returns the removed elements
+    return this.splice(this.length-1, 1);
+}
+Array.prototype.popFront = function() {
+    if (this.length === 0)
+        return undefined;
+    return this.splice(0, 1);
+}
+Array.prototype.popBack = function() {
+    return this.pop();
+}
+Array.prototype.enqueue = function(value) {
+    this.pushBack(value);
+    // return this array with the value added
+    return this;
+}
+Array.prototype.dequeue = function() {
+    return this.popFront();
+}

@@ -27,25 +27,72 @@ function initPushPull(onmessageCallback, pushObj, onerror, onclose)
 		}
 	});
 
+	/**
+	 * Input data argument should be of one of the following forms:
+	 * { 'command': string, 'action': any }
+	 * { 'f_serverTime': seconds since epoch, 'event': { 'command': string, 'action': any } }
+	 * ...or the json encoded version of one of those objects.
+	 *
+	 * What is returned is of the type:
+	 * { 'b_hasServerTime': bool, 'f_serverTime': seconds since epoch or 0, 'event': { 'command': string, 'action': any } }
+	 *
+	 * Anything that doesn't match the expected input type is converted to a string and used in a new 'showError' event.
+	 */
 	getCommand = function(data)
 	{
 		var o_data = null;
-		try
+
+		// parse strings
+		if (typeof(data) === "string")
 		{
-			o_data = JSON.parse(data);
-		}
-		catch (error)
-		{
-			// pass
-		}
-		if (o_data != null && o_data.command !== undefined && o_data.command != "error") {
-			return o_data;
-		} else {
-			return {
-				command: 'showError',
-				action: data
+			data = data.trimStart('\0', '\n');
+			try
+			{
+				o_data = JSON.parse(data);
+			}
+			catch (error)
+			{
+				// pass
 			}
 		}
+		// Convert to string if not an object and stuff in a 'showError' event.
+		// Convert to string if not an event or not a command.
+		// Check for null because in javascript "null" is of type "object".
+		else if (typeof(data) !== "object" || data === null ||
+			     (data.command === undefined && data.f_serverTime === undefined))
+		{
+			o_data = {
+				'command': 'showError',
+				'action': "" + data
+			};
+		}
+		else
+		{
+			o_data = data;
+		}
+
+		// sanity check
+		if (typeof(o_data) !== "object" ||
+			(o_data.command === undefined && o_data.f_serverTime === undefined))
+		{
+			throw "Programmer error, bad command type: " + data + "/" + o_data;
+		}
+
+		// convert to a full event type if just a command
+		if (o_data.f_serverTime === undefined) {
+			var eventData = o_data;
+			o_data = {
+				'b_hasServerTime': false,
+				'f_serverTime': 0,
+				'event': eventData
+			};
+		}
+		else
+		{
+			o_data['b_hasServerTime'] = true;
+		}
+
+		return o_data;
 	}
 
 	pushObj.pushData = function(data)
@@ -67,7 +114,10 @@ function initPushPull(onmessageCallback, pushObj, onerror, onclose)
 			'timeout': 10000,
 			'success': function(data) {
 				o_command = getCommand(data);
-				commands[o_command.command](o_command.action);
+				if (commands[o_command.event.command] !== undefined)
+					commands[o_command.event.command](o_command.event.action);
+				else
+					commands['showError']("Unknown command type: " + data);
 			},
 			'error': function(xhr, ajaxOptions, thrownError) {
 				if (parseInt(xhr.status) == 0 && thrownError) {
@@ -113,17 +163,14 @@ function initPushPull(onmessageCallback, pushObj, onerror, onclose)
 		pushObj.pushData(data);
 	};
 
-	pushPullInterpret = function(data) {
-		data = data.trimStart('\0', '\n');
-		o_command = getCommand(data);
-
-		if (o_command.command == 'noPoll')
+	pushPullInterpret = function(o_command) {
+		if (o_command.event.command == 'noPoll')
 		{
 			// get the no-poll timeout
 			i_noPollTime = 3;
 			try
 			{
-				i_noPollTime = parseInt(o_command.action)
+				i_noPollTime = parseInt(o_command.event.action)
 			}
 			catch (error)
 			{
@@ -145,6 +192,18 @@ function initPushPull(onmessageCallback, pushObj, onerror, onclose)
 
 		return false;
 	};
+
+	recordEvent = function(o_command)
+	{
+		if (o_command.b_hasServerTime)
+		{
+			latestEvents.enqueue(o_command.f_serverTime);
+			while (latestEvents.length > 100)
+			{
+				latestEvents.dequeue();
+			}
+		}
+	}
 	
 	pollData = function() {
 		if (noPoll != null)
@@ -175,10 +234,12 @@ function initPushPull(onmessageCallback, pushObj, onerror, onclose)
 				'type': "POST",
 				'timeout': 12000,
 				'success': function(data) {
+					var o_command = getCommand(data);
 					pollXhrs[0] = null;
-					if (!pushPullInterpret(data))
+					if (!pushPullInterpret(o_command))
 					{
-						onmessageCallback(getCommand(data), true);
+						recordEvent(o_command);
+						onmessageCallback(o_command, true);
 					}
 				},
 				'error': function(xhr, ajaxOptions, thrownError) {

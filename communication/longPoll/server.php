@@ -226,7 +226,7 @@ class ajax {
 
         $i_clientId = intval(get_post_var("clienId"));
         $s_latestEvents = get_post_var("latestEvents");
-        $o_latestEvents = json_decode($s_latestEvents);
+        $a_latestEvents = json_decode($s_latestEvents);
         
         // get user and game
         if ($o_globalPlayer->getGameState()[0] < 2)
@@ -240,7 +240,7 @@ class ajax {
         if(is_resource($socket)) {
             if (socket_connect($socket, "127.0.0.1", 23456)) {
                 $s_encoded = json_encode(array(
-                    "latestEvents" => $o_latestEvents,
+                    "latestEvents" => $a_latestEvents,
                     "roomCode" => $o_game->getRoomCode()
                 ));
                 socket_write($socket, "subscribe ${s_encoded}\n");
@@ -257,16 +257,28 @@ class ajax {
                         $sbo_ret2 = socket_read($socket, 4096);
                         if ($sbo_ret2 !== false)
                             $sbo_ret .= $sbo_ret2;
+
+                        // done receiving, return event
                         break;
                     }
                     $i_count--;
                 }
                 socket_write($socket, "disconnect\n");
 
+                // parse the event
                 if (is_bool($sbo_ret))
                 {
                     $sbo_ret = new command("success", "no new events");
                 }
+                else if (is_string($sbo_ret))
+                {
+                    $o_command = json_decode($sbo_ret);
+                    if ($o_command !== null) // check if the decode was successful
+                    {
+                        $sbo_ret = $o_command;
+                    }
+                }
+
                 return $sbo_ret;
             } else {
                 error_log("Failed to connect to 127.0.0.1:23456 to propogate message");

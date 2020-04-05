@@ -32,7 +32,7 @@ function initWatchers()
 
 function update(o_command)
 {
-	commands[o_command.command](o_command.action);
+	commands[o_command.event.command](o_command.event.action);
 }
 
 function processClick(e)

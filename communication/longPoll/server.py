@@ -13,6 +13,12 @@ TCP_IP = '127.0.0.1'
 TCP_PORT = 23456
 CLIENT_LIFETIME = 10 # each client connection lives for 10 seconds
 
+def isTimeLater(f_laterTime, f_earlierTime, f_secondsAccuracy):
+    if (f_laterTime > f_earlierTime):
+        if (f_laterTime - f_secondsAccuracy > f_earlierTime):
+            return True
+    return False
+
 class Room():
     s_roomCode = ""
     a_clients = []
@@ -41,16 +47,16 @@ class Room():
                 t_delta = datetime.now() - self.t_changeTime
             if (t_delta.total_seconds() > 300):
                 return True
-        return True
+        return False
 
     def checkTimeKillAll(self):
         roomsToRemove = []
-        for roomCode in a_rooms:
-            room = a_rooms[roomCode]
+        for s_roomCode in a_rooms:
+            room = a_rooms[s_roomCode]
             if (room.checkTimeKill()):
-                roomsToRemove.append(room)
-        for roomCode in roomsToRemove:
-            del a_rooms[roomCode]
+                roomsToRemove.append(s_roomCode)
+        for s_roomCode in roomsToRemove:
+            del a_rooms[s_roomCode]
 
     def getClientsListCopy(self):
         with self.l_timeLock:
@@ -83,13 +89,16 @@ class Room():
                 return
             self.a_clients.remove(o_client)
 
-    def getLaterEvent(self, t_time):
+    def getLaterEvent(self, f_time):
         with self.l_timeLock:
             self.t_changeTime = datetime.now()
         with self.l_eventLock:
-            for i in range(len(self.a_events), 0, -1):
+            # print("trying to find an event with a later time than " + str(t_time))
+            for i in range(len(self.a_events)-1, -1, -1):
                 event = self.a_events[i]
-                if (event.t_serverTime > t_time):
+                # print(str(event))
+                if (isTimeLater(event['f_serverTime'], f_time, 0.001)):
+                    print("found later event than " + str(f_time) + ": " + str(event))
                     return event
             return None
 
@@ -97,10 +106,13 @@ class Room():
     def appendEvent(self, o_event):
         with self.l_timeLock:
             self.t_changeTime = datetime.now()
+        f_serverTime = time.time()
+        o_newEvent = { 'f_serverTime': f_serverTime, 'event': o_event }
         with self.l_eventLock:
-            self.a_events.append({ 't_serverTime': datetime.now(), 'event': o_event })
+            self.a_events.append(o_newEvent)
             while (len(self.a_events) > 100):
                 self.a_events.remove(self.a_events[0])
+        return o_newEvent
 
 # Multithreaded Python server : TCP Server Socket Thread Pool
 class ClientThread(Thread):
@@ -126,7 +138,7 @@ class ClientThread(Thread):
 
     def __del__(self):
         self.tryRemove()
-        print("[-] Client connection closed")
+        #print("[-] Client connection closed")
 
     def removeMe(self):
         with self.l_abortLock:
@@ -153,7 +165,6 @@ class ClientThread(Thread):
         # make sure I'm in the right room
         if (s_roomCode != self.s_roomCode):
             # print(">>>>>>>>>>>>>>>>>>>")
-            print("client s_roomCode " + self.s_roomCode + " != " + s_roomCode)
             self.tryRemove(s_roomCode)
             room = a_rooms[self.s_roomCode]
             if not room.hasClient(self):
@@ -188,10 +199,18 @@ class ClientThread(Thread):
             t_prev = t_now
             i_waitTime = CLIENT_LIFETIME
             ret = ""
+            count = 0
 
             # receive data until there is no more data to be recieved
-            while (t_now - t_prev < i_waitTime):
-                count = self.conn.recv_into(part, 1, flags=MSG_DONTWAIT)
+            while ((t_now - t_prev).total_seconds() < i_waitTime):
+                try:
+                    part = self.conn.recv(1, socket.MSG_DONTWAIT)
+                except Exception as e2:
+                    if not ("Resource temporarily unavailable" in str(e2)): # nothing to be read
+                        raise e2
+                    else:
+                        part = ""
+                count = len(part)
 
                 # check if we've received anything
                 if (count > 0):
@@ -206,7 +225,7 @@ class ClientThread(Thread):
 
                 # nothing to be read right now
                 else:
-                    threading.sleep(0.1)
+                    time.sleep(0.1)
 
                 t_now = datetime.now()
                 with self.l_abortLock:
@@ -217,6 +236,7 @@ class ClientThread(Thread):
             return ret
 
         except Exception as e:
+            print("exception e = " + str(e))
             return default
 
     def trySend(self, value):
@@ -232,9 +252,9 @@ class ClientThread(Thread):
 
         # find the latest event time from my latestEvents
         latestTime = 0
-        for event in self.a_latestEvents:
-            if (event.t_serverTime > latestTime):
-                latestTime = event.t_serverTime
+        for eventTime in self.a_latestEvents:
+            if (isTimeLater(eventTime, latestTime, 0.001)):
+                latestTime = eventTime
 
         # check for events that have a later time than my latest time
         laterEvent = room.getLaterEvent(latestTime)
@@ -275,6 +295,7 @@ class ClientThread(Thread):
             b_stop = False
             if ready[0]:
                 s_data = self.tryRecv()
+                # print("s_data " + s_data)
                 with self.l_abortLock:
                     if (self.b_abort):
                         break
@@ -298,9 +319,9 @@ class ClientThread(Thread):
                     a_data = json.loads(s_data[len("push "):])
                     self.setRoomCode(a_data['roomCode'])
                     room = a_rooms[self.s_roomCode]
-                    room.appendEvent(a_data['event'])
+                    o_newEvent = room.appendEvent(a_data['event'])
                     for client in room.getClientsListCopy():
-                        client.pushEvent(a_data['event'])
+                        client.pushEvent(o_newEvent)
             else:
                 time.sleep(0.1)
             
@@ -366,8 +387,9 @@ o_clientKiller1 = ClientKiller(o_clientKiller2)
 a_rooms = { "": Room("") }
 a_threads = []
 
+print("server listening at " + TCP_IP + ":" + str(TCP_PORT) + " (" + str(datetime.now()) + ")")
 while True:
-    print("server listening at " + TCP_IP + ":" + str(TCP_PORT) + " (" + str(datetime.now()) + ")")
+    #print("server listening at " + TCP_IP + ":" + str(TCP_PORT) + " (" + str(datetime.now()) + ")")
 
     conn = None
     try:
