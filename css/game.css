@@ -1,3 +1,7 @@
+#gamePlayersCircle {
+	position: relative;
+}
+
 .playerToken {
 	position: absolute;
 }

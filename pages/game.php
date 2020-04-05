@@ -87,12 +87,51 @@
 				}
 			},
 
-			setPlayerTokenPosition: function(i_playerId, i_position) {
+			setPlayerTokenPosition: function(i_playerId, i_position, b_updatePositions) {
+				if (arguments.length < 3) b_updatePositions = true;
+				var jPlayersCircle = $("#gamePlayersCircle");
+				var jPlayerToken = jPlayersCircle.find(".playerToken[playerId=" + i_playerId + "]");
 
+				// bump the position of other player tokens with this position
+				var jOtherPlayerToken = jPlayersCircle.find(".playerToken[position=" + i_position + "]");
+				if (jOtherPlayerToken.length > 0)
+				{
+					var i_otherPlayerId = parseInt(jOtherPlayerToken.attr("playerId"));
+					game.setPlayerTokenPosition(i_otherPlayerId, i_position + 1, false);
+				}
+
+				// set this player token position and update token layouts
+				jPlayerToken.attr("position", i_position);
+				if (b_updatePositions)
+				{
+					game.updatePlayerTokensLayout();
+				}
 			},
 
 			updatePlayerTokensLayout: function() {
+				var jPlayersCircle = $("#gamePlayersCircle");
+				var jaPlayerTokens = jPlayersCircle.find(".playerToken");
+				var tokenWidth = $(jaPlayerTokens[0]).find(".playerImagePlaceholder").width();
+				var tokenHeight = $(jaPlayerTokens[0]).find(".playerImagePlaceholder").height();
+				var padding = 20;
+				var canvasWidth = jPlayersCircle.width() - padding*2;
+				var canvasHeight = jPlayersCircle.height() - padding*2;
 
+				$.each(jaPlayerTokens, function(k, playerToken) {
+					var jPlayerToken = $(playerToken);
+					var i_position = parseInt(jPlayerToken.attr("position"));
+					
+					var radians = 2*Math.PI*(i_position / jaPlayerTokens.length);
+					var x0 = ( Math.sin(radians) + 1 ) / 2;
+					var y0 = ( Math.cos(radians + Math.PI) + 1 ) / 2;
+					var x = x0 * ( canvasWidth - tokenWidth ) + padding;
+					var y = y0 * ( canvasHeight - tokenHeight ) + padding;
+
+					jPlayerToken.css({
+						left: x + "px",
+						top: y + "px"
+					});
+				});
 			},
 
 			setPlayer1: function(i_id) {
