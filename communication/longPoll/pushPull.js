@@ -50,6 +50,13 @@ function initPushPull(onmessageCallback, pushObj, onerror, onclose)
 
 	pushObj.pushData = function(data)
 	{
+		if (pushObj.customData !== undefined && pushObj.customData !== null)
+		{
+			$.each(pushObj.customData, function(k, v) {
+				data[k] = v;
+			});
+		}
+
 		pushTimer = null;
 		$.ajax({
 			'url': addr,
@@ -152,6 +159,12 @@ function initPushPull(onmessageCallback, pushObj, onerror, onclose)
 				'command': 'pull',
 				'latestEvents': JSON.stringify(latestEvents)
 			};
+			if (pushObj.customData !== undefined && pushObj.customData !== null)
+			{
+				$.each(pushObj.customData, function(k, v) {
+					data[k] = v;
+				});
+			}
 
 			// send ajax request
 			var jqXHR = $.ajax({
@@ -160,7 +173,7 @@ function initPushPull(onmessageCallback, pushObj, onerror, onclose)
 				'cache': false,
 				'data': data,
 				'type': "POST",
-				'timeout': 10000,
+				'timeout': 12000,
 				'success': function(data) {
 					pollXhrs[0] = null;
 					if (!pushPullInterpret(data))

@@ -110,8 +110,8 @@ class game
 		return array(
 			"roomCode" => $this->s_roomCode,
 			"name" => $this->s_name,
-			"playerIds" => implodeIds($this->a_playerIds),
-			"playerOrder" => implodeIds($this->a_playerOrder),
+			"playerIds" => $this->a_playerIds,
+			"playerOrder" => $this->a_playerOrder,
 			"startTime" => self::getStringFromDateTime($this->d_startTime),
 			"cardStartType" => $this->i_cardStartType,
 			"player1Id" => $this->i_player1Id,
@@ -247,16 +247,17 @@ class game
 		$a_games = db_query("SELECT * FROM `{$maindb}`.`games` WHERE `roomCode`='[roomCode]'", array("roomCode"=>$s_roomCode));
 		if (is_array($a_games) && count($a_games) > 0) {
 			$o_game = new game($a_games[0]['name'], $a_games[0]['player1Id']);
-			$o_game->i_id = $a_games[0]['id'];
+			$o_game->i_id = intval($a_games[0]['id']);
 			$o_game->s_roomCode = $a_games[0]['roomCode'];
 			$o_game->a_playerIds = explodeIds($a_games[0]['playerIds']);
 			$o_game->a_playerOrder = explodeIds($a_games[0]['playerOrder']);
 			$o_game->d_startTime = self::getDateTimeFromString($a_games[0]['startTime']);
-			$o_game->i_cardStartType = $a_games[0]['cardStartType'];
-			$o_game->i_drawTimerLen = $a_games[0]['drawTimerLen'];
-			$o_game->i_textTimerLen = $a_games[0]['textTimerLen'];
+			$o_game->i_player1Id = intval($a_games[0]['player1Id']);
+			$o_game->i_cardStartType = intval($a_games[0]['cardStartType']);
+			$o_game->i_drawTimerLen = intval($a_games[0]['drawTimerLen']);
+			$o_game->i_textTimerLen = intval($a_games[0]['textTimerLen']);
 			$o_game->d_turnStart = self::getDateTimeFromString($a_games[0]['turnStart']);
-			$o_game->i_currentTurn = $a_games[0]['currentTurn'];
+			$o_game->i_currentTurn = intval($a_games[0]['currentTurn']);
 
 			$a_staticGames[$s_roomCode] = $o_game;
 		}

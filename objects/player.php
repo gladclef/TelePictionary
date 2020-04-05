@@ -198,9 +198,9 @@ class player
 		$a_players = db_query("SELECT * FROM `{$maindb}`.`players` WHERE `id`='[id]'", array("id"=>$i_playerId));
 		if (is_array($a_players) && count($a_players) > 0) {
 			$o_player = new player($a_players[0]['name']);
-			$o_player->i_id = $a_players[0]['id'];
+			$o_player->i_id = intval($a_players[0]['id']);
 			$o_player->s_roomCode = $a_players[0]['roomCode'];
-			$o_player->i_storyId = $a_players[0]['storyId'];
+			$o_player->i_storyId = intval($a_players[0]['storyId']);
 			$o_player->a_gameIds = explodeIds($a_players[0]['gameIds']);
 
 			$o_player->i_leftNeighbor = -1;
@@ -230,24 +230,50 @@ class player
 		return $o_player;
 	}
 
+	/**
+	 * Tries to access the global player by looking for the
+	 * 'playerId' _POST variable. If it is not set, this function
+	 * will try to access the playerId from the _SESSION variable.
+	 *
+	 * Because this function uses the $_SESSION variable, any thread
+	 * that accesses this function will be forced to wait until other
+	 * threads release the $_SESSION object.
+	 */
 	public static function getGlobalPlayer() {
 		global $o_globalPlayer;
 
+		// check if already loaded
 		if (isset($o_globalPlayer) && $o_globalPlayer !== undefined && $o_globalPlayer !== null)
 		{
 			return $o_globalPlayer;
 		}
 
-		my_session_start();
-		if (!isset($_SESSION['globalPlayer']))
+		// not loaded, get the player id
+		$i_playerId = -1;
+		if (isset($_POST['playerId']))
 		{
-			$o_globalPlayer = new player('');
-			$_SESSION['globalPlayer'] = $o_globalPlayer;
+			// load from post var
+			$i_playerId = intval($_POST['playerId']);
 		}
 		else
 		{
-			$o_globalPlayer = $_SESSION['globalPlayer'];
+			// load from session
+			my_session_start();
+			if (isset($_SESSION['playerId']))
+			{
+				$i_playerId = $_SESSION['playerId'];
+			}
+			else
+			{
+				$o_globalPlayer = new player('');
+				$o_globalPlayer->save();
+				$_SESSION['playerId'] = $o_globalPlayer->getId();
+				$i_playerId = $o_globalPlayer->getId();
+			}
 		}
+
+		// now load the player from the playerId
+		$o_globalPlayer = self::loadById($i_playerId);
 
 		return $o_globalPlayer;
 	}

@@ -122,11 +122,11 @@ class card
 		$a_cards = db_query("SELECT * FROM `{$maindb}`.`cards` WHERE `id`='[id]'", array("id"=>$i_cardId));
 		if (is_array($a_cards) && count($a_cards) > 0) {
 			$o_card = new user($a_cards[0]['roomCode'], $a_cards[0]['storyId'], $a_cards[0]['authorId']);
-			$o_card->i_id = $a_cards[0]['id'];
-			$o_card->i_type = $a_cards[0]['type'];
+			$o_card->i_id = intval($a_cards[0]['id']);
+			$o_card->i_type = intval($a_cards[0]['type']);
 			$o_card->s_text = $a_cards[0]['text'];
-			$o_card->i_imageId = $a_cards[0]['imageId'];
-			$o_card->i_isRevealed = $a_cards[0]['isRevealed'];
+			$o_card->i_imageId = intval($a_cards[0]['imageId']);
+			$o_card->i_isRevealed = intval($a_cards[0]['isRevealed']);
 
 			$a_staticCards[$i_cardId] = $o_card;
 		}

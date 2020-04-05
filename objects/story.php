@@ -122,7 +122,7 @@ class player
 		$a_stories = db_query("SELECT * FROM `{$maindb}`.`stories` WHERE `id`='[id]'", array("id"=>$i_storyId));
 		if (is_array($a_stories) && count($a_stories) > 0) {
 			$o_story = new story($a_stories[0]['roomCode'], $a_stories[0]['playerId']);
-			$o_story->i_id = $a_stories[0]['id'];
+			$o_story->i_id = intval($a_stories[0]['id']);
 			$o_story->s_name = $a_stories[0]['name'];
 			$o_story->a_cardIds = explodeIds($a_stories[0]['cardIds']);
 

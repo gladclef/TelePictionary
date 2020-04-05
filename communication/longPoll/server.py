@@ -11,7 +11,7 @@ import time
 
 TCP_IP = '127.0.0.1'
 TCP_PORT = 23456
-CLIENT_LIFETIME = 10 # each client connection lives for 2 seconds
+CLIENT_LIFETIME = 10 # each client connection lives for 10 seconds
 
 class Room():
     s_roomCode = ""

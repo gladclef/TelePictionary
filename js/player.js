@@ -32,6 +32,15 @@ playerFuncs.updatePlayerName = function(i_id)
 	// TODO
 }
 
+playerFuncs.getPlayerName = function(i_id, s_default)
+{
+	if (arguments.length < 2)
+		s_default = "uknown";
+	if (players[i_id] === undefined)
+		return s_default;
+	return players[i_id].name;
+}
+
 playerFuncs.setLocalPlayer = function(i_id)
 {
 	players.localPlayer = i_id;
@@ -41,6 +50,13 @@ playerFuncs.setLocalPlayer = function(i_id)
 playerFuncs.setPlayer1 = function(i_id)
 {
 	players.player1 = i_id;
+}
+
+playerFuncs.isPlayer1 = function()
+{
+	if (players.localPlayer === -1)
+		return false;
+	return (players.localPlayer === players.player1);
 }
 
 playerFuncs.clearPlayers();

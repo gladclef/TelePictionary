@@ -46,12 +46,22 @@ $o_globalPlayer = player::getGlobalPlayer();
 			echo "serverStats['latestEvents'] = []; // TODO get the latest 100 message events\r\n";
 			echo "serverStats['hasUsername'] = {$s_hasUsername};\r\n";
 			echo "serverStats['isInGame'] = {$s_isInGame};\r\n";
+			echo "serverStats['localPlayer'] = {$o_globalPlayer->getId()};\r\n";
 			?>
 
 			a_toExec[a_toExec.length] = {
 				"name": "index.php",
-				"dependencies": ["jQuery", "jqueryExtension.js", "commands.js"],
+				"dependencies": ["jQuery", "jqueryExtension.js", "commands.js", "playerFuncs", "control.js"],
 				"function": function() {
+					// add special application-level data to every push-pull ajax request
+					outgoingMessenger.customData = {
+						playerId: serverStats['localPlayer']
+					};
+
+					// set some things
+					playerFuncs.setLocalPlayer(serverStats['localPlayer']);
+
+					// show the content
 					var s_content = "about";
 					if (serverStats['isInGame']) {
 						s_content = "game";
@@ -62,6 +72,7 @@ $o_globalPlayer = player::getGlobalPlayer();
 		</script>
 
 		<link rel="stylesheet" type="text/css" href="css/common.css" />
+		<link rel="stylesheet" type="text/css" href="css/game.css" />
 	</head>
 	<body>
 		<div class="centered generalError"></div>

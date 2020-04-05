@@ -7,7 +7,7 @@ require_once(dirname(__FILE__) . "/../../objects/command.php");
 require_once(dirname(__FILE__) . "/../../objects/game.php");
 
 class _ajax {
-    function pushEvent($o_event, $s_roomCode = null) {
+    function pushEvent($o_command, $s_roomCode = null, $b_showError = true) {
         global $maindb;
         global $o_globalPlayer;
         
@@ -19,8 +19,15 @@ class _ajax {
             $o_game = game::loadByRoomCode($s_roomCode);
         }
         if ($o_game == null) {
-            error_log(print_r($o_event, true));
-            return new command("showError", "Can't post event \"" . $o_event->command . "\". Player is not a part of a game.");
+            if ($b_showError)
+            {
+                error_log("can't push event " . print_r($o_command, true));
+                return new command("showError", "Can't post event \"" . $o_command->command . "\". Player is not a part of a game.");
+            }
+            else
+            {
+                return new command("success", "");
+            }
         }
         $s_roomCode = $o_game->getRoomCode();
 
@@ -29,7 +36,7 @@ class _ajax {
         if(is_resource($socket)) {
             if (socket_connect($socket, "127.0.0.1", 23456)) {
                 $s_encoded = json_encode(array(
-                    "event" => $o_event,
+                    "event" => $o_command,
                     "roomCode" => $s_roomCode
                 ));
                 socket_write($socket, "push ${s_encoded}\n");
@@ -44,37 +51,24 @@ class _ajax {
             return new command("showError", $s_msg);
         }
 
+        // error_log("sent event " . print_r($o_command, true));
         return new command("success", "");
     }
 
-    function chunkStart() {
-        ignore_user_abort(true);
-        // header('Transfer-Encoding:chunked');
-        // ob_flush();
-        flush();
+    function pushPlayer($o_player, $s_roomCode = null, $b_showError = true)
+    {
+        return self::pushEvent(new command(
+            "addPlayer",
+            $o_player->toJsonObj()
+        ), $s_roomCode, $b_showError);
     }
-    function chunkCheckAbort() {
-        echo "\n";
-        // ob_flush();
-        flush();
-        if(connection_aborted()){
-            return true;
-        }
-        return false;
-    }
-    // Use this function to echo anything to the browser.
-    function chunkPrint($data){
-        if(strlen($data))
-            echo $data;
-            // echo dechex(strlen($data)), "\r\n", $data, "\r\n";
-        // ob_flush();
-        flush();
-    }
-    // You MUST execute this function after you are done streaming information to the browser.
-    function chunkEnd(){
-        // echo "0\r\n\r\n";
-        // ob_flush();
-        flush();
+
+    function pushGame($o_game, $s_roomCode = null, $b_showError = true)
+    {
+        return self::pushEvent(new command(
+            "updateGame",
+            $o_game->toJsonObj()
+        ), $s_roomCode, $b_showError);
     }
 }
 
@@ -91,7 +85,25 @@ class ajax {
         $o_globalPlayer->s_name = $s_username;
         $o_globalPlayer->save();
 
+        // push this event
+        _ajax::pushPlayer($o_globalPlayer, null, false);
+
         return new command("success", "");
+    }
+
+    function setGameName() {
+        global $maindb;
+        global $o_globalPlayer;
+
+        $s_gameName = get_post_var("gameName");
+        
+        // get the game
+        $o_game = $o_globalPlayer->getGame();
+        $o_game->s_name = $s_gameName;
+        $o_game->save();
+
+        // push this event
+        return _ajax::pushGame($o_game);
     }
 
     function createGame() {
@@ -235,7 +247,7 @@ class ajax {
                 socket_set_option($socket,SOL_SOCKET, SO_RCVTIMEO, array("sec"=>0, "usec"=>100000));
 
                 $sbo_ret = false;
-                $i_count = 5 * 10;
+                $i_count = 10 * 10; // 10 seconds, with 10 timeouts per second
                 while ($i_count > 0) {
                     $sbo_ret = socket_read($socket, 4096);
                     if ($sbo_ret !== false)

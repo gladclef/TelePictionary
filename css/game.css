@@ -1,0 +1,30 @@
+.playerToken {
+	position: absolute;
+}
+
+.playerImagePlaceholder {
+	width: 76px;
+	height: 67px;
+	padding: 13px 4px 0 0;
+	font-size: 46px;
+	font-weight: bold;
+	background-color: gray;
+	border-radius: 80px;
+	color: white;
+	cursor: pointer;
+}
+
+.playerName {
+	position: absolute;
+	left: -23px;
+	top: 85px;
+	background-color: black;
+	color: white;
+	text-align: center;
+	border-radius: 4px;
+	width: 120px;
+	height: 20px;
+	padding: 0 3px;
+	overflow: hidden;
+	display: none;
+}
