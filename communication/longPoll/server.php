@@ -296,30 +296,42 @@ class ajax {
                     $sbo_ret = socket_read($socket, 10);
                     if ($sbo_ret !== false)
                     {
-                        // read until we've read the incoming length
                         socket_set_option($socket,SOL_SOCKET, SO_RCVTIMEO, array("sec"=>1, "usec"=>0));
-                        while (strlen($sbo_ret) < 10)
-                            $sbo_ret .= socket_read($socket, 10 - strlen($sbo_ret));
-                        $i_retlen = intval(substr($sbo_ret, 0, 10));
-                        $sbo_ret = (strlen($sbo_ret) <= 10) ? "" : substr($sbo_ret, 10);
+
+                        // read until we've read the incoming length
+                        $s_len = $sbo_ret;
+                        $s_part = "";
+                        while (strlen($s_len) < 10) {
+                            $s_part = socket_read($socket, 10 - strlen($s_len));
+                            if ($s_part !== false) {
+                                $s_len .= $s_part;
+                            } else {
+                                error_log("received part of a message " . $s_len);
+                                $s_len = false;
+                                $sbo_ret = false;
+                                break;
+                            }
+                        }
+                        if ($s_len === false)
+                            break;
+                        $i_retlen = intval(substr($s_len, 0, 10));
+                        $sbo_ret = (strlen($s_len) <= 10) ? "" : substr($s_len, 10);
 
                         // read the rest of the message
-                        $sbo_ret2 = "";
-                        while ($sbo_ret2 !== false && strlen($sbo_ret2) < $i_retlen)
+                        $s_msg = "";
+                        $s_part = "";
+                        while ($s_msg !== false && strlen($s_msg) < $i_retlen)
                         {
-                            $sbo_ret3 = socket_read($socket, $i_retlen - strlen($sbo_ret2));
-                            if ($sbo_ret3 !== false)
-                                $sbo_ret2 .= $sbo_ret3;
+                            $s_part = socket_read($socket, $i_retlen - strlen($sbo_ret2));
+                            if ($s_part !== false)
+                                $s_msg .= $s_part;
                             else
-                                $sbo_ret2 = false;
+                                $s_msg = false;
                         }
-                        if ($sbo_ret2 !== false)
-                        {
-                            if (strlen($sbo_ret) == 0)
-                                $sbo_ret = $sbo_ret2;
-                            else
-                                $sbo_ret .= $sbo_ret2;
-                        }
+                        if ($s_msg !== false)
+                            $sbo_ret = "" . $sbo_ret . $s_msg;
+                        else
+                            $sbo_ret = false;
 
                         // done receiving, return event
                         break;
@@ -331,11 +343,11 @@ class ajax {
                 socket_write($socket, $s_encoded);
 
                 // parse the event
-                ob_start();                    // start buffer capture
-                var_dump( $sbo_ret );           // dump the values
-                $contents = ob_get_contents(); // put the buffer into a variable
-                ob_end_clean();   
-                error_log("received message: " . $contents);
+                // ob_start();                    // start buffer capture
+                // var_dump( $sbo_ret );           // dump the values
+                // $contents = ob_get_contents(); // put the buffer into a variable
+                // ob_end_clean();   
+                // error_log("received message: " . $contents);
                 if (is_bool($sbo_ret))
                 {
                     $sbo_ret = new command("success", "no new events");

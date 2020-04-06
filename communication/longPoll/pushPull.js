@@ -240,7 +240,7 @@ function initPushPull(onmessageCallback, pushObj, onerror, onclose)
 				'cache': false,
 				'data': data,
 				'type': "POST",
-				'timeout': 12000,
+				'timeout': 15000,
 				'success': function(data) {
 					var o_command = getCommand(data);
 					pollXhrs[0] = null;
