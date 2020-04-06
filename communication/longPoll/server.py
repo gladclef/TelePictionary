@@ -30,6 +30,8 @@ class Room():
 
     def __init__(self, s_roomCode):
         self.s_roomCode = s_roomCode
+        self.a_clients = []
+        self.a_events = []
         self.t_changeTime = datetime.now()
         self.l_eventLock = threading.Lock()
         self.l_clientLock = threading.Lock()
@@ -132,6 +134,9 @@ class ClientThread(Thread):
         self.conn = conn
         self.ip = ip
         self.port = port
+        self.b_abort = False
+        self.s_roomCode = ""
+        self.a_latestEvents = []
         self.t_createTime = datetime.now()
         self.l_abortLock = threading.Lock()
         print "[+] New client socket thread started for " + ip + ":" + str(port)

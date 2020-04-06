@@ -150,18 +150,16 @@ class ajax {
             // push events to all the listening players
             $o_cmd = pushEvent(
                 new command(
-                    "joinGame",
-                    $o_game->toJsonObj()
+                    "composite",
+                    array(new command(
+                        "joinGame",
+                        $o_game->toJsonObj()
+                    ), new command(
+                        "setPlayer1",
+                        $o_globalPlayer->getId()
+                    ))
                 ),
                 $o_oldGame->getRoomCode()
-            );
-            if ($o_cmd->command != "success") return $o_cmd;
-            $o_cmd = pushEvent(
-                new command(
-                    "setPlayer1",
-                    $o_globalPlayer->getId()
-                ),
-                $o_game->getRoomCode()
             );
             if ($o_cmd->command != "success") return $o_cmd;
 

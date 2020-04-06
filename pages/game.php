@@ -24,21 +24,7 @@
 				var jRoomCode = $("#gameRoomCode");
 				var jGameName = $("#gameGameName");
 				var jGameNameEdit = $("#gameGameNameEdit");
-				var jGameStatus = $("#gameGameStatus");
 				game.o_cachedGame = o_game;
-
-				// get the game status
-				var s_gameStatus = "Waiting for " + playerFuncs.getPlayerName(o_game.player1Id, 'host') + " to start game.";
-				if (o_game.currentTurn >= 0)
-				{
-					s_gameStatus = "Turn " + (o_game.currentTurn+1);
-				}
-				if (o_game.currentTurn >= o_game.playerIds.length)
-				{
-					var i_playerId = o_game.playerIds[o_game.currentTurn - o_game.playerIds.length];
-					var s_playerName = playerFuncs.getPlayerName(i_playerId);
-					s_gameStatus = s_playerName + "'s story";
-				}
 
 				// update drawn values
 				jRoomCode.text("Room code " + o_game.roomCode);
@@ -46,7 +32,6 @@
 				jGameNameEdit.find("input[type=text]").val(o_game.name);
 				jGameName.show();
 				jGameNameEdit.hide();
-				jGameStatus.text(s_gameStatus);
 				for (var i = 0; i < o_game.playerOrder.length; i++)
 				{
 					game.setPlayerTokenPosition(o_game.playerOrder[i], i);
@@ -163,6 +148,9 @@
 					var jPlayer1Control = $("#gamePlayer1Control");
 					var jControlStart = jPlayer1Control.find("[control=start]");
 					jPlayer1Control.show();
+
+					// update the status text
+					game.updateStatusText();
 				}
 			},
 
@@ -190,10 +178,40 @@
 
 			setCurrentTurn: function(i_currentTurn) {
 
+				// update the status text
+				game.updateStatusText();
 			},
 
 			endGame: function() {
 				game.resetGuiState();
+			},
+
+			updateStatusText: function() {
+				var jGameStatus = $("#gameGameStatus");
+				var o_game = game.o_cachedGame;
+				var s_gameStatus = "";
+
+				// determine the status text
+				if (playerFuncs.isPlayer1(players.localPlayer))
+				{
+					s_gameStatus = "Press \"Start Game\" when all players have joined.";
+				}
+				else
+				{
+					s_gameStatus = "Waiting for host to start game";
+				}
+				if (o_game.currentTurn >= 0)
+				{
+					s_gameStatus = "Turn " + (o_game.currentTurn+1);
+				}
+				if (o_game.currentTurn >= o_game.playerIds.length)
+				{
+					var i_playerId = o_game.playerIds[o_game.currentTurn - o_game.playerIds.length];
+					var s_playerName = playerFuncs.getPlayerName(i_playerId);
+					s_gameStatus = s_playerName + "'s story";
+				}
+
+				jGameStatus.text(s_gameStatus);
 			},
 
 			removePlayer: function(o_player) {
