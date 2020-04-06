@@ -203,6 +203,7 @@ class ClientThread(Thread):
             t_now = datetime.now()
             t_prev = t_now
             i_waitTime = CLIENT_LIFETIME
+            i_expected = -1
             ret = ""
             count = 0
 
@@ -217,6 +218,10 @@ class ClientThread(Thread):
                         part = ""
                 count = len(part)
 
+                # check if we've received everything
+                if (i_expected > -1 and len(ret) == i_expected+10):
+                    ret = ret[10:]
+                    break
                 # check if we've received anything
                 if (count > 0):
                     
@@ -226,11 +231,14 @@ class ClientThread(Thread):
 
                     # If we've received part of a message, then we know the rest
                     # of the message will be coming in much less than CLIENT_LIFETIME seconds.
-                    i_waitTime = 0.01
+                    i_waitTime = 0.1
 
+                    # check if we know how long the string is
+                    if (len(ret) >= 10):
+                        i_expected = int(ret[:10])
                 # nothing to be read right now
                 else:
-                    time.sleep(0.1)
+                    time.sleep(0.01)
 
                 t_now = datetime.now()
                 with self.l_abortLock:
@@ -247,7 +255,9 @@ class ClientThread(Thread):
     def trySend(self, value):
         try:
             # try to send the message
-            self.conn.send(json.dumps(value))
+            s_ret = json.dumps(value)
+            s_ret = str(len(s_ret)).ljust(10, ' ') + s_ret
+            self.conn.send(s_ret)
             return True
         except Exception as e:
             return False

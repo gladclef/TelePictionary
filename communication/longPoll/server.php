@@ -44,7 +44,9 @@ class _ajax {
                     "event" => $o_command,
                     "roomCode" => $s_roomCode
                 ));
-                socket_write($socket, "push ${s_encoded}\n");
+                $s_encoded = "push " . $s_encoded . "\n";
+                $s_encoded = str_pad("".strlen($s_encoded), 10) . $s_encoded;
+                socket_write($socket, $s_encoded);
             } else {
                 $s_msg = "Failed to connect to 127.0.0.1:23456 to propogate message";
                 error_log($s_msg);
@@ -283,29 +285,57 @@ class ajax {
                     "latestEvents" => $a_latestEvents,
                     "roomCode" => $o_game->getRoomCode()
                 ));
-                socket_write($socket, "subscribe ${s_encoded}\n");
-                socket_set_option($socket,SOL_SOCKET, SO_RCVTIMEO, array("sec"=>0, "usec"=>100000));
+                $s_encoded = "subscribe " . $s_encoded . "\n";
+                $s_encoded = str_pad("".strlen($s_encoded), 10) . $s_encoded;
+                socket_write($socket, $s_encoded);
+                socket_set_option($socket,SOL_SOCKET, SO_RCVTIMEO, array("sec"=>0, "usec"=>10000));
 
                 $sbo_ret = false;
-                $i_count = 10 * 10; // 10 seconds, with 10 timeouts per second
+                $i_count = 10 * 100; // 10 seconds, with 100 timeouts per second
                 while ($i_count > 0) {
-                    $sbo_ret = socket_read($socket, 4096);
+                    $sbo_ret = socket_read($socket, 10);
                     if ($sbo_ret !== false)
                     {
-                        // read for 10 more milliseconds to make sure we've received the full message
-                        socket_set_option($socket,SOL_SOCKET, SO_RCVTIMEO, array("sec"=>0, "usec"=>10000));
-                        $sbo_ret2 = socket_read($socket, 4096);
+                        // read until we've read the incoming length
+                        socket_set_option($socket,SOL_SOCKET, SO_RCVTIMEO, array("sec"=>1, "usec"=>0));
+                        while (strlen($sbo_ret) < 10)
+                            $sbo_ret .= socket_read($socket, 10 - strlen($sbo_ret));
+                        $i_retlen = intval(substr($sbo_ret, 0, 10));
+                        $sbo_ret = (strlen($sbo_ret) <= 10) ? "" : substr($sbo_ret, 10);
+
+                        // read the rest of the message
+                        $sbo_ret2 = "";
+                        while ($sbo_ret2 !== false && strlen($sbo_ret2) < $i_retlen)
+                        {
+                            $sbo_ret3 = socket_read($socket, $i_retlen - strlen($sbo_ret2));
+                            if ($sbo_ret3 !== false)
+                                $sbo_ret2 .= $sbo_ret3;
+                            else
+                                $sbo_ret2 = false;
+                        }
                         if ($sbo_ret2 !== false)
-                            $sbo_ret .= $sbo_ret2;
+                        {
+                            if (strlen($sbo_ret) == 0)
+                                $sbo_ret = $sbo_ret2;
+                            else
+                                $sbo_ret .= $sbo_ret2;
+                        }
 
                         // done receiving, return event
                         break;
                     }
                     $i_count--;
                 }
-                socket_write($socket, "disconnect\n");
+                $s_encoded = "disconnect\n";
+                $s_encoded = str_pad("".strlen($s_encoded), 10) . $s_encoded;
+                socket_write($socket, $s_encoded);
 
                 // parse the event
+                ob_start();                    // start buffer capture
+                var_dump( $sbo_ret );           // dump the values
+                $contents = ob_get_contents(); // put the buffer into a variable
+                ob_end_clean();   
+                error_log("received message: " . $contents);
                 if (is_bool($sbo_ret))
                 {
                     $sbo_ret = new command("success", "no new events");
