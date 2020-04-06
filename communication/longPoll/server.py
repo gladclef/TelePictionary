@@ -221,7 +221,7 @@ class ClientThread(Thread):
 
                     # If we've received part of a message, then we know the rest
                     # of the message will be coming in much less than CLIENT_LIFETIME seconds.
-                    i_waitTime = 0.1
+                    i_waitTime = 0.01
 
                 # nothing to be read right now
                 else:

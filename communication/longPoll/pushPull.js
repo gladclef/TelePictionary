@@ -16,15 +16,19 @@ function initPushPull(onmessageCallback, pushObj, onerror, onclose)
 	var startTime = Date.now();
 	var pollInterval = null;
 	var pollData = null;
-	var noPoll = null;
+	pushObj.noPoll = null;
 
-	window.addEventListener("beforeunload", function (e) {
-		clearInterval(pollInterval);
+	stopCurrentPolls = function() {
 		for (var i = 0; i < pollXhrs.length; i++) {
 			if (pollXhrs[i] !== null) {
 				pollXhrs[i].abort(); // todo
 			}
 		}
+	};
+
+	window.addEventListener("beforeunload", function (e) {
+		clearInterval(pollInterval);
+		stopCurrentPolls();
 	});
 
 	/**
@@ -163,6 +167,14 @@ function initPushPull(onmessageCallback, pushObj, onerror, onclose)
 		pushObj.pushData(data);
 	};
 
+	pushObj.setNoPoll = function(i_timeoutMs) {
+		pushObj.noPoll = true;
+		setTimeout(function() {
+			pushObj.noPoll = null;
+		}, i_timeoutMs);
+		stopCurrentPolls();
+	};
+
 	pushPullInterpret = function(o_command) {
 		if (o_command.event.command == 'noPoll')
 		{
@@ -182,11 +194,7 @@ function initPushPull(onmessageCallback, pushObj, onerror, onclose)
 			}
 
 			// set no-pull and set a timeout to unset no-poll
-			noPoll = true;
-			setTimeout(function() {
-				noPoll = null;
-			}, i_noPollTime * 1000);
-
+			pushObj.setNoPoll(i_noPollTime * 1000);
 			return true;
 		}
 
@@ -197,16 +205,16 @@ function initPushPull(onmessageCallback, pushObj, onerror, onclose)
 	{
 		if (o_command.b_hasServerTime)
 		{
-			latestEvents.enqueue(o_command.f_serverTime);
+			latestEvents = latestEvents.enqueue(o_command.f_serverTime);
 			while (latestEvents.length > 100)
 			{
-				latestEvents.dequeue();
+				latestEvents = latestEvents.dequeue();
 			}
 		}
 	}
 	
 	pollData = function() {
-		if (noPoll != null)
+		if (pushObj.noPoll != null)
 		{
 			return;
 		}

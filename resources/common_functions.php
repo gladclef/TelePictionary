@@ -8,9 +8,19 @@ function get_post_var($postname, $s_default = '') {
 
 function my_session_start() {
 	global $session_started;
+
 	if ($session_started === FALSE) {
-			$session_started = TRUE;
-			session_start();
+		$i_sessionTime = 60*60*24*7; // 7 days
+		// server should keep session data for AT LEAST session time
+		ini_set('session.gc_maxlifetime', $i_sessionTime);
+		// each client should remember their session id for EXACTLY session time
+		session_set_cookie_params($i_sessionTime);
+
+		// start the session
+		session_start();
+
+		// remember that the session was started
+		$session_started = TRUE;
 	}
 }
 
@@ -47,13 +57,21 @@ function endsWith($haystack, $needle) {
     (substr($haystack, -$length) === $needle);
 }
 
-function explodeIds($s_ids) {
+function explodeIds($s_ids, $f_applyFunc = null) {
 	if (!is_string($s_ids))
 		return $s_ids;
 	if ($s_ids == "")
 		return array();
 	$a_ids = explode("||", $s_ids);
-	return str_replace("|", "", $a_ids);
+	$a_ids = str_replace("|", "", $a_ids);
+	if ($f_applyFunc !== null)
+	{
+		for ($i = 0; $i < count($a_ids); $i++)
+		{
+			$a_ids[$i] = $f_applyFunc($a_ids[$i]);
+		}
+	}
+	return $a_ids;
 }
 
 function implodeIds($a_ids) {

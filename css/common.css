@@ -36,6 +36,7 @@ body > .firefoxPlaceholder {
 	border: 1px solid #888888;
 	border-radius: 10px;
 	box-shadow: 0px 0px 5px black;
+	position: relative;
 }
 
 input:text {

@@ -15,7 +15,6 @@ class card
 	public $i_imageId = 0;
 	public $s_imageAlias = '';
 	public $i_isRevealed = 0;
-	private static $a_staticCards = array();
 
 	function __construct($s_roomCode, $i_storyId, $i_authorId) {
 		$this->s_roomCode = $s_roomCode;
@@ -110,11 +109,14 @@ class card
 	 */
 	public static function loadById($i_cardId) {
 		global $maindb;
+		global $card_staticCards;
 		
 		// check if already loaded
-		if (isset($a_staticCards[$i_cardId]))
+		if (!isset($card_staticCards))
+			$card_staticCards = [];
+		if (isset($card_staticCards[$i_cardId]))
 		{
-			return $a_staticCards[$i_cardId];
+			return $card_staticCards[$i_cardId];
 		}
 		
 		// load the card
@@ -128,7 +130,7 @@ class card
 			$o_card->i_imageId = intval($a_cards[0]['imageId']);
 			$o_card->i_isRevealed = intval($a_cards[0]['isRevealed']);
 
-			$a_staticCards[$i_cardId] = $o_card;
+			$card_staticCards[$i_cardId] = $o_card;
 		}
 		return $o_card;
 	}

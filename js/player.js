@@ -59,4 +59,37 @@ playerFuncs.isPlayer1 = function()
 	return (players.localPlayer === players.player1);
 }
 
+playerFuncs.isLocalPlayer = function(io_player)
+{
+	if (typeof(io_player) === "object")
+	{
+		if (io_player.id !== undefined && io_player.id === players.localPlayer && players.localPlayer !== -1)
+		{
+			return true;
+		}
+	}
+	else if (io_player === players.localPlayer && players.localPlayer !== -1)
+	{
+		return true;
+	}
+	return false;
+}
+
+playerFuncs.removePlayer = function(o_player)
+{
+	// unset if player 1
+	if (playerFuncs.isPlayer1(o_player.id))
+	{
+		players.player1Id = -1;
+	}
+
+	// delete the player
+	if (playerFuncs.isLocalPlayer(o_player))
+	{
+		// don't delete the player if the current player
+		return;
+	}
+	delete players[o_player.id];
+}
+
 playerFuncs.clearPlayers();

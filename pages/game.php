@@ -3,6 +3,11 @@
 		game = {
 			o_cachedGame: null,
 
+			resetGuiState: function() {
+				$("#gamePlayersCircle").find(".playerToken").remove();
+				$("#gamePlayer1Control").hide();
+			},
+
 			setGameName: function(s_newGameName) {
 				outgoingMessenger.pushData({
 					command: 'setGameName',
@@ -67,7 +72,7 @@
 				s_name = s_name.trim();
 				var s_initials = s_name[0] + s_name[Math.min(s_name.length-1, 1)];
 				if (s_name.indexOf(" ") >= 0)
-					s_initials = s_name[0] + s_name[Math.min(s_name.lastIndexOf(" "), s_name.length-1)];
+					s_initials = s_name[0] + s_name[Math.min(s_name.lastIndexOf(" ")+1, s_name.length-1)];
 				s_initials = s_initials.toUpperCase();
 				jPlayerImgPlaceholder.text(s_initials);
 				jPlayerName.text(s_name);
@@ -137,6 +142,7 @@
 			setPlayer1: function(i_id) {
 				if (playerFuncs.isPlayer1())
 				{
+					// make game name editable
 					var jGameName = $("#gameGameName");
 					var jGameNameEdit = $("#gameGameNameEdit");
 					jGameName.off("click");
@@ -147,11 +153,48 @@
 					jGameName.css({
 						cursor: 'pointer'
 					});
+
+					// make player1 controls visible
+					var jPlayer1Control = $("#gamePlayer1Control");
+					var jControlStart = jPlayer1Control.find("[control=start]");
+					jPlayer1Control.show();
+				}
+			},
+
+			controlLeaveClick: function() {
+				outgoingMessenger.setNoPoll(10000);
+				outgoingMessenger.pushData({
+					'command': 'leaveGame'
+				});
+			},
+
+			controlStartClick: function() {
+				outgoingMessenger.pushData({
+					'command': 'startGame'
+				});
+			},
+
+			startGame: function() {
+				if (playerFuncs.isPlayer1())
+				{
+					var jPlayer1Control = $("#gamePlayer1Control");
+					var jControlStart = jPlayer1Control.find("[control=start]");
+					jControlStart.hide();
 				}
 			},
 
 			setCurrentTurn: function(i_currentTurn) {
 
+			},
+
+			endGame: function() {
+				game.resetGuiState();
+			},
+
+			removePlayer: function(o_player) {
+				var jPlayersCircle = $("#gamePlayersCircle");
+				var jPlayerToken = jPlayersCircle.find(".playerToken[playerId=" + o_player.id + "]");
+				jPlayerToken.remove();
 			}
 		};
 
@@ -191,13 +234,27 @@
 			"name": "game.php",
 			"dependencies": ["jQuery", "jqueryExtension.js", "commands.js", "index.php"],
 			"function": function() {
+				game.resetGuiState();
+
 				// register event handlers
 				var jGameNameEdit = $("#gameGameNameEdit");
 				var jGameNameEditText = jGameNameEdit.find("input[type=text]");
 				var jGameNameEditDone = jGameNameEdit.find("input[type=button]");
+				var jLeaveGame = $("#gameLeaveGame");
 				jGameNameEditDone.on("click", function() {
 					game.setGameName(jGameNameEditText.val());
 				});
+				jLeaveGame.off("mouseenter").on("mouseenter", function() {
+					jLeaveGame.stop(true, true).animate({ 'width': '136px' }, 300, 'linear', function() {
+						jLeaveGame.find("div").text("Exit Game").css({ 'top': '-3px', 'left': '0px' });
+						jLeaveGame.css({ 'font-size': '20px' });
+					});
+				});
+				jLeaveGame.off("mouseleave").on("mouseleave", function() {
+					jLeaveGame.stop(true, true).css({ 'font-size': '23px' }).find("div").text('\u2B05').css({ 'top': '-7px', 'left': '-2px' });
+					jLeaveGame.animate({ 'width': '20px' }, 300, 'linear');
+				});
+				jLeaveGame.off("click").on("click", game.controlLeaveClick);
 
 				// canvas.mousemove(function(e) {
 				// 	if (windowFocus && mouseDown) {
@@ -233,12 +290,18 @@
 		};
 	</script>
 
+	<div id="gameLeaveGame"><div>&#x2B05;</div></div>
 	<h3 id="gameGameName" class="centered"></h3>
 	<div id="gameGameNameEdit" class="centered" style="width: 300px; display: none;"><input type="text" /><input type="button" value="Done" /></div>
 	<h4 id="gameRoomCode" class="centered"></h4>
 	<br />
 	<div id="gamePlayersCircle" class="centered bordered" style="width: 700px; height: 700px;">
 
+	</div>
+	<div id="gamePlayer1Control" class="centered" style="width: 700px; display: none;">
+		<div class="centered" gameControl="start" style="width: 80px;">
+			<input type="button" value="Start Game" onclick="game.controlStartClick();" />
+		</div>
 	</div>
 	<div id="gameGameStatus" class="centered" style="width: 500px;">loading...</div>
 </div>

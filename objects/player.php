@@ -15,7 +15,6 @@ class player
 	public $i_storyId = -1;
 	public $s_storyName = '';
 	public $a_gameIds = array();
-	private static $a_staticPlayers;
 
 	function __construct($s_name) {
 		$this->s_name = $s_name;
@@ -111,6 +110,13 @@ class player
 		$o_game->addPlayer($this->i_id);
 		$this->s_roomCode = $o_game->s_roomCode;
 	}
+	public function leaveGame()
+	{
+		$o_game = $this->getGame();
+		if ($o_game !== null)
+			$o_game->removePlayer($this->i_id);
+		$this->s_roomCode = '';
+	}
 	public function save()
 	{
 		global $maindb;
@@ -139,7 +145,7 @@ class player
 			$s_whereClause2 = array_to_where_clause($a_updateVals);
 			$a_players2 = db_query("SELECT `id` FROM `{$maindb}`.`players` WHERE {$s_whereClause2} ORDER BY `id` DESC", $a_updateVals);
 			if (is_array($a_players2) && count($a_players2) > 0) {
-				$this->i_id = $a_players2[0]['id'];
+				$this->i_id = intval($a_players2[0]['id']);
 				$a_whereVals['id'] = $this->i_id;
 				$s_whereClause = array_to_where_clause($a_whereVals);
 			}
@@ -186,11 +192,14 @@ class player
 	 */
 	public static function loadById($i_playerId) {
 		global $maindb;
+		global $player_staticPlayers;
 		
 		// check if already loaded
-		if (isset($a_staticPlayers[$i_playerId]))
+		if (!isset($player_staticPlayers))
+			$player_staticPlayers = [];
+		if (isset($player_staticPlayers[$i_playerId]))
 		{
-			return $a_staticPlayers[$i_playerId];
+			return $player_staticPlayers[$i_playerId];
 		}
 		
 		// load the player
@@ -201,16 +210,16 @@ class player
 			$o_player->i_id = intval($a_players[0]['id']);
 			$o_player->s_roomCode = $a_players[0]['roomCode'];
 			$o_player->i_storyId = intval($a_players[0]['storyId']);
-			$o_player->a_gameIds = explodeIds($a_players[0]['gameIds']);
+			$o_player->a_gameIds = explodeIds($a_players[0]['gameIds'], 'intval');
 
 			$o_player->i_leftNeighbor = -1;
 			$o_player->i_rightNeighbor = -1;
 			$o_player->o_leftNeighbor = null;
 			$o_player->o_rightNeighbor = null;
-			$o_game = game::loadByRoomCode($o_player->s_roomCode);
+			$o_game = $o_player->getGame();
 			if ($o_game != null)
 			{
-				$a_playerOrder = explodeIds($o_game->getPlayerOrder());
+				$a_playerOrder = $o_game->getPlayerOrder();
 				if (count($a_playerOrder) > 0)
 				{
 					for ($i = 0; $i < count($a_playerOrder); $i++)
@@ -225,7 +234,7 @@ class player
 				}
 			}
 
-			$a_staticPlayers[$i_playerId] = $o_player;
+			$player_staticPlayers[$i_playerId] = $o_player;
 		}
 		return $o_player;
 	}

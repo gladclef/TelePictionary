@@ -7,6 +7,11 @@ require_once(dirname(__FILE__) . "/../../objects/command.php");
 require_once(dirname(__FILE__) . "/../../objects/game.php");
 
 class _ajax {
+    /**
+     * o_commands should be a command type object (has properties "command" and "action")
+     * s_roomCode should either be a 4-letter room code or null (will attempt to grab the room code from the o_globalPlayer's current game)
+     * b_showError determines if an error gets logged/returned if either the room code can't be found or the event can't be pushed to the python server
+     */
     function pushEvent($o_command, $s_roomCode = null, $b_showError = true) {
         global $maindb;
         global $o_globalPlayer;
@@ -200,6 +205,14 @@ class ajax {
         $o_globalPlayer->save();
         $o_game->save();
 
+        // push this event to other clients already in the game
+        $a_commands = array(
+            new command("addPlayer", $o_globalPlayer->toJsonObj()),
+            new command("updateGame", $o_game->toJsonObj())
+        );
+        _ajax::pushEvent(new command("composite", $a_commands));
+
+        // respond to this client
         $a_commands = array(
             new command("clearPlayers", ""),
             new command("updateGame", $o_game->toJsonObj()),
@@ -211,6 +224,35 @@ class ajax {
         array_push(   $a_commands, new command( "setLocalPlayer", $o_globalPlayer->getId() )   );
         array_push(   $a_commands, new command( "setPlayer1", $o_game->getPlayer1Id() )   );
         return new command("composite", $a_commands);
+    }
+
+    function leaveGame() {
+        global $maindb;
+        global $o_globalPlayer;
+        $a_commands = array();
+
+        // check to make sure that the player is in a game
+        $a_gameState = $o_globalPlayer->getGameState();
+        $o_game = $o_globalPlayer->getGame();
+        if ($a_gameState[0] < 2 || $a_gameState[0] > 4 || $o_game === null)
+        {
+            return new command("showContent", "about");
+        }
+
+        // join the game
+        $o_globalPlayer->leaveGame();
+        $o_globalPlayer->save();
+        $o_game->save();
+
+        // push this event to other clients already in the game
+        $a_commands = array(
+            new command("removePlayer", $o_globalPlayer->toJsonObj()),
+            new command("updateGame", $o_game->toJsonObj())
+        );
+        _ajax::pushEvent(new command("composite", $a_commands), $o_game->getRoomCode());
+
+        // respond to this client
+        return new command("showContent", "about");
     }
 
     function pushEvent() {

@@ -1,3 +1,25 @@
+#gameLeaveGame {
+	position: absolute;
+	width: 20px;
+	height: 20px;
+	top: 12px;
+	left: 20px;
+	padding: 5px;
+	background-color: #885588;
+	cursor: pointer;
+	box-shadow: 0px 0px 3px #552255;
+	text-align: center;
+	border-radius: 20px;
+	color: white;
+	font-size: 23px;
+}
+
+#gameLeaveGame > div {
+	position: relative;
+	top: -7px;
+	left: -2px;
+}
+
 #gamePlayersCircle {
 	position: relative;
 }

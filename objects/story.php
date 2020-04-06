@@ -12,7 +12,6 @@ class player
 	public $a_cards = null;
 	public $a_cardIds = array();
 	public $i_revealCount = 0;
-	private static $a_staticStories = array();
 
 	function __construct($s_roomCode, $i_playerId) {
 		$this->s_roomCode = $s_roomCode;
@@ -110,11 +109,14 @@ class player
 	 */
 	public static function loadById($i_storyId) {
 		global $maindb;
+		global $story_staticStories;
 		
 		// check if already loaded
-		if (isset($a_staticStories[$i_storyId]))
+		if (!isset($story_staticStories))
+			$story_staticStories = [];
+		if (isset($story_staticStories[$i_storyId]))
 		{
-			return $a_staticStories[$i_storyId];
+			return $story_staticStories[$i_storyId];
 		}
 		
 		// load the story
@@ -124,9 +126,9 @@ class player
 			$o_story = new story($a_stories[0]['roomCode'], $a_stories[0]['playerId']);
 			$o_story->i_id = intval($a_stories[0]['id']);
 			$o_story->s_name = $a_stories[0]['name'];
-			$o_story->a_cardIds = explodeIds($a_stories[0]['cardIds']);
+			$o_story->a_cardIds = explodeIds($a_stories[0]['cardIds'], 'intval');
 
-			$a_staticStories[$i_storyId] = $o_story;
+			$story_staticStories[$i_storyId] = $o_story;
 		}
 		return $o_story;
 	}

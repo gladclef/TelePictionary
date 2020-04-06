@@ -106,3 +106,9 @@ commands.joinGame = function(o_game)
 		roomCode: o_game.roomCode
 	});
 }
+
+commands.removePlayer = function(o_player)
+{
+	playerFuncs.removePlayer(o_player);
+	game.removePlayer(o_player);
+}

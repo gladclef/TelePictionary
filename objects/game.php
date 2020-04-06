@@ -18,7 +18,6 @@ class game
 	public $i_textTimerLen = 30;
 	public $d_turnStart = null;//new DateTime('now');
 	public $i_currentTurn = -1;
-	private static $a_staticGames;
 
 	function __construct($s_name, $i_player1Id) {
 		$this->d_startTime = new DateTime('now');
@@ -138,6 +137,22 @@ class game
 		array_push($this->a_playerOrder, $i_playerId);
 		return array(TRUE, "Player added");
 	}
+	public function removePlayer($i_playerId) {
+		// remove the player
+		if (!in_array($i_playerId, $this->a_playerIds))
+		{
+			return array(TRUE, "Player already removed");
+		}
+		array_splice($this->a_playerIds,   array_search($i_playerId, $this->a_playerIds),   1);
+		array_splice($this->a_playerOrder, array_search($i_playerId, $this->a_playerOrder), 1);
+
+		// update player1, as necessary
+		if ($this->i_player1Id === $i_playerId && count($this->a_playerIds) > 0)
+		{
+			$this->i_player1Id = $this->a_playerIds[0];
+		}
+		return array(TRUE, "Player removed");
+	}
 	public function save()
 	{
 		global $maindb;
@@ -235,11 +250,14 @@ class game
 	 */
 	public static function loadByRoomCode($s_roomCode) {
 		global $maindb;
+		global $game_staticGames;
 		
 		// check if already loaded
-		if (isset($a_staticGames[$s_roomCode]))
+		if (!isset($game_staticGames))
+			$game_staticGames = [];
+		if (isset($game_staticGames[$s_roomCode]))
 		{
-			return $a_staticGames[$s_roomCode];
+			return $game_staticGames[$s_roomCode];
 		}
 		
 		// load the game
@@ -249,8 +267,8 @@ class game
 			$o_game = new game($a_games[0]['name'], $a_games[0]['player1Id']);
 			$o_game->i_id = intval($a_games[0]['id']);
 			$o_game->s_roomCode = $a_games[0]['roomCode'];
-			$o_game->a_playerIds = explodeIds($a_games[0]['playerIds']);
-			$o_game->a_playerOrder = explodeIds($a_games[0]['playerOrder']);
+			$o_game->a_playerIds = explodeIds($a_games[0]['playerIds'], 'intval');
+			$o_game->a_playerOrder = explodeIds($a_games[0]['playerOrder'], 'intval');
 			$o_game->d_startTime = self::getDateTimeFromString($a_games[0]['startTime']);
 			$o_game->i_player1Id = intval($a_games[0]['player1Id']);
 			$o_game->i_cardStartType = intval($a_games[0]['cardStartType']);
@@ -259,7 +277,7 @@ class game
 			$o_game->d_turnStart = self::getDateTimeFromString($a_games[0]['turnStart']);
 			$o_game->i_currentTurn = intval($a_games[0]['currentTurn']);
 
-			$a_staticGames[$s_roomCode] = $o_game;
+			$game_staticGames[$s_roomCode] = $o_game;
 		}
 		return $o_game;
 	}
