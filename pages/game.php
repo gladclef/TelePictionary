@@ -3,6 +3,11 @@
 		game = {
 			o_cachedGame: null,
 
+			/** Called by commands.showContent() */
+			init: function() {
+				game.resetGuiState();
+			},
+
 			resetGuiState: function() {
 				$("#gamePlayersCircle").find(".playerToken").remove();
 				$("#gamePlayer1Control").hide();

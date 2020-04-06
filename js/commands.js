@@ -56,6 +56,7 @@ commands.composite = function(a_commands)
 
 commands.currentContent = null;
 commands.showContent = function(s_content) {
+	// show the content
 	if (commands.currentContent == null)
 	{
 		$("#" + s_content).show();
@@ -66,6 +67,12 @@ commands.showContent = function(s_content) {
 		$("#" + s_content).show();
 	}
 	commands.currentContent = s_content;
+
+	// run the content-specific init function
+	if (window[s_content] !== undefined && typeof(window[s_content].init) === "function")
+	{
+		window[s_content].init();
+	}
 }
 
 /******************************************************************************
