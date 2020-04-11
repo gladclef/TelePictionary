@@ -49,7 +49,8 @@
 				var jPlayerToken = jPlayersCircle.find(".playerToken[playerId=" + o_player.id + "]");
 				if (jPlayerToken.length === 0)
 				{
-					jPlayerToken = $("<div class='playerToken' playerId='" + o_player.id + "'><div class='playerImagePlaceholder'></div><img class='playerImage'></img><div class='playerName'></div></div>");
+					sPlayerToken = $("#gamePlayerTokenTemplate").html().replaceAll("__playerId__", o_player.id);
+					jPlayerToken = $(sPlayerToken);
 					jPlayersCircle.append(jPlayerToken);
 					game.setPlayerTokenPosition(o_player.id, jPlayersCircle.find(".playerToken").length-1);
 				}
@@ -64,10 +65,11 @@
 				if (s_name.indexOf(" ") >= 0)
 					s_initials = s_name[0] + s_name[Math.min(s_name.lastIndexOf(" ")+1, s_name.length-1)];
 				s_initials = s_initials.toUpperCase();
-				jPlayerImgPlaceholder.text(s_initials);
-				jPlayerName.text(s_name);
+				jPlayerImgPlaceholder.show().text(s_initials);
+				jPlayerName.attr("s_name", encodeURI(s_name));
+				jPlayerName.find(".playerNameName").text(s_name);
 
-				// show the player name on hover
+				// show the player name on click
 				jPlayerToken.off("click").on("click", function() {
 					if (jPlayerName.css("display") == "none")
 						jPlayerName.show();
@@ -106,8 +108,9 @@
 			updatePlayerTokensLayout: function() {
 				var jPlayersCircle = $("#gamePlayersCircle");
 				var jaPlayerTokens = jPlayersCircle.find(".playerToken");
-				var tokenWidth = $(jaPlayerTokens[0]).find(".playerImagePlaceholder").width();
-				var tokenHeight = $(jaPlayerTokens[0]).find(".playerImagePlaceholder").height();
+				var jImagePlaceholderSample = $(jaPlayerTokens[0]).find(".playerImagePlaceholder");
+				var tokenWidth = jImagePlaceholderSample.width();
+				var tokenHeight = jImagePlaceholderSample.height();
 				var padding = 20;
 				var canvasWidth = jPlayersCircle.width() - padding*2;
 				var canvasHeight = jPlayersCircle.height() - padding*2;
@@ -130,6 +133,9 @@
 			},
 
 			setPlayer1: function(i_id) {
+				var jPlayersCircle = $("#gamePlayersCircle");
+				var jPlayerTokens = jPlayersCircle.find(".playerToken");
+
 				if (playerFuncs.isPlayer1())
 				{
 					// make game name editable
@@ -151,7 +157,70 @@
 
 					// update the status text
 					game.updateStatusText();
+
+					// update player tokens
+					$.each(jPlayerTokens, function(k, v) {
+						var jPlayerToken = $(v);
+						var jPlayerName = jPlayerToken.find(".playerName");
+						var i_id = parseInt(jPlayerToken.attr('playerId'));
+						var o_player = playerFuncs.getPlayer(i_id);
+						var s_name = decodeURI(jPlayerName.attr("s_name"));
+
+						jPlayerName.addClass("controls");
+						jPlayerName.find("input").show();
+					});
 				}
+				else
+				{
+					// make game name not editable
+					var jGameName = $("#gameGameName");
+					var jGameNameEdit = $("#gameGameNameEdit");
+					jGameName.off("click");
+					jGameNameEdit.hide();
+					jGameName.css({
+						cursor: 'auto'
+					});
+
+					// make player1 controls invisible
+					var jPlayer1Control = $("#gamePlayer1Control");
+					var jControlStart = jPlayer1Control.find("[control=start]");
+					jPlayer1Control.hide();
+
+					// update the status text
+					game.updateStatusText();
+
+					// update player tokens
+					$.each(jPlayerTokens, function(k, v) {
+						var jPlayerToken = $(v);
+						var jPlayerName = jPlayerToken.find(".playerName");
+						var s_name = decodeURI(jPlayerName.attr("s_name"));
+
+						jPlayerName.removeClass("controls");
+						jPlayerName.find("input").hide();
+					});
+				}
+
+				// give player1 a crown!
+				$.each(jPlayerTokens, function(k, v) {
+					var jPlayerToken = $(v);
+					jPlayerToken.find(".player1Crown").hide();
+				});
+				var jPlayer1Token = jPlayersCircle.find(".playerToken[playerId=" + players.player1 + "]");
+				jPlayer1Token.find(".player1Crown").show();
+			},
+
+			promotePlayer: function(i_id) {
+				outgoingMessenger.pushData({
+					'command': 'promotePlayer',
+					'otherPlayerId': i_id
+				});
+			},
+
+			kickPlayer: function(i_id) {
+				outgoingMessenger.pushData({
+					'command': 'leaveGame',
+					'otherPlayerId': i_id
+				});
 			},
 
 			controlLeaveClick: function() {
@@ -327,4 +396,16 @@
 		</div>
 	</div>
 	<div id="gameGameStatus" class="centered" style="width: 500px;">loading...</div>
+	<div id="gamePlayerTokenTemplate" style="display: none;">
+		<div class="playerToken" playerid="__playerId__">
+			<div class="player1Crown" style="display: none;"></div>
+			<div class="playerImagePlaceholder" style="display: none;"></div>
+			<img class="playerImage" style="display: none;">
+			<div class="playerName" style="display: none;">
+				<div class="playerNameName"></div>
+				<input type="button" value="Promote" onclick="game.promotePlayer(__playerId__);" style="display: none;" />
+				<input type="button" value="Kick" onclick="game.kickPlayer(__playerId__);" style="display: none;" />
+			</div>
+		</div>
+	</div>
 </div>

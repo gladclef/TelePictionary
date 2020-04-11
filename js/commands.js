@@ -116,6 +116,15 @@ commands.joinGame = function(o_game)
 
 commands.removePlayer = function(o_player)
 {
+	var i_localPlayer = players.localPlayer;
+
+	// remove the player
 	playerFuncs.removePlayer(o_player);
 	game.removePlayer(o_player);
+
+	// check if the removed player is me
+	if (i_localPlayer == o_player.id)
+	{
+		commands.showContent("about");
+	}
 }

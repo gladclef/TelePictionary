@@ -53,3 +53,4 @@ sftp-config.json
 *.blend1
 test.blend
 *.ini
+*.xcf

@@ -231,28 +231,75 @@ class ajax {
         global $o_globalPlayer;
         $a_commands = array();
 
-        // check to make sure that the player is in a game
-        $a_gameState = $o_globalPlayer->getGameState();
-        $o_game = $o_globalPlayer->getGame();
-        if ($a_gameState[0] < 2 || $a_gameState[0] > 4 || $o_game === null)
+        // get the global user id and the kicked user id
+        $i_globalId = $o_globalPlayer->getId();
+        $i_id = intval(get_post_var("otherPlayerId", "" . $i_globalId));
+        $o_player = player::loadById($i_id);
+        error_log("i_globalId: {$i_globalId}, i_id: {$i_id}, o_player->getId(): " . $o_player->getId());
+        if ($o_player === null || $i_id == 0)
         {
-            return new command("showContent", "about");
+            return new command("showError", "Unknown player");
         }
 
-        // join the game
-        $o_globalPlayer->leaveGame();
-        $o_globalPlayer->save();
+        // check to make sure that the player is in a game
+        $a_gameState = $o_player->getGameState();
+        $o_game = $o_player->getGame();
+        if ($a_gameState[0] < 2 || $a_gameState[0] > 4 || $o_game === null)
+        {
+            return new command("success", "");
+        }
+
+        // push this event to other clients already in the game
+        $o_removeCmd = new command("removePlayer", $o_player->toJsonObj());
+        _ajax::pushEvent($o_removeCmd, $o_game->getRoomCode());
+
+        // leave the game
+        $o_player->leaveGame();
+        $o_player->save();
         $o_game->save();
 
         // push this event to other clients already in the game
-        $a_commands = array(
-            new command("removePlayer", $o_globalPlayer->toJsonObj()),
-            new command("updateGame", $o_game->toJsonObj())
-        );
-        _ajax::pushEvent(new command("composite", $a_commands), $o_game->getRoomCode());
+        _ajax::pushEvent(new command("updateGame", $o_game->toJsonObj()), $o_game->getRoomCode());
 
         // respond to this client
-        return new command("showContent", "about");
+        if ($i_id == $i_globalId) {
+            return $o_removeCmd;
+        } else {
+            return new command("success", "");
+        }
+    }
+
+    function promotePlayer() {
+        global $maindb;
+        global $o_globalPlayer;
+        $a_commands = array();
+
+        // get the promoted user
+        $i_id = intval(get_post_var("otherPlayerId", "0"));
+        $o_player = player::loadById($i_id);
+        error_log("i_id: {$i_id}, o_player->getId(): " . $o_player->getId());
+        if ($o_player === null || $i_id == 0)
+        {
+            return new command("showError", "Unknown player");
+        }
+
+        // check to make sure that the player is in a game
+        $a_gameState = $o_player->getGameState();
+        $o_game = $o_player->getGame();
+        if ($a_gameState[0] < 2 || $a_gameState[0] > 4 || $o_game === null)
+        {
+            return new command("showError", "Player not in a game");
+        }
+
+        // update the game
+        $o_game->i_player1Id = $i_id;
+        $o_game->save();
+
+        // push this event to other clients already in the game
+        _ajax::pushEvent(new command("updateGame", $o_game->toJsonObj()), $o_game->getRoomCode());
+
+        // respond to this client
+        return new command("success", "");
     }
 
     function pushEvent() {
@@ -296,6 +343,7 @@ class ajax {
                     $sbo_ret = socket_read($socket, 10);
                     if ($sbo_ret !== false)
                     {
+                        $s_originalChars = $sbo_ret;
                         socket_set_option($socket,SOL_SOCKET, SO_RCVTIMEO, array("sec"=>1, "usec"=>0));
 
                         // read until we've read the incoming length
@@ -303,10 +351,10 @@ class ajax {
                         $s_part = "";
                         while (strlen($s_len) < 10) {
                             $s_part = socket_read($socket, 10 - strlen($s_len));
-                            if ($s_part !== false) {
+                            if ($s_part !== false && strlen($s_part) > 0) {
                                 $s_len .= $s_part;
                             } else {
-                                error_log("received part of a message " . $s_len);
+                                error_log("received part of a message " . $s_len . " (s_originalChars \"" . $s_originalChars . "\")");
                                 $s_len = false;
                                 $sbo_ret = false;
                                 break;
@@ -322,7 +370,7 @@ class ajax {
                         $s_part = "";
                         while ($s_msg !== false && strlen($s_msg) < $i_retlen)
                         {
-                            $s_part = socket_read($socket, $i_retlen - strlen($sbo_ret2));
+                            $s_part = socket_read($socket, $i_retlen - strlen($s_msg));
                             if ($s_part !== false)
                                 $s_msg .= $s_part;
                             else

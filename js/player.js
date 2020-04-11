@@ -27,6 +27,17 @@ playerFuncs.addPlayer = function(o_player)
 	}
 }
 
+playerFuncs.getPlayer = function(i_id)
+{
+	if (arguments.length < 1)
+	{
+		if (players.localPlayer === -1)
+			return undefined;
+		i_id = players.localPlayer;
+	}
+	return players.players[i_id];
+}
+
 playerFuncs.updatePlayerName = function(i_id)
 {
 	// TODO
@@ -52,11 +63,15 @@ playerFuncs.setPlayer1 = function(i_id)
 	players.player1 = i_id;
 }
 
-playerFuncs.isPlayer1 = function()
+playerFuncs.isPlayer1 = function(i_id)
 {
-	if (players.localPlayer === -1)
-		return false;
-	return (players.localPlayer === players.player1);
+	if (arguments.length < 1)
+	{
+		if (players.localPlayer === -1 || players.player1 === -1)
+			return false;
+		i_id = players.localPlayer;
+	}
+	return (i_id === players.player1);
 }
 
 playerFuncs.isLocalPlayer = function(io_player)
@@ -89,7 +104,7 @@ playerFuncs.removePlayer = function(o_player)
 		// don't delete the player if the current player
 		return;
 	}
-	delete players[o_player.id];
+	delete players.players[o_player.id];
 }
 
 playerFuncs.clearPlayers();

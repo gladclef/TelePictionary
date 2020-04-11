@@ -12,7 +12,7 @@ function my_session_start() {
 	if ($session_started === FALSE) {
 		$i_sessionTime = 60*60*24*7; // 7 days
 		// server should keep session data for AT LEAST session time
-		ini_set('session.gc_maxlifetime', $i_sessionTime);
+		//error_log(ini_get('session.gc_maxlifetime')); // we do this in the global php.ini file
 		// each client should remember their session id for EXACTLY session time
 		session_set_cookie_params($i_sessionTime);
 
