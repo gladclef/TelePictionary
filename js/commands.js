@@ -1,5 +1,10 @@
-if (window.commands === undefined) window.commands = {};
-window['commands.js'] = true;
+a_toExec[a_toExec.length] = {
+"name": "commands.js",
+"dependencies": ["pushPull.js"],
+"function": function() {
+
+if (window.commands === undefined)
+	window.commands = {};
 
 /******************************************************************************
  *                     G E N E R A L   C O M M A N D S                        *
@@ -34,9 +39,12 @@ commands.composite = function(a_commands)
 		o_command = a_commands[i];
 		try
 		{
-			commands[o_command.command](o_command.action);
-			if (o_command.command == 'showError')
-				foundErrorCommand = true;
+			if (outgoingMessenger === undefined || !outgoingMessenger.pushPullInterpret(o_command))
+			{
+				commands[o_command.command](o_command.action);
+				if (o_command.command == 'showError')
+					foundErrorCommand = true;
+			}
 		}
 		catch (error)
 		{
@@ -55,7 +63,8 @@ commands.composite = function(a_commands)
 }
 
 commands.currentContent = null;
-commands.showContent = function(s_content) {
+commands.showContent = function(s_content)
+{
 	// show the content
 	if (commands.currentContent == null)
 	{
@@ -128,3 +137,5 @@ commands.removePlayer = function(o_player)
 		commands.showContent("about");
 	}
 }
+
+}};

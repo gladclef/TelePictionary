@@ -85,12 +85,23 @@ class Room():
                 return
             self.a_clients.remove(o_client)
 
+    def getLatestEvents(self):
+        with self.l_timeLock:
+            self.t_changeTime = datetime.now()
+        # return a list of all event ids
+        a_ids = []
+        with self.l_eventLock:
+            for i in range(len(self.a_events)):
+                event = self.a_events[i]
+                a_ids.append(event['i_id'])
+        return a_ids
+
     def getMissingEvent(self, a_events):
         with self.l_timeLock:
             self.t_changeTime = datetime.now()
         with self.l_eventLock:
             # print("trying to find missing events")
-            for i in range(len(self.a_events)-1, -1, -1):
+            for i in range(len(self.a_events)):
                 event = self.a_events[i]
 
                 # check if this event exists in the given events
@@ -115,6 +126,7 @@ class Room():
 
             # append this event and limit the number of events kept in memory
             self.a_events.append(o_newEvent)
+            sorted(self.a_events, key=lambda event: event['f_serverTime']) # sort by server time
             while (len(self.a_events) > 100):
                 self.a_events.remove(self.a_events[0])
         return o_newEvent
@@ -265,6 +277,17 @@ class ClientThread(Thread):
         except Exception as e:
             return False
 
+    def getLatestEvents(self):
+        room = a_rooms[self.s_roomCode]
+        a_latestEvents = room.getLatestEvents()
+        b_ret = self.trySend(a_latestEvents)
+        if (b_ret):
+            # successfully sent a message, so we know PHP client has disconnected and
+            # is no longer listening remove this instance
+            with self.l_abortLock:
+                self.b_abort = True
+        return b_ret
+
     def checkLatestEvents(self):
         room = a_rooms[self.s_roomCode]
 
@@ -319,6 +342,12 @@ class ClientThread(Thread):
                 print("[:] Received message \"" + s_data + "\" from client")
                 if (s_data.startswith("disconnect")):
                     b_stop = True
+
+                elif (s_data.startswith("getLatestEvents ")):
+                    self.tryRemove()
+                    a_data = json.loads(s_data[len("getLatestEvents "):])
+                    self.setRoomCode(a_data['roomCode'])
+                    self.getLatestEvents()
 
                 elif (s_data.startswith("subscribe ")):
                     self.tryRemove()

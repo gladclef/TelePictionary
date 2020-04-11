@@ -180,7 +180,10 @@ function initPushPull(onmessageCallback, pushObj, onerror, onclose)
 		stopCurrentPolls();
 	};
 
-	pushPullInterpret = function(o_command) {
+	pushObj.pushPullInterpret = function(o_command) {
+		if (o_command.event === undefined)
+			o_command = getCommand(o_command);
+
 		if (o_command.event.command == 'noPoll')
 		{
 			// get the no-poll timeout
@@ -200,6 +203,11 @@ function initPushPull(onmessageCallback, pushObj, onerror, onclose)
 
 			// set no-pull and set a timeout to unset no-poll
 			pushObj.setNoPoll(i_noPollTime * 1000);
+			return true;
+		}
+		if (o_command.event.command == "setLatestEvents")
+		{
+			latestEvents = o_command.event.action;
 			return true;
 		}
 
@@ -249,7 +257,7 @@ function initPushPull(onmessageCallback, pushObj, onerror, onclose)
 				'success': function(data) {
 					var o_command = getCommand(data);
 					pollXhrs[0] = null;
-					if (!pushPullInterpret(o_command))
+					if (!pushObj.pushPullInterpret(o_command))
 					{
 						recordEvent(o_command);
 						onmessageCallback(o_command, true);
