@@ -13,12 +13,6 @@ TCP_IP = '127.0.0.1'
 TCP_PORT = 23456
 CLIENT_LIFETIME = 10 # each client connection lives for 10 seconds
 
-def isTimeLater(f_laterTime, f_earlierTime, f_secondsAccuracy):
-    if (f_laterTime > f_earlierTime):
-        if (f_laterTime - f_secondsAccuracy > f_earlierTime):
-            return True
-    return False
-
 class Room():
     s_roomCode = ""
     a_clients = []
@@ -91,16 +85,17 @@ class Room():
                 return
             self.a_clients.remove(o_client)
 
-    def getLaterEvent(self, f_time):
+    def getMissingEvent(self, a_events):
         with self.l_timeLock:
             self.t_changeTime = datetime.now()
         with self.l_eventLock:
-            # print("trying to find an event with a later time than " + str(t_time))
+            # print("trying to find missing events")
             for i in range(len(self.a_events)-1, -1, -1):
                 event = self.a_events[i]
-                # print(str(event))
-                if (isTimeLater(event['f_serverTime'], f_time, 0.001)):
-                    print("found later event than " + str(f_time) + ": " + str(event))
+
+                # check if this event exists in the given events
+                if not (event['i_id'] in a_events):
+                    # print("found missing event")
                     return event
             return None
 
@@ -109,8 +104,16 @@ class Room():
         with self.l_timeLock:
             self.t_changeTime = datetime.now()
         f_serverTime = time.time()
-        o_newEvent = { 'f_serverTime': f_serverTime, 'event': o_event }
+        o_newEvent = { 'f_serverTime': f_serverTime, 'i_id': 0, 'event': o_event }
         with self.l_eventLock:
+            # set the id for this new event
+            i_newId = 0
+            for i in range(len(self.a_events)-1, -1, -1):
+                if (self.a_events[i]['i_id'] >= i_newId):
+                    i_newId = self.a_events[i]['i_id'] + 1
+            o_newEvent['i_id'] = i_newId
+
+            # append this event and limit the number of events kept in memory
             self.a_events.append(o_newEvent)
             while (len(self.a_events) > 100):
                 self.a_events.remove(self.a_events[0])
@@ -265,17 +268,11 @@ class ClientThread(Thread):
     def checkLatestEvents(self):
         room = a_rooms[self.s_roomCode]
 
-        # find the latest event time from my latestEvents
-        latestTime = 0
-        for eventTime in self.a_latestEvents:
-            if (isTimeLater(eventTime, latestTime, 0.001)):
-                latestTime = eventTime
-
-        # check for events that have a later time than my latest time
-        laterEvent = room.getLaterEvent(latestTime)
-        if (laterEvent != None):
-            # found a later event, send it back to the PHP client
-            b_ret = self.trySend(laterEvent)
+        # check for events that I am missing
+        missingEvent = room.getMissingEvent(self.a_latestEvents)
+        if (missingEvent != None):
+            # found a missing event, send it back to the PHP client
+            b_ret = self.trySend(missingEvent)
             if (b_ret):
                 # successfully sent a message, so we know PHP client has disconnected and
                 # is no longer listening remove this instance

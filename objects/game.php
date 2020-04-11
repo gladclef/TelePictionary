@@ -153,6 +153,14 @@ class game
 		}
 		return array(TRUE, "Player removed");
 	}
+	public function setCurrentTurn($i_currentTurn)
+	{
+		if ($i_currentTurn === $this->i_currentTurn)
+			return FALSE;
+		$this->i_currentTurn = $i_currentTurn;
+		$this->d_turnStart = new DateTime('now');
+		return TRUE;
+	}
 	public function save()
 	{
 		global $maindb;

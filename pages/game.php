@@ -232,7 +232,8 @@
 
 			controlStartClick: function() {
 				outgoingMessenger.pushData({
-					'command': 'startGame'
+					'command': 'setGameTurn',
+					'turn': 0
 				});
 			},
 

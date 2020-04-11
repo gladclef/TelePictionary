@@ -88,7 +88,8 @@ function initPushPull(onmessageCallback, pushObj, onerror, onclose)
 			o_data = {
 				'b_hasServerTime': false,
 				'f_serverTime': 0,
-				'event': eventData
+				'event': eventData,
+				'i_id': -1
 			};
 		}
 		else
@@ -99,7 +100,7 @@ function initPushPull(onmessageCallback, pushObj, onerror, onclose)
 		return o_data;
 	}
 
-	pushObj.pushData = function(data)
+	pushObj.pushData = function(data, successFunc)
 	{
 		if (pushObj.customData !== undefined && pushObj.customData !== null)
 		{
@@ -122,6 +123,8 @@ function initPushPull(onmessageCallback, pushObj, onerror, onclose)
 					commands[o_command.event.command](o_command.event.action);
 				else
 					commands['showError']("Unknown command type: " + data);
+				if (successFunc !== undefined)
+					successFunc(o_command);
 			},
 			'error': function(xhr, ajaxOptions, thrownError) {
 				if (parseInt(xhr.status) == 0 && thrownError) {
@@ -169,7 +172,9 @@ function initPushPull(onmessageCallback, pushObj, onerror, onclose)
 
 	pushObj.setNoPoll = function(i_timeoutMs) {
 		pushObj.noPoll = true;
-		setTimeout(function() {
+		clearTimeout(pushObj.noPollTimeout);
+		pushObj.noPollTimeout = setTimeout(function() {
+			pushObj.noPollTimeout = null;
 			pushObj.noPoll = null;
 		}, i_timeoutMs);
 		stopCurrentPolls();
@@ -205,7 +210,7 @@ function initPushPull(onmessageCallback, pushObj, onerror, onclose)
 	{
 		if (o_command.b_hasServerTime)
 		{
-			latestEvents = latestEvents.enqueue(o_command.f_serverTime);
+			latestEvents = latestEvents.enqueue(o_command.i_id);
 			while (latestEvents.length > 100)
 			{
 				latestEvents = latestEvents.dequeue();
@@ -214,7 +219,7 @@ function initPushPull(onmessageCallback, pushObj, onerror, onclose)
 	}
 	
 	pollData = function() {
-		if (pushObj.noPoll != null)
+		if (pushObj.noPoll === true)
 		{
 			return;
 		}

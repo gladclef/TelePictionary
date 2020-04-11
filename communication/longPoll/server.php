@@ -72,10 +72,22 @@ class _ajax {
 
     function pushGame($o_game, $s_roomCode = null, $b_showError = true)
     {
+        if ($s_roomCode === null)
+            $s_roomCode = $o_game->getRoomCode();
         return self::pushEvent(new command(
             "updateGame",
             $o_game->toJsonObj()
         ), $s_roomCode, $b_showError);
+    }
+
+    function isPlayerInGame($o_player, $o_game)
+    {
+        $a_gameState = $o_player->getGameState();
+        if ($a_gameState[0] < 2 || $a_gameState[0] > 4 || $o_game === null)
+        {
+            return new command("showError", "Player not in a game");
+        }
+        return true;
     }
 }
 
@@ -109,7 +121,7 @@ class ajax {
         $o_game->s_name = $s_gameName;
         $o_game->save();
 
-        // push this event
+        // push this event to all clients in the game
         return _ajax::pushGame($o_game);
     }
 
@@ -119,11 +131,9 @@ class ajax {
         $a_commands = array();
 
         // check to make sure that the player isn't already in a game
-        $a_gameState = $o_globalPlayer->getGameState();
-        if ($a_gameState[0] >= 2 && $a_gameState[0] <= 4)
-        {
+        $o_game = $o_globalPlayer->getGame();
+        if (($bo_playerInGame = _ajax::isPlayerInGame($o_globalPlayer, $o_game)) === true)
             return new command("showError", "Can't create a game while in a game.");
-        }
 
         // create a new game
         $o_game = new game($o_globalPlayer->getName() . "'s Game", $o_globalPlayer->getId());
@@ -187,11 +197,9 @@ class ajax {
         $s_roomCode = get_post_var("roomCode");
 
         // check to make sure that the player isn't already in a game
-        $a_gameState = $o_globalPlayer->getGameState();
-        if ($a_gameState[0] >= 2 && $a_gameState[0] <= 4)
-        {
+        $o_game = $o_globalPlayer->getGame();
+        if (($bo_playerInGame = _ajax::isPlayerInGame($o_globalPlayer, $o_game)) === true)
             return new command("showError", "Can't join a game while in a game.");
-        }
 
         // find the game
         $o_game = game::loadByRoomCode($s_roomCode);
@@ -205,7 +213,7 @@ class ajax {
         $o_globalPlayer->save();
         $o_game->save();
 
-        // push this event to other clients already in the game
+        // push this event to other clients in the game
         $a_commands = array(
             new command("addPlayer", $o_globalPlayer->toJsonObj()),
             new command("updateGame", $o_game->toJsonObj())
@@ -235,21 +243,17 @@ class ajax {
         $i_globalId = $o_globalPlayer->getId();
         $i_id = intval(get_post_var("otherPlayerId", "" . $i_globalId));
         $o_player = player::loadById($i_id);
-        error_log("i_globalId: {$i_globalId}, i_id: {$i_id}, o_player->getId(): " . $o_player->getId());
         if ($o_player === null || $i_id == 0)
         {
             return new command("showError", "Unknown player");
         }
 
         // check to make sure that the player is in a game
-        $a_gameState = $o_player->getGameState();
         $o_game = $o_player->getGame();
-        if ($a_gameState[0] < 2 || $a_gameState[0] > 4 || $o_game === null)
-        {
-            return new command("success", "");
-        }
+        if (($bo_playerInGame = _ajax::isPlayerInGame($o_player, $o_game)) !== true)
+            return $bo_playerInGame;
 
-        // push this event to other clients already in the game
+        // push this event to all clients in the game
         $o_removeCmd = new command("removePlayer", $o_player->toJsonObj());
         _ajax::pushEvent($o_removeCmd, $o_game->getRoomCode());
 
@@ -258,8 +262,8 @@ class ajax {
         $o_player->save();
         $o_game->save();
 
-        // push this event to other clients already in the game
-        _ajax::pushEvent(new command("updateGame", $o_game->toJsonObj()), $o_game->getRoomCode());
+        // push the changes to the game to other clients
+        _ajax::pushGame($o_game);
 
         // respond to this client
         if ($i_id == $i_globalId) {
@@ -277,26 +281,50 @@ class ajax {
         // get the promoted user
         $i_id = intval(get_post_var("otherPlayerId", "0"));
         $o_player = player::loadById($i_id);
-        error_log("i_id: {$i_id}, o_player->getId(): " . $o_player->getId());
-        if ($o_player === null || $i_id == 0)
+        if ($o_player === null || $i_id === 0)
         {
             return new command("showError", "Unknown player");
         }
 
         // check to make sure that the player is in a game
-        $a_gameState = $o_player->getGameState();
         $o_game = $o_player->getGame();
-        if ($a_gameState[0] < 2 || $a_gameState[0] > 4 || $o_game === null)
-        {
-            return new command("showError", "Player not in a game");
-        }
+        if (($bo_playerInGame = _ajax::isPlayerInGame($o_player, $o_game)) !== true)
+            return $bo_playerInGame;
 
         // update the game
         $o_game->i_player1Id = $i_id;
         $o_game->save();
 
-        // push this event to other clients already in the game
-        _ajax::pushEvent(new command("updateGame", $o_game->toJsonObj()), $o_game->getRoomCode());
+        // push the changes to the game to other clients
+        _ajax::pushGame($o_game);
+
+        // respond to this client
+        return new command("success", "");
+    }
+
+    function setGameTurn() {
+        global $maindb;
+        global $o_globalPlayer;
+        $a_commands = array();
+
+        // check to make sure that the player is in a game
+        $o_game = $o_globalPlayer->getGame();
+        if (($bo_playerInGame = _ajax::isPlayerInGame($o_globalPlayer, $o_game)) !== true)
+            return $bo_playerInGame;
+
+        // get the new turn
+        $i_newTurn = intval(get_post_var("turn", "-2"));
+        if ($i_newTurn === -2)
+            return new command("showError", "Bad turn number");
+
+        // update the game
+        if ($o_game->setCurrentTurn($i_newTurn))
+        {
+            $o_game->save();
+
+            // push the changes to the game to other clients
+            _ajax::pushGame($o_game);
+        }
 
         // respond to this client
         return new command("success", "");
@@ -316,13 +344,11 @@ class ajax {
         $i_clientId = intval(get_post_var("clienId"));
         $s_latestEvents = get_post_var("latestEvents");
         $a_latestEvents = json_decode($s_latestEvents);
-        
-        // get user and game
-        if ($o_globalPlayer->getGameState()[0] < 2)
-        {
-            return new command("noPoll", 5);
-        }
+
+        // check to make sure that the player is in a game
         $o_game = $o_globalPlayer->getGame();
+        if (($bo_playerInGame = _ajax::isPlayerInGame($o_globalPlayer, $o_game)) !== true)
+            return new command("noPoll", 5);
 
         // listen for the next camera value update
         $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
@@ -341,6 +367,8 @@ class ajax {
                 $i_count = 10 * 100; // 10 seconds, with 100 timeouts per second
                 while ($i_count > 0) {
                     $sbo_ret = socket_read($socket, 10);
+                    if ($sbo_ret === "")
+                        $sbo_ret = "";
                     if ($sbo_ret !== false)
                     {
                         $s_originalChars = $sbo_ret;
@@ -390,12 +418,6 @@ class ajax {
                 $s_encoded = str_pad("".strlen($s_encoded), 10) . $s_encoded;
                 socket_write($socket, $s_encoded);
 
-                // parse the event
-                // ob_start();                    // start buffer capture
-                // var_dump( $sbo_ret );           // dump the values
-                // $contents = ob_get_contents(); // put the buffer into a variable
-                // ob_end_clean();   
-                // error_log("received message: " . $contents);
                 if (is_bool($sbo_ret))
                 {
                     $sbo_ret = new command("success", "no new events");

@@ -19,6 +19,9 @@
 				outgoingMessenger.pushData({
 					command: 'joinGame',
 					roomCode: jRoomCode.val()
+				}, function(o_command) {
+					clearTimeout(outgoingMessenger.noPollTimeout);
+					outgoingMessenger.noPoll = null;
 				});
 			},
 
