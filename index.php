@@ -4,6 +4,7 @@ require_once(dirname(__FILE__) . "/resources/globals.php");
 require_once(dirname(__FILE__) . "/resources/common_functions.php");
 require_once(dirname(__FILE__) . "/objects/player.php");
 require_once(dirname(__FILE__) . "/objects/game.php");
+require_once(dirname(__FILE__) . "/objects/image.php");
 require_once(dirname(__FILE__) . "/communication/longPoll/private.php");
 
 if (isset($_GET['refresh']))
@@ -63,6 +64,7 @@ $o_globalPlayer = player::getGlobalPlayer();
 
 					// set some things
 					playerFuncs.setLocalPlayer(serverStats['localPlayer']);
+					game.setLocalPlayer(serverStats['localPlayer']);
 
 					// show the content
 					var s_content = "about";

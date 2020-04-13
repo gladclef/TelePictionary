@@ -102,6 +102,7 @@ commands.addPlayer = function(o_player)
 commands.setLocalPlayer = function(i_id)
 {
 	playerFuncs.setLocalPlayer(i_id);
+	game.setLocalPlayer(i_id);
 }
 
 commands.setPlayer1 = function(i_id)

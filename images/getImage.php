@@ -5,8 +5,8 @@ require_once(dirname(__FILE__).'/../resources/globals.php');
 require_once(dirname(__FILE__).'/../resources/database_structure.php');
 
 // check for image existance
-$s_imgalias = get_get_var("alias", null);
-$s_fileNewPath = dirname(__FILE__).'/../../userImages/'.$s_imgalias;
+$s_imgalias = basename($_SERVER['REQUEST_URI']);
+$s_fileNewPath = dirname(__FILE__).'/../../../telePictionaryUserImages/'.$s_imgalias;
 if ($s_imgalias == null || !file_exists($s_fileNewPath)) {
 	http_response_code(404);
 	return "";

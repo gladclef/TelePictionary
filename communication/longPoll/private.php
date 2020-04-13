@@ -148,7 +148,7 @@ class _ajax {
                     if ($s_part !== false && strlen($s_part) > 0) {
                         $s_len .= $s_part;
                     } else {
-                        error_log("received part of a message " . $s_len . " (s_originalChars \"" . $s_originalChars . "\")");
+                        // error_log("received part of a message " . $s_len . " (s_originalChars \"" . $s_originalChars . "\")");
                         $s_len = false;
                         $sbo_ret = false;
                         break;
@@ -182,6 +182,86 @@ class _ajax {
         }
 
         return $sbo_ret;
+    }
+
+    /**
+     * @param s_fileOrigName The name of the file that the user uploaded.
+     * @param s_fileTmpName The name of the file that PHP uses.
+     * @return either [TRUE, destination filename], or [FALSE, error string]
+     */
+    function uploadFile($s_fileOrigName, $s_fileTmpName, $b_cropSquare)
+    {
+        global $maindb;
+
+        // verify the file extension and size
+        $a_acceptableExtensions = array("jpg", "jpeg", "png", "gif", "bmp", "tiff");
+        $s_file_extension = strtolower(pathinfo($s_fileOrigName, PATHINFO_EXTENSION));
+        if (!in_array($s_file_extension, $a_acceptableExtensions)) {
+            return json_encode(array(
+                new command("print failure", "File type must be one of .".join(", .", $a_acceptableExtensions))));
+        }
+        $i_imagesize = filesize($s_fileTmpName);
+        if ($i_imagesize > 12 * 1048576) { // ~12MB
+            return json_encode(array(
+                new command("print failure", "Image is too big.")));
+        }
+
+        // find a new name to use to save the file
+        // move the file to that new name
+        $a_imgvals = array(
+            "alias"=>""
+        );
+        $i_maxcnt = 1000;
+        $s_pathPrefix = dirname(__FILE__).'/../../../../telePictionaryUserImages/';
+        $s_fileNewPath = "";
+        while ($i_maxcnt > 0)
+        {
+            $s_fileNewPath = $s_pathPrefix.rand(1000,1000000000).'.'.$s_file_extension;
+            if (!file_exists($s_fileNewPath)) {
+                $a_imgvals['alias'] = basename($s_fileNewPath);
+                $ab_result = db_query("SELECT `alias` FROM `{$maindb}`.`images` WHERE `alias`='[alias]'", $a_imgvals);
+                if (is_array($ab_result) && sizeof($ab_result) === 0) {
+                    break;
+                }
+            }
+            $i_maxcnt--;
+        };
+        if ($i_maxcnt == 0) {
+            return array(FALSE, "Error finding good alias. Try again.");
+        }
+        if (!move_uploaded_file($s_fileTmpName, $s_fileNewPath)) {
+            return array(FALSE, "Filesystem error");
+        }
+
+        // verify is a good image
+        $im_tmp = new imagick();
+        try {
+            $im_tmp->readImage($s_fileNewPath);
+        } catch (Exception $e) {
+            return array(FALSE, "Error parsing image");
+        }
+
+        // resize the image to be square (eg for user portraits)
+        if ($b_cropSquare)
+        {
+            try {
+                $i_width = $im_tmp->getImageWidth();
+                $i_height = $im_tmp->getImageHeight();
+                $i_newSize = min($i_width, $i_height);
+                $i_newX = ($i_width - $i_newSize)/2;
+                $i_newY = ($i_height - $i_newSize)/2;
+                $im_tmp->cropImage($i_newSize, $i_newSize, $i_newX, $i_newY);
+            } catch (Exception $e) {
+                return array(FALSE, "Error cropping image");
+            }
+            try {
+                $im_tmp->writeImage($s_fileNewPath);
+            } catch (Exception $e) {
+                return array(FALSE, "Error saving image");
+            }
+        }
+
+        return array(TRUE, $s_fileNewPath);
     }
 }
 

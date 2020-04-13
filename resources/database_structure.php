@@ -6,7 +6,8 @@ $a_basic_tables_structure = array(
 		"alias" =>                 array("type" => "INT",           "indexed" => TRUE,  "isPrimaryKey" => FALSE, "special" => ""),
 		"extension" =>             array("type" => "VARCHAR(10)",   "indexed" => TRUE,  "isPrimaryKey" => FALSE, "special" => ""),
 		"roomCode" =>              array("type" => "VARCHAR(255)",  "indexed" => TRUE,  "isPrimaryKey" => FALSE, "special" => ""),
-		"storyId" =>               array("type" => "INT",           "indexed" => FALSE, "isPrimaryKey" => FALSE, "special" => "")
+		"storyId" =>               array("type" => "INT",           "indexed" => FALSE, "isPrimaryKey" => FALSE, "special" => ""),
+		"playerId" =>              array("type" => "INT",           "indexed" => FALSE, "isPrimaryKey" => FALSE, "special" => "")
 	),
 	"cards" => array(
 		"id" =>                    array("type" => "INT",           "indexed" => TRUE,  "isPrimaryKey" => TRUE,  "special" => "AUTO_INCREMENT"),
@@ -44,7 +45,8 @@ $a_basic_tables_structure = array(
 		"name" =>                  array("type" => "VARCHAR(255)",  "indexed" => FALSE, "isPrimaryKey" => FALSE, "special" => ""),
 		"roomCode" =>              array("type" => "VARCHAR(255)",  "indexed" => TRUE,  "isPrimaryKey" => FALSE, "special" => ""),
 		"storyId" =>               array("type" => "INT",           "indexed" => FALSE, "isPrimaryKey" => FALSE, "special" => ""),
-		"gameIds" =>               array("type" => "VARCHAR(1024)", "indexed" => FALSE, "isPrimaryKey" => FALSE, "special" => "") // past games that have been played and not yet timed out, and the current game
+		"gameIds" =>               array("type" => "VARCHAR(1024)", "indexed" => FALSE, "isPrimaryKey" => FALSE, "special" => ""), // past games that have been played and not yet timed out, and the current game
+		"imageId" =>               array("type" => "INT",           "indexed" => FALSE, "isPrimaryKey" => FALSE, "special" => "")
 	)
 );
 $a_database_insert_values = array();

@@ -55,6 +55,7 @@
 					game.setPlayerTokenPosition(o_player.id, jPlayersCircle.find(".playerToken").length-1);
 				}
 				var jPlayerImgPlaceholder = jPlayerToken.find(".playerImagePlaceholder");
+				var jPlayerImage = jPlayerToken.find(".playerImage");
 				var jPlayerImg = jPlayerToken.find(".playerImage");
 				var jPlayerName = jPlayerToken.find(".playerName");
 
@@ -65,9 +66,20 @@
 				if (s_name.indexOf(" ") >= 0)
 					s_initials = s_name[0] + s_name[Math.min(s_name.lastIndexOf(" ")+1, s_name.length-1)];
 				s_initials = s_initials.toUpperCase();
-				jPlayerImgPlaceholder.show().text(s_initials);
+				jPlayerImgPlaceholder.text(s_initials);
 				jPlayerName.attr("s_name", encodeURI(s_name));
 				jPlayerName.find(".playerNameName").text(s_name);
+				if (playerFuncs.isLocalPlayer(o_player)) {
+					jPlayerName.addClass("playerControls");
+				}
+				if (o_player.imageURL == "") {
+					jPlayerImgPlaceholder.show();
+					jPlayerImage.hide();
+				} else {
+					jPlayerImgPlaceholder.hide();
+					jPlayerImage.show();
+					jPlayerImg.css("background-image", "url(" + o_player.imageURL + ")");
+				}
 
 				// show the player name on click
 				jPlayerToken.off("click").on("click", function() {
@@ -75,6 +87,14 @@
 						jPlayerName.show();
 					else
 						jPlayerName.hide();
+				});
+				var jUploadButton = jPlayerName.find("input[type=file]");
+				jUploadButton.off('change');
+				jUploadButton.on('change', function(e) {
+					e.preventDefault();
+					e.stopPropagation();
+					game.uploadImage(jPlayerImage, jUploadButton[0].files);
+					return false;
 				});
 
 				// update the player token editability if the local player
@@ -152,7 +172,6 @@
 
 					// make player1 controls visible
 					var jPlayer1Control = $("#gamePlayer1Control");
-					var jControlStart = jPlayer1Control.find("[control=start]");
 					jPlayer1Control.show();
 
 					// update the status text
@@ -166,8 +185,10 @@
 						var o_player = playerFuncs.getPlayer(i_id);
 						var s_name = decodeURI(jPlayerName.attr("s_name"));
 
-						jPlayerName.addClass("controls");
-						jPlayerName.find("input").show();
+						if (!playerFuncs.isLocalPlayer(i_id))
+							jPlayerName.addClass("player1Controls");
+						else
+							jPlayerName.removeClass("player1Controls");
 					});
 				}
 				else
@@ -195,8 +216,7 @@
 						var jPlayerName = jPlayerToken.find(".playerName");
 						var s_name = decodeURI(jPlayerName.attr("s_name"));
 
-						jPlayerName.removeClass("controls");
-						jPlayerName.find("input").hide();
+						jPlayerName.removeClass("player1Controls");
 					});
 				}
 
@@ -209,24 +229,50 @@
 				jPlayer1Token.find(".player1Crown").show();
 			},
 
-			promotePlayer: function(i_id) {
-				outgoingMessenger.pushData({
-					'command': 'promotePlayer',
-					'otherPlayerId': i_id
-				});
-			},
+			setLocalPlayer: function(i_id) {
+				if (i_id < 0)
+					return;
+				var jPlayersCircle = $("#gamePlayersCircle");
+				var jPlayerToken = jPlayersCircle.find(".playerToken[playerId=" + i_id + "]");
+				var jPlayerName = jPlayerToken.find(".playerName");
 
-			kickPlayer: function(i_id) {
-				outgoingMessenger.pushData({
-					'command': 'leaveGame',
-					'otherPlayerId': i_id
-				});
+				jPlayerName.removeClass("player1Controls");
+				jPlayerName.addClass("playerControls");
 			},
 
 			controlLeaveClick: function() {
 				outgoingMessenger.setNoPoll(10000);
 				outgoingMessenger.pushData({
 					'command': 'leaveGame'
+				});
+			},
+
+			uploadImage: function(jImg, a_files) {
+				if (a_files.length !== 1) { alert("Incorrect number of image files (must be 1)."); return; }
+				var f_file = a_files[0];
+				if (f_file.size > 3145728) { alert("Image is too big! (must be less than 3MB)"); return; }
+
+				var posts = new FormData();
+				posts.append('command', jImg.attr("command"));
+				posts.append('file', f_file);
+				var options = {
+					"contentType": false,
+					"processData": false
+				};
+				outgoingMessenger.pushData(posts, undefined, options);
+			},
+
+			controlPromotePlayer: function(i_id) {
+				outgoingMessenger.pushData({
+					'command': 'promotePlayer',
+					'otherPlayerId': i_id
+				});
+			},
+
+			controlKickPlayer: function(i_id) {
+				outgoingMessenger.pushData({
+					'command': 'leaveGame',
+					'otherPlayerId': i_id
 				});
 			},
 
@@ -237,16 +283,57 @@
 				});
 			},
 
-			startGame: function() {
-				if (playerFuncs.isPlayer1())
-				{
-					var jPlayer1Control = $("#gamePlayer1Control");
-					var jControlStart = jPlayer1Control.find("[control=start]");
-					jControlStart.hide();
-				}
+			getCurrentCard: function() {
+				commands.drawCard = function(o_card) {
+					var jCardDoneButton = jGameCard.find(".cardDoneButton");
+					jHideMeFirsts.show();
+					jCardDoneButton.show();
+				};
+				outgoingMessenger.pushData({
+					'command': 'getCurrentCard'
+				});
 			},
 
+			prevTurn: -1,
 			setCurrentTurn: function(i_currentTurn) {
+				if (game.prevTurn == i_currentTurn && i_currentTurn >= 0)
+				{
+					// don't draw the same turn over and over again
+					return;
+				}
+
+				// draw the current card
+				var jGameCard = $("#gameCard");
+				var jHideMeFirsts = jGameCard.find(".hideMeFirst");
+				if (i_currentTurn < 0) {
+					// game not started yet
+					jGameCard.hide();
+				} else if (i_currentTurn == 0) {
+					// first turn
+					jGameCard.show();
+					jHideMeFirsts.hide();
+					if (game.o_cachedGame.cardStartType == 0) { // start with an image
+						var jCardPicture = jGameCard.find(".cardPicture");
+						jCardPicture.show();
+					} else { // start with a sentence
+						var jCardSentence = jGameCard.find(".cardSentence");
+						jCardSentence.show();
+					}
+					var jCardDoneButton = jGameCard.find(".cardDoneButton");
+					jCardDoneButton.show();
+				} else if (i_currentTurn < game.o_cachedGame.playerIds.length) {
+					// 2nd+ turn of active play
+					// get the current card
+					game.getCurrentCard();
+				} else {
+					// reveal step TODO
+					jGameCard.hide();
+				}
+
+				// update the available game controls
+				var jPlayer1Control = $("#gamePlayer1Control");
+				var jControlStart = jPlayer1Control.find("[control=start]");
+				jControlStart[(i_currentTurn == -1) ? 'show' : 'hide']();
 
 				// update the status text
 				game.updateStatusText();
@@ -389,7 +476,25 @@
 	<h4 id="gameRoomCode" class="centered"></h4>
 	<br />
 	<div id="gamePlayersCircle" class="centered bordered" style="width: 700px; height: 700px;">
-
+	</div>
+	<div id="gameCard" class="centered bordered" style="display: none;">
+		<div class="storyDescription centered">Player's Story:</div>
+		<div class="cardSentence" style="display: none;">
+			<div class="previousImage hideMeFirst centered" style="background-image: __imageUrl__"></div>
+			<span class="hideMeFirst">Write a short description of this image:</span>
+			<input type="text" placeholder="short sentence" />
+		</div>
+		<div class="cardPicture" style="display: none;">
+			<div class="previousSentence hideMeFirst centered">__sentenceValue__</div>
+			<div>
+				<span>Draw an image</span>
+				<span class="hideMeFirst">about this sentence</span>
+				<span>and then upload it:</span>
+				<input type="button" value="Upload Image" onclick="controlUploadImage();" />
+				<div class="currentImage centered" style="background-image: __imageUrl__"></div>
+			</div>
+		</div>
+		<input class="cardDoneButton" type="button" value="I'm Done" />
 	</div>
 	<div id="gamePlayer1Control" class="centered" style="width: 700px; display: none;">
 		<div class="centered" gameControl="start" style="width: 80px;">
@@ -401,11 +506,13 @@
 		<div class="playerToken" playerid="__playerId__">
 			<div class="player1Crown" style="display: none;"></div>
 			<div class="playerImagePlaceholder" style="display: none;"></div>
-			<img class="playerImage" style="display: none;">
+			<div class="playerImage" command="setPlayerImage" style="display: none;"></div>
 			<div class="playerName" style="display: none;">
 				<div class="playerNameName"></div>
-				<input type="button" value="Promote" onclick="game.promotePlayer(__playerId__);" style="display: none;" />
-				<input type="button" value="Kick" onclick="game.kickPlayer(__playerId__);" style="display: none;" />
+				<input class="playerControl" type="button" value="Change Picture" onclick="$(this).parent().find('input[type=file]').click();" />
+				<input type="file" accept="image/jpg,image/jpeg,image/png,image/gif,image/bmp,image/tiff" style="display: none;" />
+				<input class="player1Control" type="button" value="Promote" onclick="game.controlPromotePlayer(__playerId__);" />
+				<input class="player1Control" type="button" value="Kick" onclick="game.controlKickPlayer(__playerId__);" />
 			</div>
 		</div>
 	</div>

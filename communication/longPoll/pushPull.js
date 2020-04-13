@@ -100,8 +100,10 @@ function initPushPull(onmessageCallback, pushObj, onerror, onclose)
 		return o_data;
 	}
 
-	pushObj.pushData = function(data, successFunc)
+	pushObj.pushData = function(data, successFunc, options)
 	{
+		if (arguments.length < 3 || options === null || options === undefined)
+			options = {};
 		if (pushObj.customData !== undefined && pushObj.customData !== null)
 		{
 			$.each(pushObj.customData, function(k, v) {
@@ -110,7 +112,7 @@ function initPushPull(onmessageCallback, pushObj, onerror, onclose)
 		}
 
 		pushTimer = null;
-		$.ajax({
+		var ajax_object = {
 			'url': addr,
 			'async': true,
 			'cache': false,
@@ -135,7 +137,13 @@ function initPushPull(onmessageCallback, pushObj, onerror, onclose)
 				}
 				console.error("Error sending request: ("+xhr.status+") "+thrownError);
 			}
-		});
+		};
+		var applyOption = function(k, v) {
+			ajax_object[k] = v;
+		};
+		$.each(options, applyOption);
+
+		$.ajax(ajax_object);
 	};
 
 	pushObj.pushEvent = {};

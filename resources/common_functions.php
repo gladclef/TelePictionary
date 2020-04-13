@@ -2,6 +2,10 @@
 
 require_once(dirname(__FILE__)."/globals.php");
 
+function get_get_var($getname, $s_default = '') {
+	return isset($_POST[$getname]) ? $_POST[$getname] : $s_default;
+}
+
 function get_post_var($postname, $s_default = '') {
 	return isset($_POST[$postname]) ? $_POST[$postname] : $s_default;
 }

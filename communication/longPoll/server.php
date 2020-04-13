@@ -5,6 +5,7 @@ require_once(dirname(__FILE__) . "/../../resources/globals.php");
 require_once(dirname(__FILE__) . "/../../objects/player.php");
 require_once(dirname(__FILE__) . "/../../objects/command.php");
 require_once(dirname(__FILE__) . "/../../objects/game.php");
+require_once(dirname(__FILE__) . "/../../objects/image.php");
 require_once(dirname(__FILE__) . "/private.php");
 
 // only functions within this class can be called by ajax
@@ -303,6 +304,31 @@ class ajax {
         } else {
             error_log("Failed to create socket to propogate message");
         }
+    }
+
+    function setPlayerImage() {
+        global $o_globalPlayer;
+
+        $s_fileOrigName = $_FILES['file']['name'];
+        $s_fileTmpName = $_FILES['file']['tmp_name'];
+        $a_uploadSuccess = _ajax::uploadFile($s_fileOrigName, $s_fileTmpName, TRUE);
+
+        // check that the file uploaded successfully
+        if ($a_uploadSuccess[0] === FALSE) {
+            return new command("showError", $a_uploadSuccess[1]);
+        }
+        $s_fileNewPath = $a_uploadSuccess[1];
+        $s_alias = basename($s_fileNewPath);
+        $s_extension = strtolower(pathinfo($s_fileNewPath, PATHINFO_EXTENSION));
+
+        // update the image
+        $o_globalPlayer->updateImage(intval($s_alias), $s_extension);
+
+        // alert everybody in the game
+        _ajax::pushPlayer($o_globalPlayer);
+
+        // return success
+        return new command("success", "");
     }
 }
 

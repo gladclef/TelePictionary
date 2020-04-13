@@ -15,6 +15,7 @@ class player
 	public $i_storyId = -1;
 	public $s_storyName = '';
 	public $a_gameIds = array();
+	public $i_imageId = -1;
 
 	function __construct($s_name) {
 		$this->s_name = $s_name;
@@ -56,6 +57,18 @@ class player
 	public function getStory() {
 		// TODO
 		return null;
+	}
+	public function getImageURL() {
+		$o_image = $this->getImage();
+		if ($o_image === null)
+			return "";
+		return $o_image->getURL();
+	}
+	public function getImage() {
+		return image::loadById($this->i_imageId);
+	}
+	public function getImageId() {
+		return $this->i_imageId;
 	}
 	public function getGameState() {
 		if ($this->s_name == '')
@@ -101,7 +114,8 @@ class player
 			'leftNeighbor' => $this->i_leftNeighbor,
 			'rightNeighbor' => $this->i_rightNeighbor,
 			'storyId' => $this->i_storyId,
-			'storyName' => $this->s_storyName
+			'storyName' => $this->s_storyName,
+			'imageURL' => $this->getImageURL()
 		);
 	}
 
@@ -117,6 +131,35 @@ class player
 			$o_game->removePlayer($this->i_id);
 		$this->s_roomCode = '';
 	}
+	public function updateImage($i_alias, $s_extension)
+	{
+		// create/update the image
+		$b_oldImage = FALSE;
+        $o_image = $this->getImage();
+        if ($o_image === null) {
+            $o_image = new image(TRUE, $this->getId());
+        } else {
+        	$b_oldImage = TRUE;
+        	$i_oldAlias = $o_image->getAlias();
+        	$s_oldExtension = $o_image->getExtension();
+        }
+        $o_image->setImage($i_alias, $s_extension);
+        $o_image->s_roomCode = $this->getRoomCode();
+        $o_image->i_playerId = $this->getId();
+        $o_image->save();
+
+        // update this player
+        $this->i_imageId = $o_image->getId();
+        $this->save();
+
+        // delete the old image
+        if ($b_oldImage) {
+	        $s_oldFilePath = dirname(__FILE__) . "/../../../telePictionaryUserImages/{$i_oldAlias}.{$s_oldExtension}";
+	        if (file_exists($s_oldFilePath)) {
+	        	unlink($s_oldFilePath);
+	        }
+	    }
+	}
 	public function save()
 	{
 		global $maindb;
@@ -130,7 +173,8 @@ class player
 			"name" => $this->s_name,
 			"roomCode" => $this->s_roomCode,
 			"storyId" => $this->i_storyId,
-			"gameIds" => implodeIds($this->a_gameIds)
+			"gameIds" => implodeIds($this->a_gameIds),
+			"imageId" => $this->i_imageId
 		);
 		$s_updateClause = array_to_update_clause($a_updateVals);
 
@@ -211,6 +255,7 @@ class player
 			$o_player->s_roomCode = $a_players[0]['roomCode'];
 			$o_player->i_storyId = intval($a_players[0]['storyId']);
 			$o_player->a_gameIds = explodeIds($a_players[0]['gameIds'], 'intval');
+			$o_player->i_imageId = intval($a_players[0]['imageId']);
 
 			$o_player->i_leftNeighbor = -1;
 			$o_player->i_rightNeighbor = -1;
