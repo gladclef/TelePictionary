@@ -369,8 +369,14 @@
 					return;
 				}
 
-				// draw the current card
+				// un-minimize the game card
 				var jGameCard = $("#gameCard");
+				if (jGameCard.hasClass('minimized')) {
+					var jopaqueEye = jGameCard.find(".opaqueEye");
+					game.minimizeGameCard(jopaqueEye[0]);
+				}
+
+				// draw the current card
 				var jHideMeFirsts = jGameCard.find(".hideMeFirst");
 				if (i_currentTurn < 0) {
 					// game not started yet
@@ -379,13 +385,8 @@
 					// first turn
 					jGameCard.show();
 					jHideMeFirsts.hide();
-					if (game.o_cachedGame.cardStartType == 0) { // start with an image
-						var jCardPicture = jGameCard.find(".cardPicture");
-						jCardPicture.show();
-					} else { // start with a sentence
-						var jCardSentence = jGameCard.find(".cardSentence");
-						jCardSentence.show();
-					}
+					var jStartingCard = jGameCard.find(".card" + game.o_cachedGame.cardStartType);
+					jStartingCard.show();
 				} else if (i_currentTurn < game.o_cachedGame.playerIds.length) {
 					// 2nd+ turn of active play
 					// get the current card
@@ -466,6 +467,34 @@
 				var opacity = parseFloat(jchild.attr('old-opacity'));
 				jchild.finish().animate({ 'opacity': opacity }, 200);
 				jparent.finish().animate({ 'opacity': 1 }, 200);
+			},
+
+			minimizeGameCard: function(h_child) {
+				var jchild = $(h_child);
+				var jparent = jchild.parent();
+				var currentCard = (game.o_cachedGame.currentTurn + game.o_cachedGame.cardStartType) % 2;
+				var otherCard = (currentCard + 1) % 2;
+				var jotherCard = jparent.find(".card" + otherCard);
+				if (jparent.hasClass('minimized')) {
+					var width = parseFloat(jparent.attr('old-width'));
+					jparent.finish().animate({ 'width': width + 'px' }, 200);
+					jparent.removeClass('minimized');
+					$.each(jparent.children(), function(k, v) {
+						if (v != h_child && v != jotherCard[0]) {
+							$(v).finish().show(200);
+						}
+					});
+				} else {
+					if (jparent.attr('old-width') === undefined)
+						jparent.attr('old-width', jparent.width());
+					jparent.finish().animate({ 'width': '70px' }, 200);
+					jparent.addClass('minimized');
+					$.each(jparent.children(), function(k, v) {
+						if (v != h_child && v != jotherCard[0]) {
+							$(v).finish().hide(200);
+						}
+					});
+				}
 			}
 		};
 
@@ -590,15 +619,15 @@
 	<div id="gamePlayersCircle" class="centered bordered" style="width: 700px; height: 700px;">
 	</div>
 	<div id="gameCard" class="centered" style="display: none;">
-		<div class="opaqueEye" onmouseenter="game.makeTransparent(this);" onmouseleave="game.makeOpaque(this);"></div>
+		<div class="opaqueEye" onmouseenter="game.makeTransparent(this);" onmouseleave="game.makeOpaque(this);" onclick="game.minimizeGameCard(this);"></div>
 		<div class="storyDescription centered">Player's Story:</div>
-		<div class="cardSentence" style="display: none;">
+		<div class="card1" style="display: none;">
 			<div class="previousImage hideMeFirst centered" style="background-image: __imageUrl__"></div>
 			<span class="hideMeFirst">Write a short description of this image:</span>
 			<input type="text" placeholder="short sentence" />
 			<input type="button" value="Submit" onclick="controlUploadSentence();" />
 		</div>
-		<div class="cardPicture"  style="display: none;">
+		<div class="card0" style="display: none;">
 			<div class="previousSentence hideMeFirst centered">__sentenceValue__</div>
 			<div>
 				<span>Draw an image</span>
