@@ -28,6 +28,22 @@
 	position: absolute;
 }
 
+.playerToken .readyCheck {
+	display: none;
+	position: absolute;
+	left: 70px;
+	top: -15px;
+	width: 25px;
+}
+
+.playerToken.secondHalf .readyCheck {
+	left: -10px;
+}
+
+.playerToken.ready .readyCheck {
+	display: block;
+}
+
 .player1Crown {
 	position: absolute;
 	left: -21px;
@@ -99,4 +115,32 @@
 
 .playerName.player1Controls .player1Control {
 	display: initial;
+}
+
+#gameCard {
+	position: absolute;
+	top: 82px;
+	left: 145px;
+	width: 500px;
+	height: 625px;
+	background-image: url('../imagesStatic/paper1_small.png');
+	background-repeat: no-repeat;
+	background-size: contain;
+	padding-top: 23px;
+}
+
+#gameCard .opaqueEye {
+	position: absolute;
+	left: 20px;
+	top: 18px;
+	width: 30px;
+	height: 15px;
+	background-image: url('../imagesStatic/eye.png');
+	background-repeat: no-repeat;
+	background-size: contain;
+	opacity: 0.1;
+}
+
+#gameCard .currentImage {
+	width: 450px;
 }

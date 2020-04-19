@@ -80,6 +80,22 @@ class _ajax {
         ), $s_roomCode, $b_showError);
     }
 
+    function pushStory($o_story, $s_roomCode = null, $b_showError = true)
+    {
+        return self::pushEvent(new command(
+            "updateStory",
+            $o_story->toJsonObj()
+        ), $s_roomCode, $b_showError);
+    }
+
+    function pushCard($o_card, $s_roomCode = null, $b_showError = true)
+    {
+        return self::pushEvent(new command(
+            "updateCard",
+            $o_card->toJsonObj()
+        ), $s_roomCode, $b_showError);
+    }
+
     function isPlayerInGame($o_player, $o_game)
     {
         $a_gameState = $o_player->getGameState();
@@ -189,7 +205,7 @@ class _ajax {
      * @param s_fileTmpName The name of the file that PHP uses.
      * @return either [TRUE, destination filename], or [FALSE, error string]
      */
-    function uploadFile($s_fileOrigName, $s_fileTmpName, $b_cropSquare)
+    function uploadFile($s_fileOrigName, $s_fileTmpName, $b_cropSquare, $i_maxWidth = -1, $i_maxHeight = -1)
     {
         global $maindb;
 
@@ -257,7 +273,43 @@ class _ajax {
             try {
                 $im_tmp->writeImage($s_fileNewPath);
             } catch (Exception $e) {
-                return array(FALSE, "Error saving image");
+                return array(FALSE, "Error saving image after cropping");
+            }
+        }
+
+        // resize the image to a new maximum size
+        if ($i_maxWidth > 0 || $i_maxHeight > 0)
+        {
+            $b_changed = FALSE;
+            try {
+                $i_width = $im_tmp->getImageWidth();
+                $i_height = $im_tmp->getImageHeight();
+                $i_newWidth = $i_width;
+                $i_newHeight = $i_height;
+                if ($i_maxWidth > 0 && $i_newWidth < $i_maxWidth)
+                {
+                    $f_ratio = (double)$i_maxWidth / (double)$i_newWidth;
+                    $i_newWidth *= $f_ratio;
+                    $i_newHeight *= $f_ratio;
+                    $b_changed = TRUE;
+                }
+                if ($i_maxHeight > 0 && $i_newHeight < $i_maxHeight)
+                {
+                    $f_ratio = (double)$i_maxHeight / (double)$i_newHeight;
+                    $i_newWidth *= $f_ratio;
+                    $i_newHeight *= $f_ratio;
+                    $b_changed = TRUE;
+                }
+                $im_tmp->scaleImage($i_newWidth, $i_newHeight);
+            } catch (Exception $e) {
+                return array(FALSE, "Error resizing image");
+            }
+            try {
+                if ($b_changed) {
+                    $im_tmp->writeImage($s_fileNewPath);
+                }
+            } catch (Exception $e) {
+                return array(FALSE, "Error saving image after resizing");
             }
         }
 

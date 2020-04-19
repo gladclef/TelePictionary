@@ -81,6 +81,37 @@ class game
 	public function getCurrentTurn() {
 		return $this->i_currentTurn;
 	}
+	public function getPlayerInOrder($i_startingPlayerId, $i_turnsLater) {
+		$a_playerOrder = $this->getPlayerOrder();
+		$b_foundStartingPlayer = false;
+		
+		// double the length of the array so that we can wrap around without having to do as much housekeeping
+		$i_count = count($a_playerOrder);
+		for ($i = 0; $i < $i_count; $i++)
+		{
+			array_push($a_playerOrder, $a_playerOrder[$i]);
+		}
+
+		// find the player $i_turnsLater after the starting player in player order
+		for ($i = 0; $i < count($a_playerOrder) * 2; $i++)
+		{
+			// go through until we find the starting player
+			if ($a_playerOrder[$i] == $i_startingPlayerId) {
+				$b_foundStartingPlayer = true;
+			}
+
+			// if we've met $i_turnsLater, then return this player
+			if ($b_foundStartingPlayer)
+			{
+				if ($i_turnsLater == 0)
+				{
+					return player::loadById($a_playerOrder[$i]);
+				}
+				$i_turnsLater--;
+			}
+		}
+		return null;
+	}
 	public function getGameState() {
 		if ($this->i_currentTurn == -1)
 		{
@@ -272,7 +303,7 @@ class game
 		$o_game = null;
 		$a_games = db_query("SELECT * FROM `{$maindb}`.`games` WHERE `roomCode`='[roomCode]'", array("roomCode"=>$s_roomCode));
 		if (is_array($a_games) && count($a_games) > 0) {
-			$o_game = new game($a_games[0]['name'], $a_games[0]['player1Id']);
+			$o_game = new game($a_games[0]['name'], intval($a_games[0]['player1Id']));
 			$o_game->i_id = intval($a_games[0]['id']);
 			$o_game->s_roomCode = $a_games[0]['roomCode'];
 			$o_game->a_playerIds = explodeIds($a_games[0]['playerIds'], 'intval');

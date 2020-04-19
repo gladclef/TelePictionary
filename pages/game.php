@@ -81,6 +81,13 @@
 					jPlayerImg.css("background-image", "url(" + o_player.imageURL + ")");
 				}
 
+				// set the player readiness
+				if (o_player.ready) {
+					jPlayerToken.addClass("ready");
+				} else {
+					jPlayerToken.removeClass("ready");
+				}
+
 				// show the player name on click
 				jPlayerToken.off("click").on("click", function() {
 					if (jPlayerName.css("display") == "none")
@@ -119,6 +126,11 @@
 
 				// set this player token position and update token layouts
 				jPlayerToken.attr("position", i_position);
+				if (i_position > playerFuncs.playerCount() / 2) {
+					jPlayerToken.addClass("secondHalf");
+				} else {
+					jPlayerToken.removeClass("secondHalf");
+				}
 				if (b_updatePositions)
 				{
 					game.updatePlayerTokensLayout();
@@ -129,11 +141,11 @@
 				var jPlayersCircle = $("#gamePlayersCircle");
 				var jaPlayerTokens = jPlayersCircle.find(".playerToken");
 				var jImagePlaceholderSample = $(jaPlayerTokens[0]).find(".playerImagePlaceholder");
-				var tokenWidth = jImagePlaceholderSample.width();
-				var tokenHeight = jImagePlaceholderSample.height();
+				var tokenWidth = jImagePlaceholderSample.fullWidth(true, false);
+				var tokenHeight = jImagePlaceholderSample.fullHeight(true, false);
 				var padding = 20;
-				var canvasWidth = jPlayersCircle.width() - padding*2;
-				var canvasHeight = jPlayersCircle.height() - padding*2;
+				var canvasWidth = jPlayersCircle.fullWidth(true, false) - padding*2;
+				var canvasHeight = jPlayersCircle.fullHeight(true, false) - padding*2;
 
 				$.each(jaPlayerTokens, function(k, playerToken) {
 					var jPlayerToken = $(playerToken);
@@ -250,7 +262,7 @@
 			uploadImage: function(jImg, a_files) {
 				if (a_files.length !== 1) { alert("Incorrect number of image files (must be 1)."); return; }
 				var f_file = a_files[0];
-				if (f_file.size > 3145728) { alert("Image is too big! (must be less than 3MB)"); return; }
+				if (f_file.size > 12 * 1048576) { alert("Image is too big! (must be less than 12MB)"); return; }
 
 				var posts = new FormData();
 				posts.append('command', jImg.attr("command"));
@@ -284,14 +296,69 @@
 			},
 
 			getCurrentCard: function() {
-				commands.drawCard = function(o_card) {
-					var jCardDoneButton = jGameCard.find(".cardDoneButton");
-					jHideMeFirsts.show();
-					jCardDoneButton.show();
-				};
 				outgoingMessenger.pushData({
 					'command': 'getCurrentCard'
 				});
+			},
+
+			limitImageSize: function(jImage, maxWidth, maxHeight) {
+				jImage.off('load');
+				jImage.on('load', function() {
+					var img = new Image();
+					img.onload = function() {
+						var width = parseInt(img.width);
+						var height = parseInt(img.height);
+						var maxWidth = 350;
+						var maxHeight = 530;
+						if (width > maxWidth)
+						{
+							var ratio = maxWidth / width;
+							width *= ratio;
+							height *= ratio;
+						}
+						if (height > maxHeight)
+						{
+							var ratio = maxHeight / height;
+							width *= ratio;
+							height *= ratio;
+						}
+						jImage.css({
+							'width': width + 'px',
+							'height': height + 'px',
+							'margin-top': ((maxHeight - height) / 2) + 'px'
+						});
+					};
+					img.src = jImage.attr('src');
+				});
+			},
+
+			updateCard: function(o_card) {
+				var i_currentTurn = game.o_cachedGame.currentTurn;
+
+				// draw the current card
+				var jGameCard = $("#gameCard");
+				var jHideMeFirsts = jGameCard.find(".hideMeFirst");
+				if (i_currentTurn < 0) {
+					// game not started yet
+				} else if (i_currentTurn < game.o_cachedGame.playerIds.length) {
+					// 1st+ turn of active play
+					// draw the current card
+					if (playerFuncs.isLocalPlayer(o_card.authorId)) {
+						jGameCard.show();
+						jHideMeFirsts.hide();
+						if (o_card.type == 0) { // image card
+							var jCurrentImage = jGameCard.find(".currentImage");
+							game.limitImageSize(jCurrentImage, 400, 530);
+							jCurrentImage.attr('src', o_card.imageURL);
+							jCurrentImage.show();
+						} else { // sentence card
+							// TODO
+						}
+					}
+				} else {
+					// reveal step TODO
+					jGameCard.hide();
+				}
 			},
 
 			prevTurn: -1,
@@ -319,8 +386,6 @@
 						var jCardSentence = jGameCard.find(".cardSentence");
 						jCardSentence.show();
 					}
-					var jCardDoneButton = jGameCard.find(".cardDoneButton");
-					jCardDoneButton.show();
 				} else if (i_currentTurn < game.o_cachedGame.playerIds.length) {
 					// 2nd+ turn of active play
 					// get the current card
@@ -332,8 +397,17 @@
 
 				// update the available game controls
 				var jPlayer1Control = $("#gamePlayer1Control");
-				var jControlStart = jPlayer1Control.find("[control=start]");
-				jControlStart[(i_currentTurn == -1) ? 'show' : 'hide']();
+				var jControlStart = jPlayer1Control.find("input.startGame");
+				var jUploadButton = jGameCard.find("input[type=file]");
+				var jCardImage = jGameCard.find(".currentImage");
+				jControlStart[(i_currentTurn == -1 && playerFuncs.isPlayer1()) ? 'show' : 'hide']();
+				jUploadButton.off('change');
+				jUploadButton.on('change', function(e) {
+					e.preventDefault();
+					e.stopPropagation();
+					game.uploadImage(jCardImage, jUploadButton[0].files);
+					return false;
+				});
 
 				// update the status text
 				game.updateStatusText();
@@ -375,6 +449,23 @@
 				var jPlayersCircle = $("#gamePlayersCircle");
 				var jPlayerToken = jPlayersCircle.find(".playerToken[playerId=" + o_player.id + "]");
 				jPlayerToken.remove();
+			},
+
+			makeTransparent: function(h_child) {
+				var jchild = $(h_child);
+				var jparent = jchild.parent();
+				if (jchild.attr('old-opacity') === undefined)
+					jchild.attr('old-opacity', jchild.css('opacity'));
+				jchild.finish().animate({ 'opacity': 1 }, 200);
+				jparent.finish().animate({ 'opacity': 0.3 }, 200);
+			},
+
+			makeOpaque: function(h_child) {
+				var jchild = $(h_child);
+				var jparent = jchild.parent();
+				var opacity = parseFloat(jchild.attr('old-opacity'));
+				jchild.finish().animate({ 'opacity': opacity }, 200);
+				jparent.finish().animate({ 'opacity': 1 }, 200);
 			}
 		};
 
@@ -405,6 +496,20 @@
 			$s_players = json_encode(json_encode($a_encodedPlayers));
 			echo "serverStats['game'] = {$s_game};\r\n";
 			echo "serverStats['players'] = {$s_players}\r\n";
+
+			// draw the current card
+			$a_gameState = $o_game->getGameState();
+			if ($a_gameState[0] == 2) { // game started but not revealing cards yet
+				$o_story = $o_globalPlayer->getStory();
+				$o_card = $o_story->getCard($o_game->getCurrentTurn());
+				if ($o_card !== null) {
+					$s_card = json_encode(json_encode($o_card->toJsonObj()));
+					echo "serverStats['currentCard'] = {$s_card}\r\n";
+				}
+			}
+			else if ($a_gameState[0] == 3) { // revealing cards
+				// TODO
+			}
 		}
 		drawGame();
 
@@ -466,6 +571,13 @@
 					var o_game = JSON.parse(serverStats['game']);
 					commands.updateGame(o_game);
 				}
+
+				// draw the current card
+				if (serverStats['currentCard'] !== undefined)
+				{
+					var o_card = JSON.parse(serverStats['currentCard']);
+					commands.updateCard(o_card);
+				}
 			}
 		};
 	</script>
@@ -477,28 +589,30 @@
 	<br />
 	<div id="gamePlayersCircle" class="centered bordered" style="width: 700px; height: 700px;">
 	</div>
-	<div id="gameCard" class="centered bordered" style="display: none;">
+	<div id="gameCard" class="centered" style="display: none;">
+		<div class="opaqueEye" onmouseenter="game.makeTransparent(this);" onmouseleave="game.makeOpaque(this);"></div>
 		<div class="storyDescription centered">Player's Story:</div>
 		<div class="cardSentence" style="display: none;">
 			<div class="previousImage hideMeFirst centered" style="background-image: __imageUrl__"></div>
 			<span class="hideMeFirst">Write a short description of this image:</span>
 			<input type="text" placeholder="short sentence" />
+			<input type="button" value="Submit" onclick="controlUploadSentence();" />
 		</div>
-		<div class="cardPicture" style="display: none;">
+		<div class="cardPicture"  style="display: none;">
 			<div class="previousSentence hideMeFirst centered">__sentenceValue__</div>
 			<div>
 				<span>Draw an image</span>
 				<span class="hideMeFirst">about this sentence</span>
 				<span>and then upload it:</span>
-				<input type="button" value="Upload Image" onclick="controlUploadImage();" />
-				<div class="currentImage centered" style="background-image: __imageUrl__"></div>
+				<input type="button" value="Upload Image" onclick="$(this).parent().find('input[type=file]').click();" />
+				<input type="file" accept="image/jpg,image/jpeg,image/png,image/gif,image/bmp,image/tiff" style="display: none;" /><!-- calls uploadImage on click, as set in setCurrentTurn -->
+				<img src="__imageUrl__" class="currentImage centered" command="setCardImage" style="display: none;" />
 			</div>
 		</div>
-		<input class="cardDoneButton" type="button" value="I'm Done" />
 	</div>
 	<div id="gamePlayer1Control" class="centered" style="width: 700px; display: none;">
 		<div class="centered" gameControl="start" style="width: 80px;">
-			<input type="button" value="Start Game" onclick="game.controlStartClick();" />
+			<input type="button" class="startGame" value="Start Game" onclick="game.controlStartClick();" />
 		</div>
 	</div>
 	<div id="gameGameStatus" class="centered" style="width: 500px;">loading...</div>
@@ -510,10 +624,11 @@
 			<div class="playerName" style="display: none;">
 				<div class="playerNameName"></div>
 				<input class="playerControl" type="button" value="Change Picture" onclick="$(this).parent().find('input[type=file]').click();" />
-				<input type="file" accept="image/jpg,image/jpeg,image/png,image/gif,image/bmp,image/tiff" style="display: none;" />
+				<input type="file" accept="image/jpg,image/jpeg,image/png,image/gif,image/bmp,image/tiff" style="display: none;" /><!-- calls uploadImage on click, as set in addPlayer -->
 				<input class="player1Control" type="button" value="Promote" onclick="game.controlPromotePlayer(__playerId__);" />
 				<input class="player1Control" type="button" value="Kick" onclick="game.controlKickPlayer(__playerId__);" />
 			</div>
+			<img class="readyCheck" src="imagesStatic/checkmark.png" />
 		</div>
 	</div>
 </div>

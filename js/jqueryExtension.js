@@ -85,6 +85,48 @@ loadJqueryExtensions = function()
             "left": jobj.paddingLeft()
         };
     };
+    $.fn.marginTop = function() { return getCssInt(this, "margin-top").val; };
+    $.fn.marginBottom = function() { return getCssInt(this, "margin-bottom").val; };
+    $.fn.marginRight = function() { return getCssInt(this, "margin-right").val; };
+    $.fn.marginLeft = function() { return getCssInt(this, "margin-left").val; };
+    $.fn.marginTopPlusBottom = function() {
+        var top = getCssInt(this, "margin-top");
+        var jobj = top.obj;
+        return jobj.marginBottom() + top.val;
+    };
+    $.fn.marginLeftPlusRight = function() {
+        var left = getCssInt(this, "margin-left");
+        var jobj = left.obj;
+        return jobj.marginRight() + left.val;
+    };
+    $.fn.margin = function() {
+        var top = getCssInt(this, "margin-top");
+        var jobj = top.obj;
+        return {
+            "top": top.val,
+            "right": jobj.marginRight(),
+            "bottom": jobj.marginBottom(),
+            "left": jobj.marginLeft()
+        };
+    };
+    $.fn.fullWidth = function(b_includePadding, b_includeMargin) {
+        var me = $(this);
+        var ret = me.width();
+        if (b_includePadding)
+            ret += me.paddingLeftPlusRight();
+        if (b_includeMargin)
+            ret += me.marginLeftPlusRight();
+        return ret;
+    };
+    $.fn.fullHeight = function(b_includePadding, b_includeMargin) {
+        var me = $(this);
+        var ret = me.height();
+        if (b_includePadding)
+            ret += me.paddingTopPlusBottom();
+        if (b_includeMargin)
+            ret += me.marginTopPlusBottom();
+        return ret;
+    };
 
     $.fn.imgDrop = function(hoverCallback, dropCallback) {
         var jobj = this;

@@ -4,6 +4,158 @@
 		"selected_items":
 		[
 			[
+				"i_image",
+				"i_imageId\tabc"
+			],
+			[
+				"b_old",
+				"b_oldImage\tabc"
+			],
+			[
+				"s_old",
+				"s_oldFilePath\tabc"
+			],
+			[
+				"s_file",
+				"s_fileNewPath\t(server.php)"
+			],
+			[
+				"s_fil",
+				"s_fileTmpName\tabc"
+			],
+			[
+				"i_im",
+				"i_imageId\tabc"
+			],
+			[
+				"common",
+				"common_functions.php\t(index.php)"
+			],
+			[
+				"error",
+				"error_log\t(server.php)"
+			],
+			[
+				"load",
+				"loadByRoomCode\t(player.php)"
+			],
+			[
+				"b_is",
+				"b_isPlayerImage\tabc"
+			],
+			[
+				"init",
+				"initial\tdisplay"
+			],
+			[
+				"player",
+				"playerFuncs\tabc"
+			],
+			[
+				"jcard",
+				"jCardDoneButton\tabc"
+			],
+			[
+				"jga",
+				"jGameCard\tabc"
+			],
+			[
+				"hide",
+				"hideMeFirst\tabc"
+			],
+			[
+				"jGa",
+				"jGameCard\tabc"
+			],
+			[
+				"pushpu",
+				"pushPullInterpret\t(pushPull.js)"
+			],
+			[
+				"out",
+				"outgoingMessenger\tabc"
+			],
+			[
+				"iss",
+				"is_string\t(server.php)"
+			],
+			[
+				"get",
+				"getRoomCode\tabc"
+			],
+			[
+				"Dat",
+				"DateTime('now\tabc"
+			],
+			[
+				"d_",
+				"d_turnStart\tabc"
+			],
+			[
+				"a_g",
+				"a_gameState\tabc"
+			],
+			[
+				"succ",
+				"successFunc\tabc"
+			],
+			[
+				"show",
+				"showError\tabc"
+			],
+			[
+				"loc",
+				"localPlayer\t(index.php)"
+			],
+			[
+				"getpo",
+				"get_post_var\tabc"
+			],
+			[
+				"playeri",
+				"playerId\tabc"
+			],
+			[
+				"jpl",
+				"jPlayerToken\tabc"
+			],
+			[
+				"playerName",
+				"playerNameName\tabc"
+			],
+			[
+				"__player",
+				"__playerPosition__\tabc"
+			],
+			[
+				"gameplayer",
+				"gamePlayerTokenTemplate\tabc"
+			],
+			[
+				"string",
+				"stringify\t(pushPull.js)"
+			],
+			[
+				"jplayer",
+				"jPlayerToken\tabc"
+			],
+			[
+				"getplaer",
+				"getPlayer1\t(game.php)"
+			],
+			[
+				"jplayertok",
+				"jPlayerTokens\tabc"
+			],
+			[
+				"player1",
+				"player1\tabc"
+			],
+			[
+				"url",
+				"url()\tbackground-image"
+			],
+			[
 				"back",
 				"background\tproperty"
 			],
@@ -46,10 +198,6 @@
 			[
 				"io_",
 				"io_player\tabc"
-			],
-			[
-				"player",
-				"playerFuncs\tabc"
 			],
 			[
 				"gamePlay",
@@ -100,10 +248,6 @@
 				"jPlayerTokens\tabc"
 			],
 			[
-				"jpl",
-				"jPlayersCircle\tabc"
-			],
-			[
 				"updatepl",
 				"updatePlayerTokensLayout\tabc"
 			],
@@ -130,10 +274,6 @@
 			[
 				"jgam",
 				"jGameName\tabc"
-			],
-			[
-				"player1",
-				"player1Id\tabc"
 			],
 			[
 				"i_pl",
@@ -172,10 +312,6 @@
 				"jPlayerToken\tabc"
 			],
 			[
-				"loc",
-				"localPlayer\t(player.js)"
-			],
-			[
 				"s_game",
 				"s_gameStatus\tabc"
 			],
@@ -210,10 +346,6 @@
 			[
 				"jgamenam",
 				"jGameNameEdit\tabc"
-			],
-			[
-				"jga",
-				"jGameName\tabc"
 			],
 			[
 				"local",
@@ -308,10 +440,6 @@
 				"foreach\tforeach …"
 			],
 			[
-				"show",
-				"showError\tabc"
-			],
-			[
 				"ap",
 				"append\tabc"
 			],
@@ -386,134 +514,6 @@
 			[
 				"curr",
 				"currentContent\tabc"
-			],
-			[
-				"cu",
-				"currentContent\tabc"
-			],
-			[
-				"Tru",
-				"TRUE\tabc"
-			],
-			[
-				"json",
-				"json_encode\tabc"
-			],
-			[
-				"s_set",
-				"s_setClause\tabc"
-			],
-			[
-				"implode",
-				"implodeIds\t(common_functions.php)"
-			],
-			[
-				"getId",
-				"getId\tabc"
-			],
-			[
-				"getpla",
-				"getPlayer1\t(game.php)"
-			],
-			[
-				"getga",
-				"getGameState\tabc"
-			],
-			[
-				"new",
-				"newthread\tabc"
-			],
-			[
-				"room",
-				"roomCode\tabc"
-			],
-			[
-				"checkTim",
-				"checkTimeKillAll\tabc"
-			],
-			[
-				"t_",
-				"t_createTime\tabc"
-			],
-			[
-				"s_r",
-				"s_roomCode\tabc"
-			],
-			[
-				"mess",
-				"message_time\tabc"
-			],
-			[
-				"message",
-				"message_time\t(pushPull.js)"
-			],
-			[
-				"str",
-				"stringify\tabc"
-			],
-			[
-				"genera",
-				"generalErrorTimeout\tabc"
-			],
-			[
-				"outgoin",
-				"outgoingMessenger\tabc"
-			],
-			[
-				"out",
-				"outgoingMessenger\t(control.js)"
-			],
-			[
-				"onkey",
-				"onkeyup\tAttr"
-			],
-			[
-				"text-a",
-				"text-align\tproperty"
-			],
-			[
-				"latestI",
-				"latestIndexes\tabc"
-			],
-			[
-				"JSON",
-				"json_decode"
-			],
-			[
-				"serv",
-				"serverStats\tabc"
-			],
-			[
-				"server",
-				"serverStats\t(pushPull.js)"
-			],
-			[
-				"jquery",
-				"jqueryExtension.js\t(index.php)"
-			],
-			[
-				"globa",
-				"globalPlayer\tabc"
-			],
-			[
-				"o_glo",
-				"o_globalPlayer\tabc"
-			],
-			[
-				"myses",
-				"my_session_start\t(common_functions.php)"
-			],
-			[
-				"a_p",
-				"a_playerOrder\tabc"
-			],
-			[
-				"i_pla",
-				"i_playerId\tabc"
-			],
-			[
-				"a_gam",
-				"a_gameState\tabc"
 			]
 		]
 	},
@@ -523,52 +523,7 @@
 			"file": "index.php",
 			"settings":
 			{
-				"buffer_size": 3348,
-				"encoding": "UTF-8",
-				"line_ending": "Windows"
-			}
-		},
-		{
-			"file": "pages/game.php",
-			"settings":
-			{
-				"buffer_size": 10588,
-				"encoding": "UTF-8",
-				"line_ending": "Windows"
-			}
-		},
-		{
-			"file": "communication/longPoll/server.php",
-			"settings":
-			{
-				"buffer_size": 14192,
-				"encoding": "UTF-8",
-				"line_ending": "Windows"
-			}
-		},
-		{
-			"file": "resources/common_functions.php",
-			"settings":
-			{
-				"buffer_size": 2630,
-				"encoding": "UTF-8",
-				"line_ending": "Windows"
-			}
-		},
-		{
-			"file": "css/game.css",
-			"settings":
-			{
-				"buffer_size": 849,
-				"encoding": "UTF-8",
-				"line_ending": "Windows"
-			}
-		},
-		{
-			"file": "communication/longPoll/server.py",
-			"settings":
-			{
-				"buffer_size": 14746,
+				"buffer_size": 3707,
 				"encoding": "UTF-8",
 				"line_ending": "Windows"
 			}
@@ -577,25 +532,43 @@
 			"file": "communication/longPoll/pushPull.js",
 			"settings":
 			{
-				"buffer_size": 6359,
+				"buffer_size": 6981,
 				"encoding": "UTF-8",
 				"line_ending": "Windows"
 			}
 		},
 		{
-			"file": "objects/game.php",
+			"file": "pages/game.php",
 			"settings":
 			{
-				"buffer_size": 8383,
+				"buffer_size": 17359,
 				"encoding": "UTF-8",
 				"line_ending": "Windows"
 			}
 		},
 		{
-			"file": "js/commands.js",
+			"file": "communication/longPoll/server.php",
 			"settings":
 			{
-				"buffer_size": 2639,
+				"buffer_size": 11876,
+				"encoding": "UTF-8",
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "objects/image.php",
+			"settings":
+			{
+				"buffer_size": 4478,
+				"encoding": "UTF-8",
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "images/getImage.php",
+			"settings":
+			{
+				"buffer_size": 865,
 				"encoding": "UTF-8",
 				"line_ending": "Windows"
 			}
@@ -604,7 +577,43 @@
 			"file": "objects/player.php",
 			"settings":
 			{
-				"buffer_size": 7601,
+				"buffer_size": 8976,
+				"encoding": "UTF-8",
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "communication/longPoll/private.php",
+			"settings":
+			{
+				"buffer_size": 10007,
+				"encoding": "UTF-8",
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "css/game.css",
+			"settings":
+			{
+				"buffer_size": 1579,
+				"encoding": "UTF-8",
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "objects/game.php",
+			"settings":
+			{
+				"buffer_size": 8601,
+				"encoding": "UTF-8",
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "js/commands.js",
+			"settings":
+			{
+				"buffer_size": 3037,
 				"encoding": "UTF-8",
 				"line_ending": "Windows"
 			}
@@ -613,7 +622,7 @@
 			"file": "js/player.js",
 			"settings":
 			{
-				"buffer_size": 1793,
+				"buffer_size": 2074,
 				"encoding": "UTF-8",
 				"line_ending": "Windows"
 			}
@@ -699,6 +708,7 @@
 		"/C/Users/gladc/Documents/TelePictionary/communication",
 		"/C/Users/gladc/Documents/TelePictionary/communication/longPoll",
 		"/C/Users/gladc/Documents/TelePictionary/css",
+		"/C/Users/gladc/Documents/TelePictionary/images",
 		"/C/Users/gladc/Documents/TelePictionary/js",
 		"/C/Users/gladc/Documents/TelePictionary/objects",
 		"/C/Users/gladc/Documents/TelePictionary/pages",
@@ -707,19 +717,23 @@
 	"file_history":
 	[
 		"/C/Users/gladc/Documents/TelePictionary/resources/common_functions.php",
+		"/C/Users/gladc/Documents/TelePictionary/images/getImage.php",
+		"/C/Users/gladc/Documents/TelePictionary/objects/player.php",
+		"/C/Users/gladc/Documents/TelePictionary/objects/image.php",
+		"/C/Users/gladc/Documents/TelePictionary/resources/database_structure.php",
+		"/C/Users/gladc/Documents/TelePictionary/js/jqueryExtension.js",
+		"/C/Users/gladc/Documents/TelePictionary/communication/longPoll/server.py",
+		"/C/Users/gladc/Documents/TelePictionary/communication/longPoll/pushPull.js",
+		"/C/Users/gladc/Documents/TelePictionary/js/control.js",
 		"/C/Users/gladc/Documents/TelePictionary/pages/about.php",
+		"/C/Users/gladc/Documents/TelePictionary/js/javascriptExtension.js",
+		"/C/Users/gladc/Documents/TelePictionary/images/crown.xcf",
 		"/C/Users/gladc/Documents/TelePictionary/objects/story.php",
 		"/C/Users/gladc/Documents/TelePictionary/objects/card.php",
 		"/C/Users/gladc/Documents/TelePictionary/objects/game.php",
 		"/C/Users/gladc/Documents/TelePictionary/css/common.css",
 		"/C/Users/gladc/Documents/TelePictionary/css/game.css",
-		"/C/Users/gladc/Documents/TelePictionary/js/jqueryExtension.js",
-		"/C/Users/gladc/Documents/TelePictionary/communication/longPoll/server.py",
-		"/C/Users/gladc/Documents/TelePictionary/communication/longPoll/pushPull.js",
-		"/C/Users/gladc/Documents/TelePictionary/js/javascriptExtension.js",
-		"/C/Users/gladc/Documents/TelePictionary/js/control.js",
 		"/C/Users/gladc/Documents/TelePictionary/resources/server_config.ini",
-		"/C/Users/gladc/Documents/TelePictionary/resources/database_structure.php",
 		"/C/Users/gladc/OneDrive/Desktop/firefoxTest.html",
 		"/C/Users/gladc/Documents/TelePictionary/index.php",
 		"/C/Users/gladc/Documents/TelePictionary/resources/ajax.php",
@@ -727,7 +741,6 @@
 		"/C/Users/gladc/Documents/TelePictionary/js/applicationCommands.js",
 		"/C/Users/gladc/Documents/TelePictionary/resources/globals.php",
 		"/C/Users/gladc/Documents/TelePictionary/js/commands.js",
-		"/C/Users/gladc/Documents/TelePictionary/objects/player.php",
 		"/C/Users/gladc/Documents/TelePictionary/js/index.js",
 		"/C/Users/gladc/Documents/TelePictionary/objects/command.php",
 		"/C/Users/gladc/Documents/TelePictionary/communication/longPoll/server.php",
@@ -830,10 +843,7 @@
 		"/C/Users/gladc/Documents/NumNum/server/NumaneraSheets/resources/server_config_example.ini",
 		"/C/Users/gladc/Documents/NumNum/server/NumaneraSheets/css/auto_table.css",
 		"/C/Users/gladc/Documents/NumNum/server/NumaneraSheets/jquery/development-bundle/demos/effect/easing.html",
-		"/C/Users/gladc/AppData/Roaming/Sublime Text 3/Packages/User/Default (Windows).sublime-keymap",
-		"/C/Users/gladc/AppData/Roaming/Sublime Text 3/Packages/User/SFTP.sublime-settings",
-		"/C/Users/gladc/AppData/Roaming/Sublime Text 3/Packages/SFTP/SFTP.sublime-settings",
-		"/C/Users/gladc/AppData/Roaming/Sublime Text 3/Packages/SFTP/Default (Windows).sublime-keymap"
+		"/C/Users/gladc/AppData/Roaming/Sublime Text 3/Packages/User/Default (Windows).sublime-keymap"
 	],
 	"find":
 	{
@@ -858,6 +868,20 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"var_dump",
+			"get_post_var",
+			"get_get_var",
+			"player",
+			"a_players",
+			"o_player",
+			"changeplayerpicture",
+			"setPlayer1",
+			"setCurrentTurn",
+			"setcurrentturn:",
+			"setCurrentTurn",
+			"currentturn",
+			"outgoingMessenger",
+			"fqdn",
 			"my.*session.*start",
 			"mysessionstart",
 			"a_staticStories",
@@ -971,21 +995,7 @@
 			"story_id",
 			"player_id",
 			"left",
-			"a_users",
-			"o_user",
-			"a_users",
-			"gameName",
-			"error_log_array",
-			"database_structure.php",
-			"a_basic_tables_structure",
-			"global_opened_db",
-			"can't find ",
-			"open_db",
-			"global_opened_db",
-			"command",
-			"get_post_",
-			"serverStats",
-			"initPushPull"
+			"a_users"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -993,6 +1003,8 @@
 		"regex": true,
 		"replace_history":
 		[
+			"a_images",
+			"o_image",
 			"story_staticStories",
 			"card_staticCards",
 			"f_serverTime",
@@ -1069,7 +1081,7 @@
 	"groups":
 	[
 		{
-			"selected": 2,
+			"selected": 6,
 			"sheets":
 			[
 				{
@@ -1078,15 +1090,79 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 3348,
+						"buffer_size": 3707,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								870,
-								870
+								303,
+								303
+							]
+						],
+						"settings":
+						{
+							"incomplete_sync": null,
+							"remote_loading": false,
+							"synced": false,
+							"syntax": "Packages/PHP/PHP.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 630.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 5,
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "communication/longPoll/pushPull.js",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 6981,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								2663,
+								2667
+							]
+						],
+						"settings":
+						{
+							"incomplete_sync": null,
+							"remote_loading": false,
+							"synced": false,
+							"syntax": "Packages/JavaScript/JavaScript.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 1764.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 7,
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "pages/game.php",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 17359,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								2779,
+								2779
 							]
 						],
 						"settings":
@@ -1101,68 +1177,28 @@
 						"translation.y": 252.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 9,
+					"stack_index": 6,
 					"type": "text"
 				},
 				{
-					"buffer": 1,
-					"file": "pages/game.php",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 10588,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								6173,
-								6173
-							]
-						],
-						"settings":
-						{
-							"incomplete_sync": null,
-							"remote_loading": false,
-							"synced": false,
-							"syntax": "Packages/PHP/PHP.sublime-syntax",
-							"translate_tabs_to_spaces": false
-						},
-						"translation.x": 0.0,
-						"translation.y": 3150.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 2,
-					"type": "text"
-				},
-				{
-					"buffer": 2,
+					"buffer": 3,
 					"file": "communication/longPoll/server.php",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 14192,
+						"buffer_size": 11876,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								11086,
-								11086
+								11177,
+								11177
 							]
 						],
 						"settings":
 						{
-							"WordCount":
-							{
-								"changes": -1,
-								"modified": true,
-								"selection": true,
-								"status": -1,
-								"syntax": "php"
-							},
 							"incomplete_sync": null,
 							"remote_loading": false,
 							"synced": false,
@@ -1171,27 +1207,90 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 5166.0,
+						"translation.y": 504.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 0,
+					"stack_index": 3,
 					"type": "text"
 				},
 				{
-					"buffer": 3,
-					"file": "resources/common_functions.php",
+					"buffer": 4,
+					"file": "objects/image.php",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 2630,
+						"buffer_size": 4478,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								464,
-								464
+								4469,
+								4462
+							]
+						],
+						"settings":
+						{
+							"incomplete_sync": null,
+							"remote_loading": false,
+							"synced": false,
+							"syntax": "Packages/PHP/PHP.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 378.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 1,
+					"type": "text"
+				},
+				{
+					"buffer": 5,
+					"file": "images/getImage.php",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 865,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								365,
+								316
+							]
+						],
+						"settings":
+						{
+							"incomplete_sync": null,
+							"remote_loading": false,
+							"synced": false,
+							"syntax": "Packages/PHP/PHP.sublime-syntax"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 4,
+					"type": "text"
+				},
+				{
+					"buffer": 6,
+					"file": "objects/player.php",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 8976,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1579,
+								1579
 							]
 						],
 						"settings":
@@ -1211,27 +1310,58 @@
 							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
-						"translation.y": 0.0,
+						"translation.y": 859.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 1,
+					"stack_index": 0,
 					"type": "text"
 				},
 				{
-					"buffer": 4,
-					"file": "css/game.css",
+					"buffer": 7,
+					"file": "communication/longPoll/private.php",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 849,
+						"buffer_size": 10007,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								334,
-								334
+								7272,
+								7294
+							]
+						],
+						"settings":
+						{
+							"incomplete_sync": null,
+							"syntax": "Packages/PHP/PHP.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 1638.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 2,
+					"type": "text"
+				},
+				{
+					"buffer": 8,
+					"file": "css/game.css",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1579,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								966,
+								966
 							]
 						],
 						"settings":
@@ -1243,188 +1373,59 @@
 							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 3,
-					"type": "text"
-				},
-				{
-					"buffer": 5,
-					"file": "communication/longPoll/server.py",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 14746,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								8525,
-								8525
-							]
-						],
-						"settings":
-						{
-							"incomplete_sync": null,
-							"remote_loading": false,
-							"synced": false,
-							"syntax": "Packages/Python/Python.sublime-syntax",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 4182.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 4,
-					"type": "text"
-				},
-				{
-					"buffer": 6,
-					"file": "communication/longPoll/pushPull.js",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 6359,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								5688,
-								5688
-							]
-						],
-						"settings":
-						{
-							"incomplete_sync": null,
-							"remote_loading": false,
-							"synced": false,
-							"syntax": "Packages/JavaScript/JavaScript.sublime-syntax",
-							"translate_tabs_to_spaces": false
-						},
-						"translation.x": 0.0,
-						"translation.y": 3673.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 5,
-					"type": "text"
-				},
-				{
-					"buffer": 7,
-					"file": "objects/game.php",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 8383,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								6937,
-								6937
-							]
-						],
-						"settings":
-						{
-							"incomplete_sync": null,
-							"remote_loading": false,
-							"synced": false,
-							"syntax": "Packages/PHP/PHP.sublime-syntax",
-							"translate_tabs_to_spaces": false
-						},
-						"translation.x": 0.0,
-						"translation.y": 3685.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 7,
-					"type": "text"
-				},
-				{
-					"buffer": 8,
-					"file": "js/commands.js",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 2639,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								1727,
-								1727
-							]
-						],
-						"settings":
-						{
-							"incomplete_sync": null,
-							"remote_loading": false,
-							"synced": false,
-							"syntax": "Packages/JavaScript/JavaScript.sublime-syntax",
-							"translate_tabs_to_spaces": false
-						},
-						"translation.x": 0.0,
-						"translation.y": 553.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 6,
-					"type": "text"
-				},
-				{
-					"buffer": 9,
-					"file": "objects/player.php",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 7601,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								5019,
-								5019
-							]
-						],
-						"settings":
-						{
-							"incomplete_sync": null,
-							"remote_loading": false,
-							"synced": false,
-							"syntax": "Packages/PHP/PHP.sublime-syntax",
-							"translate_tabs_to_spaces": false
-						},
-						"translation.x": 0.0,
-						"translation.y": 3120.0,
+						"translation.y": 139.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 8,
 					"type": "text"
 				},
 				{
-					"buffer": 10,
-					"file": "js/player.js",
+					"buffer": 9,
+					"file": "objects/game.php",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 1793,
+						"buffer_size": 8601,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								1719,
-								1719
+								345,
+								360
+							]
+						],
+						"settings":
+						{
+							"incomplete_sync": null,
+							"remote_loading": false,
+							"synced": false,
+							"syntax": "Packages/PHP/PHP.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 756.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 11,
+					"type": "text"
+				},
+				{
+					"buffer": 10,
+					"file": "js/commands.js",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 3037,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								2442,
+								2379
 							]
 						],
 						"settings":
@@ -1436,10 +1437,42 @@
 							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
-						"translation.y": 913.0,
+						"translation.y": 1512.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 10,
+					"type": "text"
+				},
+				{
+					"buffer": 11,
+					"file": "js/player.js",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 2074,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1433,
+								1442
+							]
+						],
+						"settings":
+						{
+							"incomplete_sync": null,
+							"remote_loading": false,
+							"synced": false,
+							"syntax": "Packages/JavaScript/JavaScript.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 906.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 9,
 					"type": "text"
 				}
 			]
@@ -1502,6 +1535,74 @@
 		"selected_items":
 		[
 			[
+				"image.php",
+				"objects\\image.php"
+			],
+			[
+				"pushpu",
+				"communication\\longPoll\\pushPull.js"
+			],
+			[
+				"image",
+				"objects\\image.php"
+			],
+			[
+				"plyaer.php",
+				"objects\\player.php"
+			],
+			[
+				"pri",
+				"communication\\longPoll\\private.php"
+			],
+			[
+				"player",
+				"objects\\player.php"
+			],
+			[
+				"layer.php",
+				"objects\\player.php"
+			],
+			[
+				"databs",
+				"resources\\database_structure.php"
+			],
+			[
+				"jquery",
+				"js\\jqueryExtension.js"
+			],
+			[
+				"commands",
+				"js\\commands.js"
+			],
+			[
+				"datab",
+				"resources\\database_structure.php"
+			],
+			[
+				"game.php",
+				"objects\\game.php"
+			],
+			[
+				"push",
+				"communication\\longPoll\\pushPull.js"
+			],
+			[
+				"server",
+				"communication\\longPoll\\server.py"
+			],
+			[
+				"aobu",
+				"pages\\about.php"
+			],
+			[
+				"about",
+				"pages\\about.php"
+			],
+			[
+				"javasc",
+				"js\\javascriptExtension.js"
+			],
+			[
 				"common.php",
 				"resources\\common_functions.php"
 			],
@@ -1518,10 +1619,6 @@
 				"communication\\longPoll\\server.py"
 			],
 			[
-				"about",
-				"pages\\about.php"
-			],
-			[
 				"commands.js",
 				"js\\commands.js"
 			],
@@ -1534,10 +1631,6 @@
 				"objects\\card.php"
 			],
 			[
-				"game.php",
-				"objects\\game.php"
-			],
-			[
 				"commands.",
 				"js\\commands.js"
 			],
@@ -1548,10 +1641,6 @@
 			[
 				"player.php",
 				"objects\\player.php"
-			],
-			[
-				"pushpu",
-				"communication\\longPoll\\pushPull.js"
 			],
 			[
 				"jquer",
@@ -1582,16 +1671,8 @@
 				"js\\control.js"
 			],
 			[
-				"push",
-				"communication\\longPoll\\pushPull.js"
-			],
-			[
 				"game.cs",
 				"css\\game.css"
-			],
-			[
-				"jquery",
-				"js\\jqueryExtension.js"
 			],
 			[
 				"pushpul",
@@ -1622,16 +1703,8 @@
 				"index.php"
 			],
 			[
-				"javasc",
-				"js\\javascriptExtension.js"
-			],
-			[
 				"index.",
 				"index.php"
-			],
-			[
-				"commands",
-				"js\\commands.js"
 			],
 			[
 				"glob",
@@ -1644,10 +1717,6 @@
 			[
 				"game",
 				"objects\\game.php"
-			],
-			[
-				"player",
-				"objects\\player.php"
 			],
 			[
 				"control",

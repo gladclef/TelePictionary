@@ -5,6 +5,8 @@ require_once(dirname(__FILE__) . "/../../resources/globals.php");
 require_once(dirname(__FILE__) . "/../../objects/player.php");
 require_once(dirname(__FILE__) . "/../../objects/command.php");
 require_once(dirname(__FILE__) . "/../../objects/game.php");
+require_once(dirname(__FILE__) . "/../../objects/story.php");
+require_once(dirname(__FILE__) . "/../../objects/card.php");
 require_once(dirname(__FILE__) . "/../../objects/image.php");
 require_once(dirname(__FILE__) . "/private.php");
 
@@ -227,7 +229,7 @@ class ajax {
 
         // check to make sure that the player is in a game
         $o_game = $o_globalPlayer->getGame();
-        if (($bo_playerInGame = _ajax::isPlayerInGame($o_globalPlayer, $o_game)) !== true)
+        if (($bo_playerInGame = _ajax::isPlayerInGame($o_globalPlayer, $o_game)) !== TRUE)
             return $bo_playerInGame;
 
         // get the new turn
@@ -244,7 +246,74 @@ class ajax {
             _ajax::pushGame($o_game);
         }
 
+        // update the players
+        foreach ($o_game->getPlayers() as $i => $o_player) {
+            $o_player->b_ready = FALSE;
+            $o_player->save();
+            _ajax::pushPlayer($o_player, $o_game->getRoomCode(), FALSE);
+        }
+
         // respond to this client
+        return new command("success", "");
+    }
+
+    function setPlayerImage() {
+        global $o_globalPlayer;
+
+        $s_fileOrigName = $_FILES['file']['name'];
+        $s_fileTmpName = $_FILES['file']['tmp_name'];
+        $a_uploadSuccess = _ajax::uploadFile($s_fileOrigName, $s_fileTmpName, TRUE);
+
+        // check that the file uploaded successfully
+        if ($a_uploadSuccess[0] === FALSE) {
+            return new command("showError", $a_uploadSuccess[1]);
+        }
+        $s_fileNewPath = $a_uploadSuccess[1];
+        $s_alias = basename($s_fileNewPath);
+        $s_extension = strtolower(pathinfo($s_fileNewPath, PATHINFO_EXTENSION));
+
+        // update the image
+        $o_globalPlayer->updateImage(intval($s_alias), $s_extension);
+
+        // alert everybody in the game
+        _ajax::pushPlayer($o_globalPlayer);
+
+        // return success
+        return new command("success", "");
+    }
+
+    function setCardImage() {
+        global $o_globalPlayer;
+
+        $s_fileOrigName = $_FILES['file']['name'];
+        $s_fileTmpName = $_FILES['file']['tmp_name'];
+        $a_uploadSuccess = _ajax::uploadFile($s_fileOrigName, $s_fileTmpName, FALSE, 600, 800);
+
+        // check that the file uploaded successfully
+        if ($a_uploadSuccess[0] === FALSE) {
+            return new command("showError", $a_uploadSuccess[1]);
+        }
+        $s_fileNewPath = $a_uploadSuccess[1];
+        $s_alias = basename($s_fileNewPath);
+        $s_extension = strtolower(pathinfo($s_fileNewPath, PATHINFO_EXTENSION));
+
+        // get the current card
+        $o_game = $o_globalPlayer->getGame();
+        $o_story = $o_globalPlayer->getStory();
+        $i_currentTurn = $o_game->getCurrentTurn();
+        $o_card = $o_story->getCard($i_currentTurn);
+
+        // update the image and the player
+        $o_card->updateImage(intval($s_alias), $s_extension);
+        $o_globalPlayer->b_ready = TRUE;
+        $o_globalPlayer->save();
+
+        // alert everybody in the game
+        _ajax::pushStory($o_story);
+        _ajax::pushCard($o_card);
+        _ajax::pushPlayer($o_globalPlayer);
+
+        // return success
         return new command("success", "");
     }
 
@@ -304,31 +373,6 @@ class ajax {
         } else {
             error_log("Failed to create socket to propogate message");
         }
-    }
-
-    function setPlayerImage() {
-        global $o_globalPlayer;
-
-        $s_fileOrigName = $_FILES['file']['name'];
-        $s_fileTmpName = $_FILES['file']['tmp_name'];
-        $a_uploadSuccess = _ajax::uploadFile($s_fileOrigName, $s_fileTmpName, TRUE);
-
-        // check that the file uploaded successfully
-        if ($a_uploadSuccess[0] === FALSE) {
-            return new command("showError", $a_uploadSuccess[1]);
-        }
-        $s_fileNewPath = $a_uploadSuccess[1];
-        $s_alias = basename($s_fileNewPath);
-        $s_extension = strtolower(pathinfo($s_fileNewPath, PATHINFO_EXTENSION));
-
-        // update the image
-        $o_globalPlayer->updateImage(intval($s_alias), $s_extension);
-
-        // alert everybody in the game
-        _ajax::pushPlayer($o_globalPlayer);
-
-        // return success
-        return new command("success", "");
     }
 }
 

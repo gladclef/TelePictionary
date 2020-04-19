@@ -4,6 +4,8 @@ require_once(dirname(__FILE__) . "/resources/globals.php");
 require_once(dirname(__FILE__) . "/resources/common_functions.php");
 require_once(dirname(__FILE__) . "/objects/player.php");
 require_once(dirname(__FILE__) . "/objects/game.php");
+require_once(dirname(__FILE__) . "/objects/story.php");
+require_once(dirname(__FILE__) . "/objects/card.php");
 require_once(dirname(__FILE__) . "/objects/image.php");
 require_once(dirname(__FILE__) . "/communication/longPoll/private.php");
 
@@ -42,7 +44,7 @@ $o_globalPlayer = player::getGlobalPlayer();
 
 			<?php
 			$b_hasUsername = $o_globalPlayer->getGameState()[0] > 0;
-			$b_isInGame = ($b_hasUsername) ? ($o_globalPlayer->getGameState()[0] > 1) : false;
+			$b_isInGame = ($b_hasUsername) ? ($o_globalPlayer->getGameState()[0] >= 2) : false;
 			$a_latestEvents = ($b_isInGame) ? _ajax::getLatestEvents($o_globalPlayer->getGame()->getRoomCode()) : array();
 			$s_latestEvents = (is_string($a_latestEvents)) ? "[]" : json_encode($a_latestEvents);
 			$s_hasUsername = ($b_hasUsername) ? "true" : "false";

@@ -16,6 +16,7 @@ class player
 	public $s_storyName = '';
 	public $a_gameIds = array();
 	public $i_imageId = -1;
+	public $b_ready = FALSE;
 
 	function __construct($s_name) {
 		$this->s_name = $s_name;
@@ -33,7 +34,7 @@ class player
 	public function getRoomCode() {
 		return $this->s_roomCode;
 	}
-	public function getNeighbor($b_isLeft = false) {
+	public function getNeighbor($b_isLeft = FALSE) {
 		if ($b_isLeft)
 		{
 			if ($o_leftNeighbor == null)
@@ -55,8 +56,17 @@ class player
 		return game::loadByRoomCode($this->s_roomCode);
 	}
 	public function getStory() {
-		// TODO
-		return null;
+		$o_game = $this->getGame();
+		if ($o_game === null)
+			return null;
+		if ($this->i_storyId < 0)
+		{
+			$o_story = new story($this->getRoomCode(), $this->getId());
+			$o_story->save();
+			$this->i_storyId = $o_story->getId();
+			$this->save();
+		}
+		return story::loadById($this->i_storyId);
 	}
 	public function getImageURL() {
 		$o_image = $this->getImage();
@@ -105,6 +115,10 @@ class player
 
 		return array(-1, 'Error: unknown player game state');
 	}
+	public function isReady()
+	{
+		return $this->b_ready;
+	}
 	public function toJsonObj()
 	{
 		return array(
@@ -115,7 +129,8 @@ class player
 			'rightNeighbor' => $this->i_rightNeighbor,
 			'storyId' => $this->i_storyId,
 			'storyName' => $this->s_storyName,
-			'imageURL' => $this->getImageURL()
+			'imageURL' => $this->getImageURL(),
+			'ready' => $this->b_ready
 		);
 	}
 
@@ -123,6 +138,10 @@ class player
 	{
 		$o_game->addPlayer($this->i_id);
 		$this->s_roomCode = $o_game->s_roomCode;
+		if ($this->getGameState()[0] <= 2)
+		{
+			$this->i_storyId = -1;
+		}
 	}
 	public function leaveGame()
 	{
@@ -174,7 +193,8 @@ class player
 			"roomCode" => $this->s_roomCode,
 			"storyId" => $this->i_storyId,
 			"gameIds" => implodeIds($this->a_gameIds),
-			"imageId" => $this->i_imageId
+			"imageId" => $this->i_imageId,
+			"ready" => ($this->b_ready ? 1 : 0)
 		);
 		$s_updateClause = array_to_update_clause($a_updateVals);
 
@@ -256,6 +276,7 @@ class player
 			$o_player->i_storyId = intval($a_players[0]['storyId']);
 			$o_player->a_gameIds = explodeIds($a_players[0]['gameIds'], 'intval');
 			$o_player->i_imageId = intval($a_players[0]['imageId']);
+			$o_player->b_ready = (intval($a_players[0]['ready']) == 0) ? FALSE : TRUE;
 
 			$o_player->i_leftNeighbor = -1;
 			$o_player->i_rightNeighbor = -1;

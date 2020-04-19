@@ -107,4 +107,9 @@ playerFuncs.removePlayer = function(o_player)
 	delete players.players[o_player.id];
 }
 
+playerFuncs.playerCount = function()
+{
+	return Object.keys(players.players).length;
+}
+
 playerFuncs.clearPlayers();

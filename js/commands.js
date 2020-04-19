@@ -139,4 +139,14 @@ commands.removePlayer = function(o_player)
 	}
 }
 
+commands.updateCard = function(o_card)
+{
+	game.updateCard(o_card);
+}
+
+commands.updateStory = function(o_story)
+{
+	// TODO
+}
+
 }};
