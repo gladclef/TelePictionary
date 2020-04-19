@@ -2,7 +2,7 @@ var crosshairs;
 var windowFocus = true;
 var mouseDown;
 window.incomingMessenger;
-window.outgoingMessenger;
+window.outgoingMessenger = {};
 
 if (window.a_toExec === undefined) window.a_toExec = [];
 window.status = {
@@ -75,12 +75,12 @@ function initIncomingMessenger()
 
 function initOutgoingMessenger()
 {
-	outgoingMessenger = {};
+	// outgoingMessenger = {};
 }
 
 a_toExec[a_toExec.length] = {
 	"name": "control.js",
-	"dependencies": ["control.php", "jQuery", "pushPull.js"],
+	"dependencies": ["control.php", "jQuery", "pushPull.js", "controlCustomVals"],
 	"function": function() {
 		initWatchers();
 		initIncomingMessenger();

@@ -20,6 +20,38 @@
 	left: -2px;
 }
 
+#gameJoinOnPhone {
+	position: absolute;
+	right: 20px;
+	top: 10px;
+}
+
+#gameJoinOnPhone > .button {
+	width: 25px;
+	height: 25px;
+	border: 1px solid #aaa;
+	border-radius: 3px;
+	background-image: url('../imagesStatic/remote.png');
+	background-repeat: no-repeat;
+	background-size: 25px;
+	background-position: 3px;
+	padding: 3px;
+	cursor: pointer;
+}
+
+#gameJoinOnPhone > .code {
+	display: none;
+	position: absolute;
+	right: -30px;
+	top: 35px;
+	padding: 10px;
+	background-color: white;
+	border: 1px solid #aaa;
+	border-radius: 5px;
+	box-shadow: 5px 5px 5px rgba(0,0,0,0.5);
+	font-size: 12px;
+}
+
 #gamePlayersCircle {
 	position: relative;
 }
@@ -143,4 +175,22 @@
 
 #gameCard .currentImage {
 	width: 450px;
+}
+
+#gameCard.phoneRemote {
+	position: initial;
+	top: auto;
+	left: auto;
+	padding-top: 33px;
+	font-size: 30px;
+}
+
+#gameCard.phoneRemote .opaqueEye {
+	display: none;
+}
+
+#gameCard.phoneRemote input[type=button] {
+	font-size: 25px;
+	padding: 10px;
+	border-radius: 100px;
 }

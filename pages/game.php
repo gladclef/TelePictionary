@@ -267,6 +267,9 @@
 				var posts = new FormData();
 				posts.append('command', jImg.attr("command"));
 				posts.append('file', f_file);
+				$.each(outgoingMessenger.customData, function(k, v) {
+					posts.append(k, v);
+				});
 				var options = {
 					"contentType": false,
 					"processData": false
@@ -301,35 +304,49 @@
 				});
 			},
 
-			limitImageSize: function(jImage, maxWidth, maxHeight) {
+			limitImageSize: function(jImage) {
+				var jGameCard = $("#gameCard");
+
+				var limitSize = function(img) {
+					var width = parseInt(img.width);
+					var height = parseInt(img.height);
+					var maxWidth = jGameCard.width() - 150;
+					var maxHeight = jGameCard.height() - 150;
+					var ratio = 1;
+
+					if (width * ratio < maxWidth)
+					{
+						ratio = maxWidth / width;
+					}
+					if (height * ratio < maxHeight)
+					{
+						ratio = maxHeight / height;
+					}
+					if (width * ratio > maxWidth)
+					{
+						ratio = Math.min(maxWidth / width, ratio);
+					}
+					if (height * ratio > maxHeight)
+					{
+						ratio = Math.min(maxHeight / height);
+					}
+
+					jImage.css({
+						'width': (width * ratio) + 'px',
+						'height': (height * ratio) + 'px',
+						'margin-top': ((maxHeight - (height * ratio)) / 2) + 'px'
+					});
+				}
+
 				jImage.off('load');
 				jImage.on('load', function() {
 					var img = new Image();
 					img.onload = function() {
-						var width = parseInt(img.width);
-						var height = parseInt(img.height);
-						var maxWidth = 350;
-						var maxHeight = 530;
-						if (width > maxWidth)
-						{
-							var ratio = maxWidth / width;
-							width *= ratio;
-							height *= ratio;
-						}
-						if (height > maxHeight)
-						{
-							var ratio = maxHeight / height;
-							width *= ratio;
-							height *= ratio;
-						}
-						jImage.css({
-							'width': width + 'px',
-							'height': height + 'px',
-							'margin-top': ((maxHeight - height) / 2) + 'px'
-						});
+						limitSize(img);
 					};
 					img.src = jImage.attr('src');
 				});
+				limitSize(jImage[0]);
 			},
 
 			updateCard: function(o_card) {
@@ -348,7 +365,7 @@
 						jHideMeFirsts.hide();
 						if (o_card.type == 0) { // image card
 							var jCurrentImage = jGameCard.find(".currentImage");
-							game.limitImageSize(jCurrentImage, 400, 530);
+							game.limitImageSize(jCurrentImage);
 							jCurrentImage.attr('src', o_card.imageURL);
 							jCurrentImage.show();
 						} else { // sentence card
@@ -507,6 +524,7 @@
 
 		function drawGame() {
 			global $o_globalPlayer;
+			global $fqdn;
 
 			// get the game instance
 			$o_game = $o_globalPlayer->getGame();
@@ -525,6 +543,8 @@
 			$s_players = json_encode(json_encode($a_encodedPlayers));
 			echo "serverStats['game'] = {$s_game};\r\n";
 			echo "serverStats['players'] = {$s_players}\r\n";
+			echo "serverStats['fqdn'] = '{$fqdn}'\r\n";
+			echo "serverStats['localPlayer'] = {$o_globalPlayer->getId()}\r\n";
 
 			// draw the current card
 			$a_gameState = $o_game->getGameState();
@@ -607,11 +627,21 @@
 					var o_card = JSON.parse(serverStats['currentCard']);
 					commands.updateCard(o_card);
 				}
+
+				// draw the qr code
+				if (serverStats['players'] !== undefined)
+				{
+					var jjoin = $("#gameJoinOnPhone");
+					var jqrCode = jjoin.find(".code").find(".qrcode");
+					var jlink = jjoin.find(".code").find(".link");
+					var linkText = "https://" + serverStats['fqdn'] + "/phoneRemote.php?playerId=" + serverStats['localPlayer'];
+					jqrCode.qrcode(linkText);
+					jlink.attr('href', linkText).text(linkText);
+				}
 			}
 		};
 	</script>
 
-	<div id="gameLeaveGame"><div>&#x2B05;</div></div>
 	<h3 id="gameGameName" class="centered"></h3>
 	<div id="gameGameNameEdit" class="centered" style="width: 300px; display: none;"><input type="text" /><input type="button" value="Done" /></div>
 	<h4 id="gameRoomCode" class="centered"></h4>
@@ -619,6 +649,9 @@
 	<div id="gamePlayersCircle" class="centered bordered" style="width: 700px; height: 700px;">
 	</div>
 	<div id="gameCard" class="centered" style="display: none;">
+		<?php
+		ob_start();
+		?>
 		<div class="opaqueEye" onmouseenter="game.makeTransparent(this);" onmouseleave="game.makeOpaque(this);" onclick="game.minimizeGameCard(this);"></div>
 		<div class="storyDescription centered">Player's Story:</div>
 		<div class="card1" style="display: none;">
@@ -633,15 +666,23 @@
 				<span>Draw an image</span>
 				<span class="hideMeFirst">about this sentence</span>
 				<span>and then upload it:</span>
-				<input type="button" value="Upload Image" onclick="$(this).parent().find('input[type=file]').click();" />
+				<input type="button" value="Upload Image" onclick="$(this).parent().find('input[type=file]').val('').click();" />
 				<input type="file" accept="image/jpg,image/jpeg,image/png,image/gif,image/bmp,image/tiff" style="display: none;" /><!-- calls uploadImage on click, as set in setCurrentTurn -->
+				<br />
 				<img src="__imageUrl__" class="currentImage centered" command="setCardImage" style="display: none;" />
 			</div>
 		</div>
+		<?php
+		global $s_gameCardContents;
+		$s_gameCardContents = ob_get_contents();
+		ob_end_clean();
+		echo $s_gameCardContents;
+		?>
 	</div>
 	<div id="gamePlayer1Control" class="centered" style="width: 700px; display: none;">
 		<div class="centered" gameControl="start" style="width: 80px;">
 			<input type="button" class="startGame" value="Start Game" onclick="game.controlStartClick();" />
+			<input type="button" class="nextTurn" value="Next Turn" onclick="game.controlNextTurnClick();" />
 		</div>
 	</div>
 	<div id="gameGameStatus" class="centered" style="width: 500px;">loading...</div>
@@ -658,6 +699,14 @@
 				<input class="player1Control" type="button" value="Kick" onclick="game.controlKickPlayer(__playerId__);" />
 			</div>
 			<img class="readyCheck" src="imagesStatic/checkmark.png" />
+		</div>
+	</div>
+	<div id="gameLeaveGame"><div>&#x2B05;</div></div>
+	<div id="gameJoinOnPhone">
+		<div class="button" onclick="$(this).parent().find('.code').toggle();"></div>
+		<div class="code">
+			<div class="qrcode"></div>
+			<a class="link"></a>
 		</div>
 	</div>
 </div>

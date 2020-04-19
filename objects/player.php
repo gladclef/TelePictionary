@@ -307,8 +307,17 @@ class player
 
 	/**
 	 * Tries to access the global player by looking for the
-	 * 'playerId' _POST variable. If it is not set, this function
-	 * will try to access the playerId from the _SESSION variable.
+	 * 'playerId' _GET and then _POST variable. If those are not set,
+	 * this function will try to access the playerId from the
+	 * _SESSION variable. If that is not set, then a new player
+	 * instance is created and the _SESSION['playerId'] is set to the
+	 * id of that new instance.
+ 	 *
+ 	 * TODO not implemented yet: the player secret is attempted to be
+ 	 * loaded from the same source and compared to the secret from
+ 	 * the MySQL row. If the secret doesn't match then the global
+ 	 * player instance is not set, an error message is flushed to
+ 	 * the output buffer, and this function returns FALSE.
 	 *
 	 * Because this function uses the $_SESSION variable, any thread
 	 * that accesses this function will be forced to wait until other
@@ -325,7 +334,12 @@ class player
 
 		// not loaded, get the player id
 		$i_playerId = -1;
-		if (isset($_POST['playerId']))
+		if (isset($_GET['playerId']))
+		{
+			// load from get var
+			$i_playerId = intval($_GET['playerId']);
+		}
+		else if (isset($_POST['playerId']))
 		{
 			// load from post var
 			$i_playerId = intval($_POST['playerId']);

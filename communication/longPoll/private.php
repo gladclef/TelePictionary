@@ -200,6 +200,52 @@ class _ajax {
         return $sbo_ret;
     }
 
+    function rotateIphonePhotos($imageFile)
+    {
+        // Rotate iOS image
+        // @author Richard Sumilang <me@richardsumilang.com>
+        // https://www.richardsumilang.com/programming/php/graphics/working-with-apples-ios-image-orientation/
+
+        // $imageFile = '/foo/bar.jpg';
+        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+        $mimeType = finfo_file($finfo, $imageFile);
+        finfo_close($finfo);
+
+        // Detect if jpeg or tiff
+        if ( in_array($mimeType, ['image/jpeg', 'image/tiff']) ) {
+            $exif = @exif_read_data($imageFile);
+            if ( isset($exif['Orientation']) && !empty($exif['Orientation']) ) {
+
+                // Decide orientation
+                if ( $exif['Orientation'] == 3 ) {
+                    $rotation = 180;
+                } else if ( $exif['Orientation'] == 6 ) {
+                    $rotation = 90;
+                } else if ( $exif['Orientation'] == 8 ) {
+                    $rotation = -90;
+                } else {
+                    $rotation = 0;
+                }
+
+                // Rotate the image
+                if ( $rotation ) {
+                    $imagick = new Imagick();
+                    $imagick->readImage($imageFile);
+                    $imagick->rotateImage(new ImagickPixel('none'), $rotation);
+
+                    // Now that it's auto-rotated, make sure the EXIF data is correct in case the EXIF gets saved with the image!
+                    // Thanks, orrd101! https://www.php.net/manual/en/imagick.getimageorientation.php#111448
+                    $imagick->setImageOrientation(imagick::ORIENTATION_TOPLEFT); 
+
+                    $imagick->writeImage($imageFile);
+                    $imagick->clear();
+                    $imagick->destroy();
+                }
+
+            }
+        }
+    }
+
     /**
      * @param s_fileOrigName The name of the file that the user uploaded.
      * @param s_fileTmpName The name of the file that PHP uses.
@@ -249,6 +295,13 @@ class _ajax {
             return array(FALSE, "Filesystem error");
         }
 
+        // rotate if an iphone image
+        try {
+            _ajax::rotateIphonePhotos($s_fileNewPath);
+        } catch (Exception $e) {
+            error_log($e);
+        }
+
         // verify is a good image
         $im_tmp = new imagick();
         try {
@@ -286,21 +339,22 @@ class _ajax {
                 $i_height = $im_tmp->getImageHeight();
                 $i_newWidth = $i_width;
                 $i_newHeight = $i_height;
-                if ($i_maxWidth > 0 && $i_newWidth < $i_maxWidth)
+                $f_ratio = 1.0;
+
+                if ($i_maxWidth > 0 && $i_width * $f_ratio > $i_maxWidth)
                 {
-                    $f_ratio = (double)$i_maxWidth / (double)$i_newWidth;
-                    $i_newWidth *= $f_ratio;
-                    $i_newHeight *= $f_ratio;
-                    $b_changed = TRUE;
+                    $f_ratio = min((double)$i_maxWidth / (double)$i_width, $f_ratio);
                 }
-                if ($i_maxHeight > 0 && $i_newHeight < $i_maxHeight)
+                if ($i_maxHeight > 0 && $i_height * $f_ratio > $i_maxHeight)
                 {
-                    $f_ratio = (double)$i_maxHeight / (double)$i_newHeight;
-                    $i_newWidth *= $f_ratio;
-                    $i_newHeight *= $f_ratio;
-                    $b_changed = TRUE;
+                    $f_ratio = min((double)$i_maxHeight / (double)$i_height, $f_ratio);
                 }
-                $im_tmp->scaleImage($i_newWidth, $i_newHeight);
+
+                if ($f_ratio !== 1.0)
+                {
+                    $b_changed = TRUE;
+                    $im_tmp->scaleImage($i_width * $f_ratio, $i_height * $f_ratio);
+                }
             } catch (Exception $e) {
                 return array(FALSE, "Error resizing image");
             }
