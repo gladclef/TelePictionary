@@ -259,6 +259,18 @@
 				});
 			},
 
+			uploadProgress: function(f_progress) {
+				var jProgress = $("#uploadProgress");
+
+				if (f_progress >= 1.0) {
+					jProgress.hide();
+				} else {
+					var percentText = (f_progress > 0) ? (Math.floor(f_progress * 100) + "%") : "";
+					jProgress.text("Uploading... " + percentText);
+					jProgress.show();
+				}
+			},
+
 			uploadImage: function(jImg, a_files) {
 				if (a_files.length !== 1) { alert("Incorrect number of image files (must be 1)."); return; }
 				var f_file = a_files[0];
@@ -274,7 +286,7 @@
 					"contentType": false,
 					"processData": false
 				};
-				outgoingMessenger.pushData(posts, undefined, options);
+				outgoingMessenger.pushData(posts, undefined, options, game.uploadProgress);
 			},
 
 			controlUploadSentence: function() {
@@ -476,7 +488,7 @@
 				var jUploadButton = jGameCard.find("input[type=file]");
 				var jCardImage = jGameCard.find(".currentImage");
 				jControlStart[(i_currentTurn == -1 && playerFuncs.isPlayer1()) ? 'show' : 'hide']();
-				jControlStart[(i_currentTurn >= 0 && playerFuncs.isPlayer1() && playerFuncs.allPlayersReady()) ? 'show' : 'hide']();
+				jControlNextTurn[(i_currentTurn >= 0 && playerFuncs.isPlayer1() && playerFuncs.allPlayersReady()) ? 'show' : 'hide']();
 				jUploadButton.off('change');
 				jUploadButton.on('change', function(e) {
 					e.preventDefault();
@@ -608,7 +620,6 @@
 			$a_gameState = $o_game->getGameState();
 			if ($a_gameState[0] == 2) { // game started but not revealing cards yet
 				$o_card = $o_globalPlayer->getCurrentCard();
-				error_log("game card: " . $o_card->getId());
 				if ($o_card !== null) {
 					$s_card = json_encode(json_encode($o_card->toJsonObj()));
 					echo "serverStats['currentCard'] = {$s_card}\r\n";
@@ -731,6 +742,9 @@
 				<br />
 				<img src="__imageUrl__" class="currentImage centered" command="setCardImage" style="display: none;" />
 			</div>
+		</div>
+		<div id="uploadProgress"><!-- put this here so that it will be included in the phoneRemote.php page -->
+			Uploading...
 		</div>
 		<?php
 		global $s_gameCardContents;

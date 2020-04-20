@@ -307,6 +307,12 @@ class ajax {
     function setCardImage() {
         global $o_globalPlayer;
 
+        $sb_uploadSuccess = _ajax::checkFileUpload($_FILES['file']);
+        if ($sb_uploadSuccess !== TRUE)
+        {
+            return new command("showError", $sb_uploadSuccess);
+        }
+
         $s_fileOrigName = $_FILES['file']['name'];
         $s_fileTmpName = $_FILES['file']['tmp_name'];
         $a_uploadSuccess = _ajax::uploadFile($s_fileOrigName, $s_fileTmpName, FALSE, 600, 800);
@@ -341,7 +347,6 @@ class ajax {
         global $o_globalPlayer;
 
         $s_text = get_post_var("text");
-        error_log("post text: \"" . $s_text . "\"");
 
         // check to make sure that the player is in a game
         $o_game = $o_globalPlayer->getGame();

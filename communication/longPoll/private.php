@@ -246,6 +246,47 @@ class _ajax {
         }
     }
 
+    function checkFileUpload($a_fileUpload, $b_isImage = TRUE)
+    {
+        // Check $_FILES['upfile']['error'] value.
+        if (isset($a_fileUpload['error'])) {
+            switch ($a_fileUpload['error']) {
+                case UPLOAD_ERR_OK:
+                    break;
+                case UPLOAD_ERR_NO_FILE:
+                    return 'No file sent.';
+                case UPLOAD_ERR_INI_SIZE:
+                case UPLOAD_ERR_FORM_SIZE:
+                    return 'Exceeded filesize limit.';
+                default:
+                    return 'Unknown errors.';
+            }
+        }
+
+        // Verify the image type
+        if ($b_isImage)
+        {
+            $finfo = new finfo(FILEINFO_MIME_TYPE);
+            $ext = array_search(
+                $finfo->file($a_fileUpload['tmp_name']),
+                array(
+                    'jpg' => 'image/jpeg',
+                    'jpeg' => 'image/jpeg',
+                    'png' => 'image/png',
+                    'gif' => 'image/gif',
+                    'bmp' => 'image/bmp',
+                    'tiff' => 'image/tiff'
+                ),
+                TRUE
+            );
+            if (FALSE === $ext) {
+                return 'Invalid file format.';
+            }
+        }
+
+        return TRUE;
+    }
+
     /**
      * @param s_fileOrigName The name of the file that the user uploaded.
      * @param s_fileTmpName The name of the file that PHP uses.
@@ -292,6 +333,7 @@ class _ajax {
             return array(FALSE, "Error finding good alias. Try again.");
         }
         if (!move_uploaded_file($s_fileTmpName, $s_fileNewPath)) {
+            error_log("Filesystem error for moving uploaded file from " . $s_fileTmpName . " to " . $s_fileNewPath);
             return array(FALSE, "Filesystem error");
         }
 

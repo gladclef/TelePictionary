@@ -100,10 +100,12 @@ function initPushPull(onmessageCallback, pushObj, onerror, onclose)
 		return o_data;
 	}
 
-	pushObj.pushData = function(data, successFunc, options)
+	pushObj.pushData = function(data, successFunc, options, progressCallback)
 	{
 		if (arguments.length < 3 || options === null || options === undefined)
 			options = {};
+		if (arguments.length < 4 || progressCallback === undefined)
+			progressCallback = null;
 		if (pushObj.customData !== undefined && pushObj.customData !== null)
 		{
 			$.each(pushObj.customData, function(k, v) {
@@ -119,12 +121,30 @@ function initPushPull(onmessageCallback, pushObj, onerror, onclose)
 			'data': data,
 			'type': "POST",
 			'timeout': 10000,
+			'xhr': function() {
+				var xhr = new XMLHttpRequest();
+			    (xhr.upload || xhr).addEventListener('progress', function(e) {
+			        var done = e.position || e.loaded
+			        var total = e.totalSize || e.total;
+			        if (progressCallback !== null) {
+			        	progressCallback(Math.min(Math.round(done / total), 0.99));
+			        }
+			    });
+			    xhr.addEventListener('load', function(e) {
+			        if (progressCallback !== null) {
+			        	progressCallback(1.0);
+			        }
+			    });
+			    return xhr;
+			},
 			'success': function(data) {
 				o_command = getCommand(data);
 				if (commands[o_command.event.command] !== undefined)
 					commands[o_command.event.command](o_command.event.action);
 				else
 					commands['showError']("Unknown command type: " + data);
+				if (progressCallback !== null)
+					progressCallback(1.0);
 				if (successFunc !== undefined)
 					successFunc(o_command);
 			},
@@ -135,6 +155,8 @@ function initPushPull(onmessageCallback, pushObj, onerror, onclose)
 						return;
 					}
 				}
+				if (progressCallback !== null)
+					progressCallback(1.0);
 				console.error("Error sending request: ("+xhr.status+") "+thrownError);
 			}
 		};
@@ -144,6 +166,8 @@ function initPushPull(onmessageCallback, pushObj, onerror, onclose)
 		$.each(options, applyOption);
 
 		$.ajax(ajax_object);
+		if (progressCallback !== null)
+			progressCallback(0);
 	};
 
 	pushObj.pushEvent = {};
@@ -229,7 +253,7 @@ function initPushPull(onmessageCallback, pushObj, onerror, onclose)
 			latestEvents = latestEvents.enqueue(o_command.i_id);
 			while (latestEvents.length > 100)
 			{
-				latestEvents = latestEvents.dequeue();
+				var removedEvent = latestEvents.dequeue();
 			}
 		}
 	}

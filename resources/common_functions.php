@@ -13,6 +13,8 @@ function get_post_var($postname, $s_default = '') {
 function my_session_start() {
 	global $session_started;
 
+	// error_log("starting session");
+
 	if ($session_started === FALSE) {
 		$i_sessionTime = 60*60*24*7; // 7 days
 		// server should keep session data for AT LEAST session time
