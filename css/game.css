@@ -177,6 +177,12 @@
 	width: 450px;
 }
 
+#gameCard .currentText {
+	width: 400px;
+	background-color: white;
+	padding: 10px;
+}
+
 #gameCard.phoneRemote {
 	position: initial;
 	top: auto;

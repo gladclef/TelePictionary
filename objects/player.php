@@ -55,6 +55,14 @@ class player
 	public function getGame() {
 		return game::loadByRoomCode($this->s_roomCode);
 	}
+	public function getCurrentCard() {
+		if ($this->getGameState()[0] != 3)
+			return null;
+		$o_game = $this->getGame();
+		$o_prevPlayer = $o_game->getPlayerRevOrder($this->i_id, $o_game->getCurrentTurn());
+		$o_story = $o_prevPlayer->getStory();
+		return $o_story->getCard($o_game->getCurrentTurn());
+	}
 	public function getStory() {
 		$o_game = $this->getGame();
 		if ($o_game === null)

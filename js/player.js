@@ -112,4 +112,14 @@ playerFuncs.playerCount = function()
 	return Object.keys(players.players).length;
 }
 
+playerFuncs.allPlayersReady = function()
+{
+	var i_readyCnt = 0;
+	$.each(players.players, function(k, o_player) {
+		if (o_player.ready)
+			i_readyCnt++;
+	});
+	return (i_readyCnt == playerFuncs.playerCount());
+}
+
 playerFuncs.clearPlayers();

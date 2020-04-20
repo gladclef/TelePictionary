@@ -277,6 +277,15 @@
 				outgoingMessenger.pushData(posts, undefined, options);
 			},
 
+			controlUploadSentence: function() {
+				var jGameCard = $("#gameCard");
+				var jNewText = jGameCard.find(".newText");
+				outgoingMessenger.pushData({
+					'command': 'setCardText',
+					'text': jNewText.val()
+				});
+			},
+
 			controlPromotePlayer: function(i_id) {
 				outgoingMessenger.pushData({
 					'command': 'promotePlayer',
@@ -295,6 +304,13 @@
 				outgoingMessenger.pushData({
 					'command': 'setGameTurn',
 					'turn': 0
+				});
+			},
+
+			controlNextTurnClick: function() {
+				outgoingMessenger.pushData({
+					'command': 'setGameTurn',
+					'turn': game.o_cachedGame.currentTurn + 1
 				});
 			},
 
@@ -369,12 +385,32 @@
 							jCurrentImage.attr('src', o_card.imageURL);
 							jCurrentImage.show();
 						} else { // sentence card
-							// TODO
+							var jNewText = jGameCard.find(".newText");
+							var jCurrentText = jGameCard.find(".currentText");
+							jCurrentText.css('width', jGameCard.width() * 0.8 + 'px');
+							jCurrentText.text(o_card.text);
+							if (jNewText.val() == "")
+								jNewText.val(o_card.text);
+							if (jCurrentText.text() == "")
+								jCurrentText.hide();
+							else
+								jCurrentText.show();
 						}
 					}
 				} else {
 					// reveal step TODO
 					jGameCard.hide();
+				}
+			},
+
+			updateStory: function(o_story) {
+				var jGameCard = $("#gameCard");
+				var jStoryDescription =	jGameCard.find(".storyDescription");
+
+				if (o_story.startingPlayerName === "" || game.o_cachedGame.currentTurn == 0) {
+					jStoryDescription.text(playerFuncs.getPlayer().name + "'s Story:");
+				} else {
+					jStoryDescription.text(o_story.startingPlayerName + "'s Story:");
 				}
 			},
 
@@ -398,15 +434,35 @@
 				if (i_currentTurn < 0) {
 					// game not started yet
 					jGameCard.hide();
-				} else if (i_currentTurn == 0) {
-					// first turn
+				} else if (i_currentTurn < game.o_cachedGame.playerIds.length) {
+					// 1st+ turn of active play
+					// show and get the current card
 					jGameCard.show();
 					jHideMeFirsts.hide();
-					var jStartingCard = jGameCard.find(".card" + game.o_cachedGame.cardStartType);
-					jStartingCard.show();
-				} else if (i_currentTurn < game.o_cachedGame.playerIds.length) {
-					// 2nd+ turn of active play
-					// get the current card
+
+					var cardType = (game.o_cachedGame.cardStartType + i_currentTurn) % 2;
+					var otherType = (cardType + 1) % 2;
+					var jCurrentCard = jGameCard.find(".card" + cardType);
+					var jOtherCard = jGameCard.find(".card" + otherType);
+					var jCurrentImage = jGameCard.find(".currentImage");
+					var jNewText = jGameCard.find(".newText");
+					var jCurrentText = jGameCard.find(".currentText");
+					jCurrentImage.attr('src', '');
+					jNewText.val('');
+					jCurrentText.val('');
+					jCurrentCard.show();
+					jOtherCard.hide();
+
+					if (i_currentTurn == 0) {
+						// first turn
+						jGameCard.show();
+						jHideMeFirsts.hide();
+						var jStartingCard = jGameCard.find(".card" + game.o_cachedGame.cardStartType);
+						var jStoryDescription =	jGameCard.find(".storyDescription");
+						jStoryDescription.text(playerFuncs.getPlayer().name + "'s Story:");
+						jStartingCard.show();
+					}
+
 					game.getCurrentCard();
 				} else {
 					// reveal step TODO
@@ -416,9 +472,11 @@
 				// update the available game controls
 				var jPlayer1Control = $("#gamePlayer1Control");
 				var jControlStart = jPlayer1Control.find("input.startGame");
+				var jControlNextTurn = jPlayer1Control.find("input.nextTurn");
 				var jUploadButton = jGameCard.find("input[type=file]");
 				var jCardImage = jGameCard.find(".currentImage");
 				jControlStart[(i_currentTurn == -1 && playerFuncs.isPlayer1()) ? 'show' : 'hide']();
+				jControlStart[(i_currentTurn >= 0 && playerFuncs.isPlayer1() && playerFuncs.allPlayersReady()) ? 'show' : 'hide']();
 				jUploadButton.off('change');
 				jUploadButton.on('change', function(e) {
 					e.preventDefault();
@@ -549,8 +607,8 @@
 			// draw the current card
 			$a_gameState = $o_game->getGameState();
 			if ($a_gameState[0] == 2) { // game started but not revealing cards yet
-				$o_story = $o_globalPlayer->getStory();
-				$o_card = $o_story->getCard($o_game->getCurrentTurn());
+				$o_card = $o_globalPlayer->getCurrentCard();
+				error_log("game card: " . $o_card->getId());
 				if ($o_card !== null) {
 					$s_card = json_encode(json_encode($o_card->toJsonObj()));
 					echo "serverStats['currentCard'] = {$s_card}\r\n";
@@ -657,8 +715,10 @@
 		<div class="card1" style="display: none;">
 			<div class="previousImage hideMeFirst centered" style="background-image: __imageUrl__"></div>
 			<span class="hideMeFirst">Write a short description of this image:</span>
-			<input type="text" placeholder="short sentence" />
-			<input type="button" value="Submit" onclick="controlUploadSentence();" />
+			<textarea class="newText" placeholder="short sentence" cols="40" rows="3"></textarea><br />
+			<input type="button" value="Submit" onclick="game.controlUploadSentence();" />
+			<br /><br /><br />
+			<div class="currentText centered"></div>
 		</div>
 		<div class="card0" style="display: none;">
 			<div class="previousSentence hideMeFirst centered">__sentenceValue__</div>

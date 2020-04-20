@@ -143,6 +143,11 @@ class card
 	        }
 	    }
 	}
+	public function updateText($s_text)
+	{
+		$this->s_text = $s_text;
+		$this->save();
+	}
 	public function save()
 	{
 		global $maindb;

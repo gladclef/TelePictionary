@@ -113,6 +113,7 @@ class story
 			"name" => $this->s_name,
 			"playerId" => $this->i_playerId,
 			"cardIds" => implodeIds($this->a_cardIds),
+			"startingPlayerName" => $this->getStartingPlayer()->getName()
 		);
 	}
 

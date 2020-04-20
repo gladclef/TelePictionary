@@ -149,4 +149,14 @@ commands.updateStory = function(o_story)
 	// TODO
 }
 
+commands.setCurrentCard = function(o_card)
+{
+	game.updateCard(o_card);
+}
+
+commands.setCurrentStory = function(o_story)
+{
+	game.updateStory(o_story);
+}
+
 }};

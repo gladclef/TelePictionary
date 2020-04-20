@@ -257,6 +257,28 @@ class ajax {
         return new command("success", "");
     }
 
+    function getCurrentCard() {
+        global $o_globalPlayer;
+        $a_commands = array();
+
+        // check to make sure that the player is in a game
+        $o_game = $o_globalPlayer->getGame();
+        if (($bo_playerInGame = _ajax::isPlayerInGame($o_globalPlayer, $o_game)) !== TRUE)
+            return $bo_playerInGame;
+
+        // get the current story and card
+        $o_card = $o_globalPlayer->getCurrentCard();
+        $o_story = $o_card->getStory();
+        if ($o_card === null)
+            return new command("showError", "Error while retrieving current card!");
+
+        // return the current card + story
+        $a_commands = array();
+        array_push($a_commands, new command("setCurrentCard", $o_card->toJsonObj()));
+        array_push($a_commands, new command("setCurrentStory", $o_story->toJsonObj()));
+        return new command("composite", $a_commands);
+    }
+
     function setPlayerImage() {
         global $o_globalPlayer;
 
@@ -298,13 +320,40 @@ class ajax {
         $s_extension = strtolower(pathinfo($s_fileNewPath, PATHINFO_EXTENSION));
 
         // get the current card
-        $o_game = $o_globalPlayer->getGame();
-        $o_story = $o_globalPlayer->getStory();
-        $i_currentTurn = $o_game->getCurrentTurn();
-        $o_card = $o_story->getCard($i_currentTurn);
+        $o_card = $o_globalPlayer->getCurrentCard();
+        $o_story = $o_card->getStory();
 
         // update the image and the player
         $o_card->updateImage(intval($s_alias), $s_extension);
+        $o_globalPlayer->b_ready = TRUE;
+        $o_globalPlayer->save();
+
+        // alert everybody in the game
+        _ajax::pushStory($o_story);
+        _ajax::pushCard($o_card);
+        _ajax::pushPlayer($o_globalPlayer);
+
+        // return success
+        return new command("success", "");
+    }
+
+    function setCardText() {
+        global $o_globalPlayer;
+
+        $s_text = get_post_var("text");
+        error_log("post text: \"" . $s_text . "\"");
+
+        // check to make sure that the player is in a game
+        $o_game = $o_globalPlayer->getGame();
+        if (($bo_playerInGame = _ajax::isPlayerInGame($o_globalPlayer, $o_game)) !== TRUE)
+            return $bo_playerInGame;
+
+        // get the current card
+        $o_card = $o_globalPlayer->getCurrentCard();
+        $o_story = $o_card->getStory();
+
+        // update the text and the player
+        $o_card->updateText($s_text);
         $o_globalPlayer->b_ready = TRUE;
         $o_globalPlayer->save();
 

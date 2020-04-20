@@ -81,6 +81,33 @@ class game
 	public function getCurrentTurn() {
 		return $this->i_currentTurn;
 	}
+	public function getPlayerRevOrder($i_currentPlayer, $i_turnsPrevious) {
+		$a_playerOrder = $this->getPlayerOrder();
+		$i_foundCurrentPlayer = 0;
+		
+		// double the length of the array so that we can wrap around without having to do as much housekeeping
+		$i_count = count($a_playerOrder);
+		for ($i = 0; $i < $i_count; $i++)
+		{
+			array_push($a_playerOrder, $a_playerOrder[$i]);
+		}
+
+		// find the current player twice, then return the player id from turnsPrevious ago
+		for ($i = 0; $i < count($a_playerOrder) * 2; $i++)
+		{
+			// go through until we find the current player
+			if ($a_playerOrder[$i] == $i_currentPlayer) {
+				$i_foundCurrentPlayer++;
+			}
+
+			// if we've seen the current player twice, then return the player from turnsPrevious ago
+			if ($i_foundCurrentPlayer == 2)
+			{
+				return player::loadById($a_playerOrder[$i - $i_turnsPrevious]);
+			}
+		}
+		return null;
+	}
 	public function getPlayerInOrder($i_startingPlayerId, $i_turnsLater) {
 		$a_playerOrder = $this->getPlayerOrder();
 		$b_foundStartingPlayer = false;
