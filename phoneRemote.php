@@ -18,6 +18,35 @@ require_once(dirname(__FILE__) . "/resources/include.php");
 			includeServerStats();
 			?>
 
+			phoneRemote = {
+				addPlayer: function(o_player) {
+					if (playerFuncs.isLocalPlayer(o_player))
+					{
+						var jGameCard = $("#gameCard");
+						var jStoryDescription = jGameCard.find(".storyDescription");
+
+						if (o_player.gameState[0] < 2) {
+							jStoryDescription.text("Waiting to join a game");
+						}
+					}
+				},
+
+				setCurrentTurn: function(i_currentTurn) {
+					var jGameCard = $("#gameCard");
+					var jStoryDescription = jGameCard.find(".storyDescription");
+					var o_localPlayer = playerFuncs.getPlayer();
+
+					if (o_localPlayer === null || o_localPlayer.gameState[0] >= 2) // local player is in a game
+					{
+						if (i_currentTurn < 0) {
+							jStoryDescription.text("Waiting for host to start the game");
+						}
+					}
+
+					jGameCard.show(); // the game code will hide the game card when the game hasn't started yet
+				}
+			};
+
 			a_toExec[a_toExec.length] = {
 				"name": "controlCustomVals",
 				"dependencies": ["outgoingMessenger"],
@@ -31,7 +60,7 @@ require_once(dirname(__FILE__) . "/resources/include.php");
 
 			a_toExec[a_toExec.length] = {
 				"name": "index.php", // emulate the index.php value in order to get the game code to execute
-				"dependencies": ["jQuery", "jqueryExtension.js", "commands.js", "playerFuncs", "control.js"],
+				"dependencies": ["jQuery", "jqueryExtension.js", "commands.js", "playerFuncs", "game", "control.js"],
 				"function": function() {
 					// set some things
 					playerFuncs.setLocalPlayer(serverStats['localPlayer']);
@@ -42,9 +71,16 @@ require_once(dirname(__FILE__) . "/resources/include.php");
 						// don't do anything
 					};
 
+					// do phoneRemote specific things when the local player changes
+					var oldAddPlayer = playerFuncs.addPlayer;
+					playerFuncs.addPlayer = function(o_player) {
+						oldAddPlayer(o_player);
+						phoneRemote.addPlayer(o_player);
+					}
+
 					// show the remote control content
 					$("#gameCard").remove();
-					var jGameCard = $("#removeControlGameCard");
+					var jGameCard = $("#remoteControlGameCard");
 					jGameCard.attr("id", "gameCard");
 					jGameCard.addClass("phoneRemote");
 					jGameCard.show();
@@ -55,6 +91,13 @@ require_once(dirname(__FILE__) . "/resources/include.php");
 				"name": "phoneRemote.php",
 				"dependencies": ["game.php"], // to execute after the game has been drawn
 				"function": function() {
+					// do phoneRemote specific things when the current turn changes
+					var oldSetCurrentTurn = game.setCurrentTurn;
+					game.setCurrentTurn = function(i_currentTurn) {
+						oldSetCurrentTurn(i_currentTurn);
+						phoneRemote.setCurrentTurn(i_currentTurn);
+					}
+
 					// update the size of the game card
 					var jGameCard = $("#gameCard");
 					var jWindow = $(window);
@@ -88,7 +131,12 @@ require_once(dirname(__FILE__) . "/resources/include.php");
 
 					// update the size of everything else to match
 					var jCurrentImage = jGameCard.find(".currentImage");
-					game.limitImageSize(jCurrentImage);
+					game.limitImageSize(jCurrentImage, jGameCard.width() - 200, jGameCard.height() - 300);
+
+					// re-update the current turn, since this should have already happened
+					if (game.o_cachedGame !== null && game.o_cachedGame !== undefined) {
+						phoneRemote.setCurrentTurn(game.o_cachedGame.currentTurn);
+					}
 				}
 			};
 		</script>
@@ -98,7 +146,7 @@ require_once(dirname(__FILE__) . "/resources/include.php");
 		<?php
 		includeContents();
 		?>
-		<div id="removeControlGameCard" class="centered" style="display: none;">
+		<div id="remoteControlGameCard" class="centered" style="display: none;">
 			<?php
 			global $s_gameCardContents;
 			echo $s_gameCardContents;

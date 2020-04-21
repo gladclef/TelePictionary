@@ -5,17 +5,21 @@
 				$('#aboutJoinCreate').show(200);
 			},
 
-			setUsername: function() {
+			setUsername: function(b_synchronous) {
 				var jPlayerTag = $('#aboutPlayerTag');
+				var options = {};
+				if (b_synchronous) {
+					options['async'] = false;
+				}
 				outgoingMessenger.pushData({
 					command: 'setUsername',
 					username: jPlayerTag.val()
-				});
+				}, null, options);
 			},
 
 			joinGame: function() {
 				var jRoomCode = $('#aboutRoomCode');
-				about.setUsername();
+				about.setUsername(true);
 				outgoingMessenger.pushData({
 					command: 'joinGame',
 					roomCode: jRoomCode.val()
@@ -26,7 +30,7 @@
 			},
 
 			createGame: function() {
-				about.setUsername();
+				about.setUsername(true);
 				outgoingMessenger.pushData({
 					command: 'createGame'
 				});

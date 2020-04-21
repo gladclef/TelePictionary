@@ -44,29 +44,29 @@ class card
 		switch ($this->i_type)
 		{
 			case 0:
-				return array(0, 'Sentence');
+				return array(0, 'Image');
 			case 1:
-				return array(1, 'Image');
+				return array(1, 'Sentence');
 		}
 		return array(-1, 'Error: uknown card type');
 	}
 	public function isSentence() {
-		return $this->getType()[0] == 'Sentence';
+		return $this->getType()[1] == 'Sentence';
 	}
 	public function isImage() {
-		return $this->getType()[0] == 'Image';
+		return $this->getType()[1] == 'Image';
 	}
 	public function getSentence() {
 		return $this->s_text;
-	}
-	public function getImage() {
-		return image::loadById($this->i_imageId);
 	}
 	public function getImageURL() {
 		$o_image = $this->getImage();
 		if ($o_image === null)
 			return "";
 		return $o_image->getURL();
+	}
+	public function getImage() {
+		return image::loadById($this->i_imageId);
 	}
 	public function getImageId() {
 		return $this->i_imageId;

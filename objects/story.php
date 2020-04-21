@@ -50,19 +50,32 @@ class story
 		}
 		return $a_cards;
 	}
-	public function getCard($i_currentTurn) {
+	public function getCard($i_turn) {
 		$a_cards = $this->getCards();
-		$o_card = isset($a_cards[$i_currentTurn]) ? $a_cards[$i_currentTurn] : null;
+		$o_card = isset($a_cards[$i_turn]) ? $a_cards[$i_turn] : null;
 		if ($o_card === null)
 		{
 			$o_player = $this->getStartingPlayer();
 			$o_game = $o_player->getGame();
-			$o_playerInOrder = $o_game->getPlayerInOrder($this->i_playerId, $i_currentTurn);
+			$o_playerInOrder = $o_game->getPlayerInOrder($this->i_playerId, $i_turn);
 			$i_cardStartType = $o_game->getCardStartType();
+			$i_cardType = ($i_cardStartType + $i_turn) % 2;
 			$o_card = new card($this->s_roomCode, $this->i_id, $o_playerInOrder->getId());
-			$o_card->setType(($i_cardStartType + $i_currentTurn) % 2);
+			$o_card->setType($i_cardType);
+
+			if ($i_turn > 0) {
+				$o_prevCard = $this->getCard($i_turn - 1);
+				if ($o_card->isImage()) {
+					// current card is image type, copy over the text of the previous card
+					$o_card->updateText($o_prevCard->getText());
+				} else {
+					// current card is text type, copy over the image of the previous card
+					$o_card->i_imageId = $o_prevCard->getImageId();
+				}
+			}
+
 			$o_card->save();
-			$this->a_cardIds[$i_currentTurn] = $o_card->getId();
+			$this->a_cardIds[$i_turn] = $o_card->getId();
 			$this->save();
 		}
 		return $o_card;

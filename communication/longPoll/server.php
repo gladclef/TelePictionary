@@ -284,7 +284,7 @@ class ajax {
 
         $s_fileOrigName = $_FILES['file']['name'];
         $s_fileTmpName = $_FILES['file']['tmp_name'];
-        $a_uploadSuccess = _ajax::uploadFile($s_fileOrigName, $s_fileTmpName, TRUE);
+        $a_uploadSuccess = _ajax::uploadFile($s_fileOrigName, $s_fileTmpName, TRUE, 100, 100);
 
         // check that the file uploaded successfully
         if ($a_uploadSuccess[0] === FALSE) {
@@ -315,7 +315,7 @@ class ajax {
 
         $s_fileOrigName = $_FILES['file']['name'];
         $s_fileTmpName = $_FILES['file']['tmp_name'];
-        $a_uploadSuccess = _ajax::uploadFile($s_fileOrigName, $s_fileTmpName, FALSE, 600, 800);
+        $a_uploadSuccess = _ajax::uploadFile($s_fileOrigName, $s_fileTmpName, FALSE, 500, 600);
 
         // check that the file uploaded successfully
         if ($a_uploadSuccess[0] === FALSE) {

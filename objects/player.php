@@ -138,7 +138,8 @@ class player
 			'storyId' => $this->i_storyId,
 			'storyName' => $this->s_storyName,
 			'imageURL' => $this->getImageURL(),
-			'ready' => $this->b_ready
+			'ready' => $this->b_ready,
+			'gameState' => $this->getGameState()
 		);
 	}
 
@@ -346,11 +347,13 @@ class player
 		{
 			// load from get var
 			$i_playerId = intval($_GET['playerId']);
+			// error_log("getting player from get var: {$i_playerId}");
 		}
 		else if (isset($_POST['playerId']))
 		{
 			// load from post var
 			$i_playerId = intval($_POST['playerId']);
+			// error_log("getting player from post var: {$i_playerId}");
 		}
 		else
 		{
@@ -359,6 +362,7 @@ class player
 			if (isset($_SESSION['playerId']))
 			{
 				$i_playerId = $_SESSION['playerId'];
+				// error_log("getting player from session: {$i_playerId}");
 			}
 			else
 			{
@@ -366,11 +370,19 @@ class player
 				$o_globalPlayer->save();
 				$_SESSION['playerId'] = $o_globalPlayer->getId();
 				$i_playerId = $o_globalPlayer->getId();
+				// error_log("created new player: {$i_playerId}");
 			}
 		}
 
 		// now load the player from the playerId
 		$o_globalPlayer = self::loadById($i_playerId);
+		if ($o_globalPlayer == null)
+		{
+			// when we refresh, the players don't exist in the database anymore
+			// create a new player
+			unset($_SESSION['playerId']);
+			return player::getGlobalPlayer();
+		}
 
 		return $o_globalPlayer;
 	}

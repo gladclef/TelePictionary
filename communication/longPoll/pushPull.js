@@ -76,7 +76,7 @@ function initPushPull(onmessageCallback, pushObj, onerror, onclose)
 		}
 
 		// sanity check
-		if (typeof(o_data) !== "object" ||
+		if (typeof(o_data) !== "object" || o_data === null ||
 			(o_data.command === undefined && o_data.f_serverTime === undefined))
 		{
 			throw "Programmer error, bad command type: " + data + "/" + o_data;
@@ -102,6 +102,8 @@ function initPushPull(onmessageCallback, pushObj, onerror, onclose)
 
 	pushObj.pushData = function(data, successFunc, options, progressCallback)
 	{
+		if (arguments.length < 2 || successFunc === null || successFunc === undefined)
+			successFunc = null;
 		if (arguments.length < 3 || options === null || options === undefined)
 			options = {};
 		if (arguments.length < 4 || progressCallback === undefined)
@@ -145,7 +147,7 @@ function initPushPull(onmessageCallback, pushObj, onerror, onclose)
 					commands['showError']("Unknown command type: " + data);
 				if (progressCallback !== null)
 					progressCallback(1.0);
-				if (successFunc !== undefined)
+				if (successFunc !== null)
 					successFunc(o_command);
 			},
 			'error': function(xhr, ajaxOptions, thrownError) {
@@ -165,9 +167,9 @@ function initPushPull(onmessageCallback, pushObj, onerror, onclose)
 		};
 		$.each(options, applyOption);
 
-		$.ajax(ajax_object);
 		if (progressCallback !== null)
 			progressCallback(0);
+		$.ajax(ajax_object);
 	};
 
 	pushObj.pushEvent = {};

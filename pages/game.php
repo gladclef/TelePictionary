@@ -109,6 +109,9 @@
 				{
 					commands.setLocalPlayer(playerFuncs.localPlayer);
 				}
+
+				// update the player1 controls (dependent on player readiness levels)
+				game.updatePlayer1Controls();
 			},
 
 			setPlayerTokenPosition: function(i_playerId, i_position, b_updatePositions) {
@@ -239,6 +242,9 @@
 				});
 				var jPlayer1Token = jPlayersCircle.find(".playerToken[playerId=" + players.player1 + "]");
 				jPlayer1Token.find(".player1Crown").show();
+
+				// update the player1 controls at the bottom of the screen
+				game.updatePlayer1Controls(); 
 			},
 
 			setLocalPlayer: function(i_id) {
@@ -332,14 +338,12 @@
 				});
 			},
 
-			limitImageSize: function(jImage) {
+			limitImageSize: function(jImage, maxWidth, maxHeight) {
 				var jGameCard = $("#gameCard");
 
 				var limitSize = function(img) {
 					var width = parseInt(img.width);
 					var height = parseInt(img.height);
-					var maxWidth = jGameCard.width() - 150;
-					var maxHeight = jGameCard.height() - 150;
 					var ratio = 1;
 
 					if (width * ratio < maxWidth)
@@ -390,15 +394,25 @@
 					// draw the current card
 					if (playerFuncs.isLocalPlayer(o_card.authorId)) {
 						jGameCard.show();
-						jHideMeFirsts.hide();
+
+						if (i_currentTurn == 0) {
+							jHideMeFirsts.hide();
+						} else {
+							jHideMeFirsts.show();
+						}
+						
 						if (o_card.type == 0) { // image card
 							var jCurrentImage = jGameCard.find(".currentImage");
-							game.limitImageSize(jCurrentImage);
+							var jPreviousText = jGameCard.find(".previousText");
+							var previousText = (o_card.text.trim() != "") ? '"'+o_card.text.trim()+'"' : "";
+							game.limitImageSize(jCurrentImage, jGameCard.width() - 150, jGameCard.height() - 200);
+							jPreviousText.text(previousText);
 							jCurrentImage.attr('src', o_card.imageURL);
 							jCurrentImage.show();
 						} else { // sentence card
 							var jNewText = jGameCard.find(".newText");
 							var jCurrentText = jGameCard.find(".currentText");
+							var jPreviousImage = jGameCard.find(".previousImage");
 							jCurrentText.css('width', jGameCard.width() * 0.8 + 'px');
 							jCurrentText.text(o_card.text);
 							if (jNewText.val() == "")
@@ -407,6 +421,8 @@
 								jCurrentText.hide();
 							else
 								jCurrentText.show();
+							game.limitImageSize(jPreviousImage, jGameCard.width() - 150, jGameCard.height() - 250);
+							jPreviousImage.attr('src', o_card.imageURL);
 						}
 					}
 				} else {
@@ -423,6 +439,38 @@
 					jStoryDescription.text(playerFuncs.getPlayer().name + "'s Story:");
 				} else {
 					jStoryDescription.text(o_story.startingPlayerName + "'s Story:");
+				}
+			},
+
+			updatePlayer1Controls: function() {
+				if (game.o_cachedGame === undefined || game.o_cachedGame === null || playerFuncs === undefined) {
+					return;
+				}
+
+				// This function updates the player1 controls at the bottom of the screen.
+				// It is not just a part of the setPlayer1 function because it is also dependent
+				// on the current turn and the players readiness.
+				var i_currentTurn = game.o_cachedGame.currentTurn;
+				var jPlayer1Control = $("#gamePlayer1Control");
+				var jControlStart = jPlayer1Control.find("input.startGame");
+				var jControlNextTurn = jPlayer1Control.find("input.nextTurn");
+				var jControlStartReviewing = jPlayer1Control.find(".finishGame");
+				if (!playerFuncs.isPlayer1()) {
+					jPlayer1Control.hide();
+				} else if (i_currentTurn == -1) {
+					jControlStart.show();
+					jControlNextTurn.hide();
+					jControlStartReviewing.hide();
+				} else if (!playerFuncs.allPlayersReady()) {
+					jPlayer1Control.hide();
+				} else if (i_currentTurn >= 0 && i_currentTurn < playerFuncs.playerCount()-1) {
+					jControlStart.hide();
+					jControlNextTurn.show();
+					jControlStartReviewing.hide();
+				} else if (i_currentTurn == playerFuncs.playerCount()-1) {
+					jControlStart.hide();
+					jControlNextTurn.hide();
+					jControlStartReviewing.show();
 				}
 			},
 
@@ -481,14 +529,9 @@
 					jGameCard.hide();
 				}
 
-				// update the available game controls
-				var jPlayer1Control = $("#gamePlayer1Control");
-				var jControlStart = jPlayer1Control.find("input.startGame");
-				var jControlNextTurn = jPlayer1Control.find("input.nextTurn");
+				// update the available generic controls
 				var jUploadButton = jGameCard.find("input[type=file]");
 				var jCardImage = jGameCard.find(".currentImage");
-				jControlStart[(i_currentTurn == -1 && playerFuncs.isPlayer1()) ? 'show' : 'hide']();
-				jControlNextTurn[(i_currentTurn >= 0 && playerFuncs.isPlayer1() && playerFuncs.allPlayersReady()) ? 'show' : 'hide']();
 				jUploadButton.off('change');
 				jUploadButton.on('change', function(e) {
 					e.preventDefault();
@@ -496,6 +539,9 @@
 					game.uploadImage(jCardImage, jUploadButton[0].files);
 					return false;
 				});
+
+				// update the player 1 controls
+				game.updatePlayer1Controls();
 
 				// update the status text
 				game.updateStatusText();
@@ -582,6 +628,18 @@
 						}
 					});
 				}
+			},
+
+			showQrCode: function() {
+				var jJoin = $("#gameJoinOnPhone");
+				var jCodeContainer = jJoin.find('.code');
+				var jqrCode = jCodeContainer.find(".qrcode");
+				var jlink = jCodeContainer.find(".link");
+				var linkText = "https://" + serverStats['fqdn'] + "/phoneRemote.php?playerId=" + playerFuncs.getPlayer().id;
+				jqrCode.qrcode(linkText);
+				jlink.attr('href', linkText).text(linkText);
+
+				jCodeContainer.toggle();
 			}
 		};
 
@@ -595,6 +653,9 @@
 		function drawGame() {
 			global $o_globalPlayer;
 			global $fqdn;
+
+			// always set the fqdn server stat
+			echo "serverStats['fqdn'] = '{$fqdn}'\r\n";
 
 			// get the game instance
 			$o_game = $o_globalPlayer->getGame();
@@ -613,7 +674,6 @@
 			$s_players = json_encode(json_encode($a_encodedPlayers));
 			echo "serverStats['game'] = {$s_game};\r\n";
 			echo "serverStats['players'] = {$s_players}\r\n";
-			echo "serverStats['fqdn'] = '{$fqdn}'\r\n";
 			echo "serverStats['localPlayer'] = {$o_globalPlayer->getId()}\r\n";
 
 			// draw the current card
@@ -635,7 +695,7 @@
 
 		a_toExec[a_toExec.length] = {
 			"name": "game.php",
-			"dependencies": ["jQuery", "jqueryExtension.js", "commands.js", "index.php"],
+			"dependencies": ["jQuery", "jqueryExtension.js", "commands.js", "index.php", "jquery.qrcode.min.js"],
 			"function": function() {
 				game.resetGuiState();
 
@@ -696,17 +756,6 @@
 					var o_card = JSON.parse(serverStats['currentCard']);
 					commands.updateCard(o_card);
 				}
-
-				// draw the qr code
-				if (serverStats['players'] !== undefined)
-				{
-					var jjoin = $("#gameJoinOnPhone");
-					var jqrCode = jjoin.find(".code").find(".qrcode");
-					var jlink = jjoin.find(".code").find(".link");
-					var linkText = "https://" + serverStats['fqdn'] + "/phoneRemote.php?playerId=" + serverStats['localPlayer'];
-					jqrCode.qrcode(linkText);
-					jlink.attr('href', linkText).text(linkText);
-				}
 			}
 		};
 	</script>
@@ -719,31 +768,30 @@
 	</div>
 	<div id="gameCard" class="centered" style="display: none;">
 		<?php
-		ob_start();
+		ob_start(); // export the gameCard as a global variable so that we can use it in phoneRemote.php
 		?>
 		<div class="opaqueEye" onmouseenter="game.makeTransparent(this);" onmouseleave="game.makeOpaque(this);" onclick="game.minimizeGameCard(this);"></div>
 		<div class="storyDescription centered">Player's Story:</div>
 		<div class="card1" style="display: none;">
-			<div class="previousImage hideMeFirst centered" style="background-image: __imageUrl__"></div>
 			<span class="hideMeFirst">Write a short description of this image:</span>
 			<textarea class="newText" placeholder="short sentence" cols="40" rows="3"></textarea><br />
-			<input type="button" value="Submit" onclick="game.controlUploadSentence();" />
-			<br /><br /><br />
+			<input type="button" value="Submit" onclick="game.controlUploadSentence();" /><br /><br />
+			<img class="previousImage hideMeFirst centered" />
 			<div class="currentText centered"></div>
 		</div>
 		<div class="card0" style="display: none;">
-			<div class="previousSentence hideMeFirst centered">__sentenceValue__</div>
 			<div>
 				<span>Draw an image</span>
-				<span class="hideMeFirst">about this sentence</span>
+				<span class="hideMeFirst">for this description</span>
 				<span>and then upload it:</span>
-				<input type="button" value="Upload Image" onclick="$(this).parent().find('input[type=file]').val('').click();" />
+				<input type="button" value="Upload Image" onclick="$(this).parent().find('input[type=file]').val('').click();" /><br />
+				<span class="previousText centered"></span><br />
 				<input type="file" accept="image/jpg,image/jpeg,image/png,image/gif,image/bmp,image/tiff" style="display: none;" /><!-- calls uploadImage on click, as set in setCurrentTurn -->
 				<br />
-				<img src="__imageUrl__" class="currentImage centered" command="setCardImage" style="display: none;" />
+				<img src="" class="currentImage centered" command="setCardImage" style="display: none;" />
 			</div>
 		</div>
-		<div id="uploadProgress"><!-- put this here so that it will be included in the phoneRemote.php page -->
+		<div id="uploadProgress"><!-- put this inside the gameCard so that it will be included in the phoneRemote.php page -->
 			Uploading...
 		</div>
 		<?php
@@ -755,8 +803,9 @@
 	</div>
 	<div id="gamePlayer1Control" class="centered" style="width: 700px; display: none;">
 		<div class="centered" gameControl="start" style="width: 80px;">
-			<input type="button" class="startGame" value="Start Game" onclick="game.controlStartClick();" />
-			<input type="button" class="nextTurn" value="Next Turn" onclick="game.controlNextTurnClick();" />
+			<input type="button" class="startGame" value="Start Game" onclick="game.controlStartClick();" style="display:none;" />
+			<input type="button" class="nextTurn" value="Next Turn" onclick="game.controlNextTurnClick();" style="display:none;" />
+			<div class="finishGame" style="display:none;">End this round and <input type="button" value="Start Sharing" onclick="game.controlStartSharing();" /></div>
 		</div>
 	</div>
 	<div id="gameGameStatus" class="centered" style="width: 500px;">loading...</div>
@@ -777,7 +826,7 @@
 	</div>
 	<div id="gameLeaveGame"><div>&#x2B05;</div></div>
 	<div id="gameJoinOnPhone">
-		<div class="button" onclick="$(this).parent().find('.code').toggle();"></div>
+		<div class="button" onclick="game.showQrCode();"></div>
 		<div class="code">
 			<div class="qrcode"></div>
 			<a class="link"></a>

@@ -68,7 +68,6 @@ function includeServerStats()
 	$s_latestEvents = (is_string($a_latestEvents)) ? "[]" : json_encode($a_latestEvents);
 	$s_hasUsername = ($b_hasUsername) ? "true" : "false";
 	$s_isInGame = ($b_isInGame) ? "true" : "false";
-	echo "if (window.serverStats === undefined) window.serverStats = {};";
 	echo "serverStats['latestEvents'] = {$s_latestEvents};\r\n";
 	echo "serverStats['hasUsername'] = {$s_hasUsername};\r\n";
 	echo "serverStats['isInGame'] = {$s_isInGame};\r\n";
