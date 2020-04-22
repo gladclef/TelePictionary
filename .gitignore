@@ -54,3 +54,5 @@ sftp-config.json
 test.blend
 *.ini
 *.xcf
+*.sublime-workspace
+*.sublime-project

@@ -21,10 +21,6 @@ playerFuncs.addPlayer = function(o_player)
 	}
 
 	players.players[i_id] = o_player;
-	if (b_old)
-	{
-		playerFuncs.updatePlayerName(i_id);
-	}
 }
 
 playerFuncs.getPlayer = function(i_id)
@@ -36,11 +32,6 @@ playerFuncs.getPlayer = function(i_id)
 		i_id = players.localPlayer;
 	}
 	return players.players[i_id];
-}
-
-playerFuncs.updatePlayerName = function(i_id)
-{
-	// TODO
 }
 
 playerFuncs.getPlayerName = function(i_id, s_default)
@@ -55,7 +46,6 @@ playerFuncs.getPlayerName = function(i_id, s_default)
 playerFuncs.setLocalPlayer = function(i_id)
 {
 	players.localPlayer = i_id;
-	playerFuncs.updatePlayerName(i_id);
 }
 
 playerFuncs.setPlayer1 = function(i_id)

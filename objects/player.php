@@ -8,10 +8,6 @@ class player
 	public $s_name = '';
 	public $i_id = 0;
 	public $s_roomCode = '';
-	public $i_leftNeighbor = -1;
-	public $i_rightNeighbor = -1;
-	public $o_leftNeighbor = null;
-	public $o_rightNeighbor = null;
 	public $i_storyId = -1;
 	public $s_storyName = '';
 	public $a_gameIds = array();
@@ -33,24 +29,6 @@ class player
 	}
 	public function getRoomCode() {
 		return $this->s_roomCode;
-	}
-	public function getNeighbor($b_isLeft = FALSE) {
-		if ($b_isLeft)
-		{
-			if ($o_leftNeighbor == null)
-			{
-				$o_leftNeighbor = player::loadById($this->i_leftNeighbor);
-			}
-			return $this->o_leftNeighbor;
-		}
-		else
-		{
-			if ($o_rightNeighbor == null)
-			{
-				$o_rightNeighbor = player::loadById($this->i_rightNeighbor);
-			}
-			return $this->o_rightNeighbor;
-		}
 	}
 	public function getGame() {
 		return game::loadByRoomCode($this->s_roomCode);
@@ -123,18 +101,14 @@ class player
 
 		return array(-1, 'Error: unknown player game state');
 	}
-	public function isReady()
-	{
+	public function isReady() {
 		return $this->b_ready;
 	}
-	public function toJsonObj()
-	{
+	public function toJsonObj() {
 		return array(
 			'name' => $this->s_name,
 			'id' => $this->i_id,
 			'roomCode' => $this->s_roomCode,
-			'leftNeighbor' => $this->i_leftNeighbor,
-			'rightNeighbor' => $this->i_rightNeighbor,
 			'storyId' => $this->i_storyId,
 			'storyName' => $this->s_storyName,
 			'imageURL' => $this->getImageURL(),
@@ -143,8 +117,11 @@ class player
 		);
 	}
 
-	public function joinGame($o_game)
-	{
+	public function joinGame($o_game) {
+		if ($this->s_roomCode == $o_game->getRoomCode())
+			return;
+		$this->b_ready = FALSE;
+		$this->i_storyId = -1;
 		$o_game->addPlayer($this->i_id);
 		$this->s_roomCode = $o_game->s_roomCode;
 		if ($this->getGameState()[0] <= 2)
@@ -152,15 +129,13 @@ class player
 			$this->i_storyId = -1;
 		}
 	}
-	public function leaveGame()
-	{
+	public function leaveGame() {
 		$o_game = $this->getGame();
 		if ($o_game !== null)
 			$o_game->removePlayer($this->i_id);
 		$this->s_roomCode = '';
 	}
-	public function updateImage($i_alias, $s_extension)
-	{
+	public function updateImage($i_alias, $s_extension) {
 		// create/update the image
 		$b_oldImage = FALSE;
         $o_image = $this->getImage();
@@ -188,8 +163,7 @@ class player
 	        }
 	    }
 	}
-	public function save()
-	{
+	public function save() {
 		global $maindb;
 		$b_isNew = FALSE;
 
@@ -287,28 +261,6 @@ class player
 			$o_player->i_imageId = intval($a_players[0]['imageId']);
 			$o_player->b_ready = (intval($a_players[0]['ready']) == 0) ? FALSE : TRUE;
 
-			$o_player->i_leftNeighbor = -1;
-			$o_player->i_rightNeighbor = -1;
-			$o_player->o_leftNeighbor = null;
-			$o_player->o_rightNeighbor = null;
-			$o_game = $o_player->getGame();
-			if ($o_game != null)
-			{
-				$a_playerOrder = $o_game->getPlayerOrder();
-				if (count($a_playerOrder) > 0)
-				{
-					for ($i = 0; $i < count($a_playerOrder); $i++)
-					{
-						if ($a_playerOrder[$i] == $o_player->i_id)
-						{
-							break;
-						}
-					}
-					$o_player->i_leftNeighbor = ($i > 0) ? $a_playerOrder[$i - 1] : $a_playerOrder[count($a_playerOrder) - 1];
-					$o_player->i_rightNeighbor = ($i < count($a_playerOrder)-1) ? $a_playerOrder[$i+1] : $a_playerOrder[0];
-				}
-			}
-
 			$player_staticPlayers[$i_playerId] = $o_player;
 		}
 		return $o_player;
@@ -380,6 +332,9 @@ class player
 		{
 			// when we refresh, the players don't exist in the database anymore
 			// create a new player
+			if (!isset($_SESSION)) {
+				my_session_start();
+			}
 			unset($_SESSION['playerId']);
 			return player::getGlobalPlayer();
 		}

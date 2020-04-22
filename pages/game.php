@@ -409,7 +409,7 @@
 							jPreviousText.text(previousText);
 							jCurrentImage.attr('src', o_card.imageURL);
 							jCurrentImage.show();
-						} else { // sentence card
+						} else { // text/sentence card
 							var jNewText = jGameCard.find(".newText");
 							var jCurrentText = jGameCard.find(".currentText");
 							var jPreviousImage = jGameCard.find(".previousImage");
@@ -455,21 +455,19 @@
 				var jControlStart = jPlayer1Control.find("input.startGame");
 				var jControlNextTurn = jPlayer1Control.find("input.nextTurn");
 				var jControlStartReviewing = jPlayer1Control.find(".finishGame");
+				jPlayer1Control.show();
+				jControlStart.hide();
+				jControlNextTurn.hide();
+				jControlStartReviewing.hide();
 				if (!playerFuncs.isPlayer1()) {
 					jPlayer1Control.hide();
 				} else if (i_currentTurn == -1) {
 					jControlStart.show();
-					jControlNextTurn.hide();
-					jControlStartReviewing.hide();
 				} else if (!playerFuncs.allPlayersReady()) {
 					jPlayer1Control.hide();
 				} else if (i_currentTurn >= 0 && i_currentTurn < playerFuncs.playerCount()-1) {
-					jControlStart.hide();
 					jControlNextTurn.show();
-					jControlStartReviewing.hide();
 				} else if (i_currentTurn == playerFuncs.playerCount()-1) {
-					jControlStart.hide();
-					jControlNextTurn.hide();
 					jControlStartReviewing.show();
 				}
 			},

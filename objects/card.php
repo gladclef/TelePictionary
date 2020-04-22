@@ -46,17 +46,17 @@ class card
 			case 0:
 				return array(0, 'Image');
 			case 1:
-				return array(1, 'Sentence');
+				return array(1, 'Text');
 		}
 		return array(-1, 'Error: uknown card type');
 	}
-	public function isSentence() {
-		return $this->getType()[1] == 'Sentence';
+	public function isText() {
+		return $this->getType()[1] == 'Text';
 	}
 	public function isImage() {
 		return $this->getType()[1] == 'Image';
 	}
-	public function getSentence() {
+	public function getText() {
 		return $this->s_text;
 	}
 	public function getImageURL() {
