@@ -90,7 +90,9 @@ commands.showContent = function(s_content)
 
 commands.clearPlayers = function()
 {
-	playerFuncs.clearPlayers();
+	$.each(players.players, function(k, o_player) {
+		commands.removePlayer(o_player);
+	});
 }
 
 commands.addPlayer = function(o_player)

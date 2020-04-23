@@ -39,6 +39,9 @@ class game
 	public function getRoomCode() {
 		return $this->s_roomCode;
 	}
+	public function getPlayerCount() {
+		return count($this->a_playerIds);
+	}
 	public function getPlayerIds() {
 		return $this->a_playerIds;
 	}
@@ -108,7 +111,7 @@ class game
 		}
 		return null;
 	}
-	public function getPlayerInOrder($i_startingPlayerId, $i_turnsLater) {
+	public function getPlayerIdInOrder($i_startingPlayerId, $i_turnsLater) {
 		$a_playerOrder = $this->getPlayerOrder();
 		$b_foundStartingPlayer = false;
 		
@@ -132,12 +135,15 @@ class game
 			{
 				if ($i_turnsLater == 0)
 				{
-					return player::loadById($a_playerOrder[$i]);
+					return $a_playerOrder[$i];
 				}
 				$i_turnsLater--;
 			}
 		}
-		return null;
+		return -1;
+	}
+	public function getPlayerInOrder($i_startingPlayerId, $i_turnsLater) {
+		$i_playerId = getPlayerIdInOrder($i_startingPlayerId, $i_turnsLater);
 	}
 	public function getGameState() {
 		if ($this->i_currentTurn == -1)

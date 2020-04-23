@@ -64,7 +64,7 @@ class ajax {
             $b_old = TRUE;
         }
 
-        // join the game
+        // have all the players from the old game join the new game
         if ($b_old)
         {
             // update values locally
@@ -83,11 +83,11 @@ class ajax {
                 new command(
                     "composite",
                     array(new command(
+                        "clearPlayers",
+                        ""
+                    ), new command(
                         "joinGame",
                         $o_game->toJsonObj()
-                    ), new command(
-                        "setPlayer1",
-                        $o_globalPlayer->getId()
                     ))
                 ),
                 $o_oldGame->getRoomCode()
@@ -105,7 +105,7 @@ class ajax {
             $o_game->save();
         }
 
-        return new command("joinGame", $o_game->toJsonObj());
+        return new command("success", "");
     }
 
     function joinGame() {
@@ -122,9 +122,13 @@ class ajax {
 
         // find the game
         $o_game = game::loadByRoomCode($s_roomCode);
-        if ($o_game === null)
-        {
+        if ($o_game === null) {
             return new command("showError", "Can't find a game with room code \"{$s_roomCode}\".");
+        }
+
+        // check to make sure the game hasn't already started
+        if ($o_game->getGameState()[0] >= 2 && $o_game->getCurrentTurn() > 0) {
+            return new command("showError", "Can't join a game that's already in progress.");
         }
 
         // join the game
@@ -217,6 +221,39 @@ class ajax {
 
         // push the changes to the game to other clients
         _ajax::pushGame($o_game);
+
+        // respond to this client
+        return new command("success", "");
+    }
+
+    function startSharing() {
+        global $maindb;
+        global $o_globalPlayer;
+        $a_commands = array();
+
+        // check to make sure that the player is in a game
+        $o_game = $o_globalPlayer->getGame();
+        if (($bo_playerInGame = _ajax::isPlayerInGame($o_globalPlayer, $o_game)) !== TRUE)
+            return $bo_playerInGame;
+
+        // change the content
+        _ajax::pushEvent(new command("showContent", "reveal"));
+
+        // update the game
+        if ($o_game->setCurrentTurn($o_game->getPlayerCount()))
+        {
+            $o_game->save();
+
+            // push the changes to the game to other clients
+            _ajax::pushGame($o_game);
+        }
+
+        // update the players
+        foreach ($o_game->getPlayers() as $i => $o_player) {
+            $o_player->b_ready = FALSE;
+            $o_player->save();
+            _ajax::pushPlayer($o_player, $o_game->getRoomCode(), FALSE);
+        }
 
         // respond to this client
         return new command("success", "");
@@ -434,14 +471,27 @@ $s_command = get_post_var("command");
 
 $o_ret = new command("showError", "missing \"command\" post var");
 if ($s_command != '') {
+
     $o_ajax = new ajax();
     $o_ret = new command("showError", "bad \"command\" post var \"{$s_command}\"");
     if (method_exists($o_ajax, $s_command)) {
+
+        global $o_globalPlayer;
+        global $b_badPlayerPostId;
         player::getGlobalPlayer();
-        $o_ret = $o_ajax->$s_command();
-        if (is_string($o_ret))
-        {
-            $o_ret = new command("showError", $o_ret);
+        if ($b_badPlayerPostId) {
+            // 'playerId' post variable is set and is bad
+            $o_ret = new command("composite", array(
+                new command("clearPlayers", ""),
+                new command("addPlayer", $o_globalPlayer->toJsonObj()),
+                new command("setPlayer1", $o_globalPlayer->getId())
+            ));
+        } else {
+            $o_ret = $o_ajax->$s_command();
+            if (is_string($o_ret))
+            {
+                $o_ret = new command("showError", $o_ret);
+            }
         }
     }
 }

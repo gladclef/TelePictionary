@@ -149,7 +149,7 @@
 	display: initial;
 }
 
-#gameCard {
+.gameCard {
 	position: absolute;
 	top: 82px;
 	left: 145px;
@@ -161,7 +161,7 @@
 	padding-top: 23px;
 }
 
-#gameCard .opaqueEye {
+.gameCard .opaqueEye {
 	position: absolute;
 	left: 20px;
 	top: 18px;
@@ -173,17 +173,17 @@
 	opacity: 0.1;
 }
 
-#gameCard .currentImage {
+.gameCard .currentImage {
 	width: 450px;
 }
 
-#gameCard .currentText {
+.gameCard .currentText {
 	width: 400px;
 	background-color: white;
 	padding: 10px;
 }
 
-#gameCard.phoneRemote {
+.gameCard.phoneRemote {
 	position: initial;
 	top: auto;
 	left: auto;
@@ -191,11 +191,11 @@
 	font-size: 30px;
 }
 
-#gameCard.phoneRemote .opaqueEye {
+.gameCard.phoneRemote .opaqueEye {
 	display: none;
 }
 
-#gameCard.phoneRemote input[type=button] {
+.gameCard.phoneRemote input[type=button] {
 	font-size: 25px;
 	padding: 10px;
 	border-radius: 100px;

@@ -50,6 +50,16 @@ class story
 		}
 		return $a_cards;
 	}
+	public function getPlayerOrder() {
+		$a_playerOrder = array();
+		$o_game = $this->getGame();
+		$i_playerCount = $o_game->getPlayerCount();
+		for ($i = 0; $i < $i_playerCount; $i++) {
+			$i_playerId = $o_game->getPlayerIdInOrder($this->i_playerId, $i);
+			array_push($a_playerOrder, $i_playerId);
+		}
+		return $a_playerOrder;
+	}
 	public function getCard($i_turn) {
 		$a_cards = $this->getCards();
 		$o_card = isset($a_cards[$i_turn]) ? $a_cards[$i_turn] : null;
@@ -125,6 +135,7 @@ class story
 			"roomCode" => $this->s_roomCode,
 			"name" => $this->s_name,
 			"playerId" => $this->i_playerId,
+			"playerOrder" => $this->getPlayerOrder,
 			"cardIds" => implodeIds($this->a_cardIds),
 			"startingPlayerName" => $this->getStartingPlayer()->getName()
 		);

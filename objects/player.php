@@ -286,12 +286,14 @@ class player
 	 */
 	public static function getGlobalPlayer() {
 		global $o_globalPlayer;
+		global $b_badPlayerPostId;
 
 		// check if already loaded
 		if (isset($o_globalPlayer) && $o_globalPlayer !== undefined && $o_globalPlayer !== null)
 		{
 			return $o_globalPlayer;
 		}
+		$o_globalPlayer = null;
 
 		// not loaded, get the player id
 		$i_playerId = -1;
@@ -299,44 +301,43 @@ class player
 		{
 			// load from get var
 			$i_playerId = intval($_GET['playerId']);
+			$o_globalPlayer = self::loadById($i_playerId);
+			if ($o_globalPlayer === null) {
+				$url = "https://{$_SERVER['HTTP_HOST']}{$_SERVER['REQUEST_URI']}";
+				$url = preg_replace('/playerId=[0-9]+/', '', $url);
+				header('Location: ' . $url);
+			}
 			// error_log("getting player from get var: {$i_playerId}");
 		}
-		else if (isset($_POST['playerId']))
+		if ($o_globalPlayer === null && isset($_POST['playerId']))
 		{
+			// loading from get var failed
 			// load from post var
 			$i_playerId = intval($_POST['playerId']);
+			$o_globalPlayer = self::loadById($i_playerId);
+			$b_badPlayerPostId = ($o_globalPlayer === null); // indicates that the post var is bad
 			// error_log("getting player from post var: {$i_playerId}");
 		}
-		else
+		if ($o_globalPlayer === null)
 		{
+			// loading from get and post vars failed
 			// load from session
 			my_session_start();
 			if (isset($_SESSION['playerId']))
 			{
 				$i_playerId = $_SESSION['playerId'];
+				$o_globalPlayer = self::loadById($i_playerId);
 				// error_log("getting player from session: {$i_playerId}");
 			}
-			else
+			if ($o_globalPlayer === null)
 			{
+				// player not set in session variable
 				$o_globalPlayer = new player('');
 				$o_globalPlayer->save();
 				$_SESSION['playerId'] = $o_globalPlayer->getId();
 				$i_playerId = $o_globalPlayer->getId();
 				// error_log("created new player: {$i_playerId}");
 			}
-		}
-
-		// now load the player from the playerId
-		$o_globalPlayer = self::loadById($i_playerId);
-		if ($o_globalPlayer == null)
-		{
-			// when we refresh, the players don't exist in the database anymore
-			// create a new player
-			if (!isset($_SESSION)) {
-				my_session_start();
-			}
-			unset($_SESSION['playerId']);
-			return player::getGlobalPlayer();
 		}
 
 		return $o_globalPlayer;

@@ -332,6 +332,12 @@
 				});
 			},
 
+			controlStartSharingClick: function() {
+				outgoingMessenger.pushData({
+					'command': 'startSharing'
+				});
+			},
+
 			getCurrentCard: function() {
 				outgoingMessenger.pushData({
 					'command': 'getCurrentCard'
@@ -600,29 +606,35 @@
 				jparent.finish().animate({ 'opacity': 1 }, 200);
 			},
 
-			minimizeGameCard: function(h_child) {
-				var jchild = $(h_child);
-				var jparent = jchild.parent();
-				var currentCard = (game.o_cachedGame.currentTurn + game.o_cachedGame.cardStartType) % 2;
-				var otherCard = (currentCard + 1) % 2;
-				var jotherCard = jparent.find(".card" + otherCard);
-				if (jparent.hasClass('minimized')) {
-					var width = parseFloat(jparent.attr('old-width'));
-					jparent.finish().animate({ 'width': width + 'px' }, 200);
-					jparent.removeClass('minimized');
-					$.each(jparent.children(), function(k, v) {
+			minimizeGameCard: function(jGameCard, i_cardType, i_transitionTime) {
+				if (arguments.length < 2 || i_cardType === undefined || i_cardType === null)
+					i_cardType = (game.o_cachedGame.currentTurn + game.o_cachedGame.cardStartType) % 2;
+				if (arguments.length < 3 || i_transitionTime === undefined || i_transitionTime === null)
+					i_transitionTime = 200;
+
+				var i_otherCard = (i_cardType + 1) % 2;
+				var jotherCard = jGameCard.find(".card" + i_otherCard);
+				if (jGameCard.hasClass('minimized')) {
+					
+					// show this card
+					var width = parseFloat(jGameCard.attr('old-width'));
+					jGameCard.finish().animate({ 'width': width + 'px' }, i_transitionTime);
+					jGameCard.removeClass('minimized');
+					$.each(jGameCard.children(), function(k, v) {
 						if (v != h_child && v != jotherCard[0]) {
-							$(v).finish().show(200);
+							$(v).finish().show(i_transitionTime);
 						}
 					});
 				} else {
-					if (jparent.attr('old-width') === undefined)
-						jparent.attr('old-width', jparent.width());
-					jparent.finish().animate({ 'width': '70px' }, 200);
-					jparent.addClass('minimized');
-					$.each(jparent.children(), function(k, v) {
+
+					// minimize this card
+					if (jGameCard.attr('old-width') === undefined)
+						jGameCard.attr('old-width', jGameCard.width());
+					jGameCard.finish().animate({ 'width': '70px' }, i_transitionTime);
+					jGameCard.addClass('minimized');
+					$.each(jGameCard.children(), function(k, v) {
 						if (v != h_child && v != jotherCard[0]) {
-							$(v).finish().hide(200);
+							$(v).finish().hide(i_transitionTime);
 						}
 					});
 				}
@@ -693,7 +705,7 @@
 
 		a_toExec[a_toExec.length] = {
 			"name": "game.php",
-			"dependencies": ["jQuery", "jqueryExtension.js", "commands.js", "index.php", "jquery.qrcode.min.js"],
+			"dependencies": ["jQuery", "jqueryExtension.js", "commands.js", "index.php", "jquery.qrcode.min.js", "reveal.php"],
 			"function": function() {
 				game.resetGuiState();
 
@@ -764,27 +776,27 @@
 	<br />
 	<div id="gamePlayersCircle" class="centered bordered" style="width: 700px; height: 700px;">
 	</div>
-	<div id="gameCard" class="centered" style="display: none;">
+	<div id="gameCard" class="gameCard centered" style="display: none;">
 		<?php
 		ob_start(); // export the gameCard as a global variable so that we can use it in phoneRemote.php
 		?>
-		<div class="opaqueEye" onmouseenter="game.makeTransparent(this);" onmouseleave="game.makeOpaque(this);" onclick="game.minimizeGameCard(this);"></div>
+		<div class="opaqueEye" onmouseenter="game.makeTransparent(this);" onmouseleave="game.makeOpaque(this);" onclick="game.minimizeGameCard($(this).parent());"></div>
 		<div class="storyDescription centered">Player's Story:</div>
 		<div class="card1" style="display: none;">
 			<span class="hideMeFirst">Write a short description of this image:</span>
 			<textarea class="newText" placeholder="short sentence" cols="40" rows="3"></textarea><br />
-			<input type="button" value="Submit" onclick="game.controlUploadSentence();" /><br /><br />
+			<input class="" type="button" value="Submit" onclick="game.controlUploadSentence();" /><br /><br />
 			<img class="previousImage hideMeFirst centered" />
 			<div class="currentText centered"></div>
 		</div>
 		<div class="card0" style="display: none;">
 			<div>
-				<span>Draw an image</span>
+				<span class="">Draw an image</span>
 				<span class="hideMeFirst">for this description</span>
-				<span>and then upload it:</span>
-				<input type="button" value="Upload Image" onclick="$(this).parent().find('input[type=file]').val('').click();" /><br />
+				<span class="">and then upload it:</span>
+				<input class="" type="button" value="Upload Image" onclick="$(this).parent().find('input[type=file]').val('').click();" /><br />
 				<span class="previousText centered"></span><br />
-				<input type="file" accept="image/jpg,image/jpeg,image/png,image/gif,image/bmp,image/tiff" style="display: none;" /><!-- calls uploadImage on click, as set in setCurrentTurn -->
+				<input class="" type="file" accept="image/jpg,image/jpeg,image/png,image/gif,image/bmp,image/tiff" style="display: none;" /><!-- calls uploadImage on click, as set in setCurrentTurn -->
 				<br />
 				<img src="" class="currentImage centered" command="setCardImage" style="display: none;" />
 			</div>
@@ -800,10 +812,10 @@
 		?>
 	</div>
 	<div id="gamePlayer1Control" class="centered" style="width: 700px; display: none;">
-		<div class="centered" gameControl="start" style="width: 80px;">
+		<div class="centered" gameControl="start">
 			<input type="button" class="startGame" value="Start Game" onclick="game.controlStartClick();" style="display:none;" />
 			<input type="button" class="nextTurn" value="Next Turn" onclick="game.controlNextTurnClick();" style="display:none;" />
-			<div class="finishGame" style="display:none;">End this round and <input type="button" value="Start Sharing" onclick="game.controlStartSharing();" /></div>
+			<div class="finishGame" style="display:none;">End this round and <input type="button" value="Start Sharing" onclick="game.controlStartSharingClick();" /></div>
 		</div>
 	</div>
 	<div id="gameGameStatus" class="centered" style="width: 500px;">loading...</div>
