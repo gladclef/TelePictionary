@@ -226,21 +226,30 @@ class ajax {
         return new command("success", "");
     }
 
-    function startSharing() {
+    function setSharingTurn($i_turn = -1) {
         global $maindb;
         global $o_globalPlayer;
-        $a_commands = array();
+
+        // get the post variables
+        if ($i_turn < 0) {
+            $i_turn = intval(get_post_var("turn"));
+        }
 
         // check to make sure that the player is in a game
         $o_game = $o_globalPlayer->getGame();
         if (($bo_playerInGame = _ajax::isPlayerInGame($o_globalPlayer, $o_game)) !== TRUE)
             return $bo_playerInGame;
 
+        // get a good value for the turn
+        $i_turn %= $o_game->getPlayerCount();
+
         // change the content
-        _ajax::pushEvent(new command("showContent", "reveal"));
+        if ($i_turn == 0) {
+            _ajax::pushEvent(new command("showContent", "reveal"));
+        }
 
         // update the game
-        if ($o_game->setCurrentTurn($o_game->getPlayerCount()))
+        if ($o_game->setCurrentTurn($i_turn + $o_game->getPlayerCount()))
         {
             $o_game->save();
 
@@ -249,14 +258,32 @@ class ajax {
         }
 
         // update the players
+        $a_commands = array();
         foreach ($o_game->getPlayers() as $i => $o_player) {
             $o_player->b_ready = FALSE;
             $o_player->save();
-            _ajax::pushPlayer($o_player, $o_game->getRoomCode(), FALSE);
+            array_push(  $a_commands, $o_player->toJsonObj()  );
         }
+        _ajax::pushEvent(new command("composite", $a_commands));
+
+        // push the story
+        $a_playerIds = $o_game->getPlayerIds();
+        $o_player = player::loadById($a_playerIds[$i_turn]);
+        $o_story = $o_player->getStory();
+        $a_cards = $o_story->getCards();
+        $a_commands = array(new command("updateStory", $o_story->toJsonObj()));
+        for ($i = 0; $i < count($a_cards); $i++) {
+            $o_card = $a_cards[$i];
+            array_push(  $a_commands, new command("updateCard", $o_card->toJsonObj())  );
+        }
+        _ajax::pushEvent(new command("composite", $a_commands));
 
         // respond to this client
         return new command("success", "");
+    }
+
+    function startSharing() {
+        return ajax::setSharingTurn(0);
     }
 
     function setGameTurn() {
@@ -310,10 +337,10 @@ class ajax {
             return new command("showError", "Error while retrieving current card!");
 
         // return the current card + story
-        $a_commands = array();
-        array_push($a_commands, new command("setCurrentCard", $o_card->toJsonObj()));
-        array_push($a_commands, new command("setCurrentStory", $o_story->toJsonObj()));
-        return new command("composite", $a_commands);
+        return new command("composite", array(
+            new command("setCurrentCard", $o_card->toJsonObj()),
+            new command("updateStory", $o_story->toJsonObj())
+        ));
     }
 
     function setPlayerImage() {

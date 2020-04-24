@@ -81,6 +81,14 @@ class game
 		$d_now = DateTime('now');
 		return $d_now->getTimestamp() - $this->d_turnStart->getTimestamp();
 	}
+	public function getCurrentStory() {
+		if ($this->getGameState()[0] != 3)
+			return null;
+		$i_turn = $this->i_currentTurn - $this->getPlayerCount();
+		$i_playerId = $this->a_playerIds[$i_turn];
+		$o_player = player::loadById($i_playerId);
+		return $o_player->getStory();
+	}
 	public function getCurrentTurn() {
 		return $this->i_currentTurn;
 	}

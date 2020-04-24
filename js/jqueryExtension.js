@@ -127,6 +127,54 @@ loadJqueryExtensions = function()
             ret += me.marginTopPlusBottom();
         return ret;
     };
+    $.fn.fullPosition = function(b_includeBodyMargin) {
+        var me = $(this);
+        var a_ret = me.position();
+        if (b_includeBodyMargin) {
+            var a_margin = $("body").margin();
+            a_ret.left -= a_margin.left;
+            a_ret.top -= a_margin.top;
+        }
+        return a_ret;
+    };
+    $.fn.border = function() {
+        return {
+            'top': parseInt(this.css('border-top-width')),
+            'right': parseInt(this.css('border-right-width')),
+            'bottom': parseInt(this.css('border-bottom-width')),
+            'left': parseInt(this.css('border-left-width')),
+        }
+    };
+
+    // These three functions help find the fixed position relative to the window
+    // From https://stackoverflow.com/questions/12293151/how-to-get-fixed-position-of-an-element
+    function Point(x, y) {
+        return {
+            'x': x,
+            'y': y,
+            'left': x,
+            'top': y
+        };
+    }
+    $.fn.outerOffset = function () {
+        /// <summary>Returns an element's offset relative to its outer size; i.e., the sum of its left and top margin, padding, and border.</summary>
+        /// <returns type="Object">Outer offset</returns>
+        var margin = this.margin();
+        var padding = this.padding();
+        var border = this.border();
+        return Point(
+            margin.left + padding.left + border.left,
+            margin.top + padding.top + border.top
+        );
+    };
+    $.fn.fixedPosition = function () {
+        /// <summary>Returns the "fixed" position of the element; i.e., the position relative to the browser window.</summary>
+        /// <returns type="Object">Object with 'x' and 'y' properties.</returns>
+        var offset = this.offset();
+        var $doc = $(document);
+        var bodyOffset = $(document.body).outerOffset();
+        return Point(offset.left - $doc.scrollLeft() + bodyOffset.left, offset.top - $doc.scrollTop() + bodyOffset.top);
+    };
 
     $.fn.imgDrop = function(hoverCallback, dropCallback) {
         var jobj = this;

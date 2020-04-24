@@ -91,7 +91,7 @@ class player
 
 		if ($a_gameState[0] == 3)
 		{
-			return array(4, 'Finishing game');
+			return array(4, 'Finishing game'); // in reveal
 		}
 
 		if ($a_gameState[0] == 4)

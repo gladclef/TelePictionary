@@ -144,21 +144,18 @@ commands.removePlayer = function(o_player)
 commands.updateCard = function(o_card)
 {
 	game.updateCard(o_card);
+	reveal.updateCard(o_card);
 }
 
 commands.updateStory = function(o_story)
 {
-	// TODO
+	game.updateStory(o_story);
+	reveal.updateStory(o_story);
 }
 
 commands.setCurrentCard = function(o_card)
 {
 	game.updateCard(o_card);
-}
-
-commands.setCurrentStory = function(o_story)
-{
-	game.updateStory(o_story);
 }
 
 }};

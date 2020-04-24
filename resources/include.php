@@ -63,14 +63,26 @@ function includeContents()
 function includeServerStats()
 {
 	global $o_globalPlayer;
-	$b_hasUsername = $o_globalPlayer->getGameState()[0] > 0;
-	$b_isInGame = ($b_hasUsername) ? ($o_globalPlayer->getGameState()[0] >= 2) : false;
-	$a_latestEvents = ($b_isInGame) ? _ajax::getLatestEvents($o_globalPlayer->getGame()->getRoomCode()) : array();
+	$i_gameState = $o_globalPlayer->getGameState()[0];
+	$b_hasUsername = $i_gameState > 0;
+	$b_isInGame = ($b_hasUsername) ? ($i_gameState >= 2) : false;
+	$b_isInReveal = ($b_isInGame && $i_gameState == 4);
+	$o_game = ($b_isInGame) ? $o_globalPlayer->getGame() : null;
+
+	$a_latestEvents = ($b_isInGame) ? _ajax::getLatestEvents($o_game->getRoomCode()) : array();
+	$o_story = ($b_isInGame) ? $o_game->getCurrentStory() : null;
+	$a_cards = ($o_story === null) ? array() : $o_story->getCards(TRUE);
 	$s_latestEvents = (is_string($a_latestEvents)) ? "[]" : json_encode($a_latestEvents);
 	$s_hasUsername = ($b_hasUsername) ? "true" : "false";
 	$s_isInGame = ($b_isInGame) ? "true" : "false";
+	$s_isInReveal = ($b_isInReveal) ? "true" : "false";
+	$s_currentStory = json_encode(json_encode(($o_story !== null) ? $o_story->toJsonObj() : ""));
+	$s_currentCards = json_encode(json_encode($a_cards));
 	echo "serverStats['latestEvents'] = {$s_latestEvents};\r\n";
 	echo "serverStats['hasUsername'] = {$s_hasUsername};\r\n";
 	echo "serverStats['isInGame'] = {$s_isInGame};\r\n";
+	echo "serverStats['isInReveal'] = {$s_isInReveal};\r\n";
 	echo "serverStats['localPlayer'] = {$o_globalPlayer->getId()};\r\n";
+	echo "serverStats['currentStory'] = {$s_currentStory};\r\n";
+	echo "serverStats['currentCards'] = {$s_currentCards};\r\n";
 }

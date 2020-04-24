@@ -99,6 +99,7 @@ class card
 	}
 	public function toJsonObj() {
 		return array(
+			"id" => $this->i_id,
 			"roomCode" => $this->s_roomCode,
 			"storyId" => $this->i_storyId,
 			"authorId" => $this->i_authorId,

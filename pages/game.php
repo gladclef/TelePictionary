@@ -438,6 +438,9 @@
 			},
 
 			updateStory: function(o_story) {
+				if (o_story === null)
+					return;
+
 				var jGameCard = $("#gameCard");
 				var jStoryDescription =	jGameCard.find(".storyDescription");
 
@@ -606,11 +609,11 @@
 				jparent.finish().animate({ 'opacity': 1 }, 200);
 			},
 
-			minimizeGameCard: function(jGameCard, i_cardType, i_transitionTime) {
+			minimizeGameCard: function(jGameCard, i_cardType, o_animationOptions) {
 				if (arguments.length < 2 || i_cardType === undefined || i_cardType === null)
 					i_cardType = (game.o_cachedGame.currentTurn + game.o_cachedGame.cardStartType) % 2;
-				if (arguments.length < 3 || i_transitionTime === undefined || i_transitionTime === null)
-					i_transitionTime = 200;
+				if (arguments.length < 3 || o_animationOptions === undefined || o_animationOptions === null)
+					o_animationOptions = { 'duration': 200 };
 
 				var i_otherCard = (i_cardType + 1) % 2;
 				var jotherCard = jGameCard.find(".card" + i_otherCard);
@@ -618,11 +621,12 @@
 					
 					// show this card
 					var width = parseFloat(jGameCard.attr('old-width'));
-					jGameCard.finish().animate({ 'width': width + 'px' }, i_transitionTime);
+					jGameCard.finish().animate({ 'width': width + 'px' }, o_animationOptions);
 					jGameCard.removeClass('minimized');
 					$.each(jGameCard.children(), function(k, v) {
-						if (v != h_child && v != jotherCard[0]) {
-							$(v).finish().show(i_transitionTime);
+						var jObj = $(v);
+						if (!jObj.hasClass('opaqueEye') && v != jotherCard[0]) {
+							jObj.finish().show(o_animationOptions);
 						}
 					});
 				} else {
@@ -630,11 +634,12 @@
 					// minimize this card
 					if (jGameCard.attr('old-width') === undefined)
 						jGameCard.attr('old-width', jGameCard.width());
-					jGameCard.finish().animate({ 'width': '70px' }, i_transitionTime);
+					jGameCard.finish().animate({ 'width': '70px' }, o_animationOptions);
 					jGameCard.addClass('minimized');
 					$.each(jGameCard.children(), function(k, v) {
-						if (v != h_child && v != jotherCard[0]) {
-							$(v).finish().hide(i_transitionTime);
+						var jObj = $(v);
+						if (!jObj.hasClass('opaqueEye') && v != jotherCard[0]) {
+							jObj.finish().hide(o_animationOptions);
 						}
 					});
 				}
@@ -705,7 +710,7 @@
 
 		a_toExec[a_toExec.length] = {
 			"name": "game.php",
-			"dependencies": ["jQuery", "jqueryExtension.js", "commands.js", "index.php", "jquery.qrcode.min.js", "reveal.php"],
+			"dependencies": ["jQuery", "jqueryExtension.js", "commands.js", "index.php", "jquery.qrcode.min.js", "reveal_overrides"],
 			"function": function() {
 				game.resetGuiState();
 

@@ -33,20 +33,21 @@ class story
 		return $this->s_roomCode;
 	}
 	public function getGame() {
-		if ($this->roomCode == null || $this->roomCode == '')
+		if ($this->s_roomCode == null || $this->s_roomCode == '')
 		{
 			return null;
 		}
-		return game::loadByRoomCode($this->roomCode);
+		return game::loadByRoomCode($this->s_roomCode);
 	}
 	public function getCardIds() {
 		return $this->a_cardIds;
 	}
-	public function getCards() {
+	public function getCards($b_cardsAsJSONObjects = FALSE) {
 		$a_cards = array();
 		for ($i = 0; $i < count($this->a_cardIds); $i++)
 		{
-			$a_cards[$i] = card::loadById($this->a_cardIds[$i]);
+			$o_card = card::loadById($this->a_cardIds[$i]);
+			$a_cards[$i] = ($b_cardsAsJSONObjects) ? $o_card->toJsonObj() : $o_card;
 		}
 		return $a_cards;
 	}
@@ -59,6 +60,10 @@ class story
 			array_push($a_playerOrder, $i_playerId);
 		}
 		return $a_playerOrder;
+	}
+	public function getCardIdsInPlayerOrder() {
+		// for now just assume the cards are in the right order
+		return $this->a_cardIds;
 	}
 	public function getCard($i_turn) {
 		$a_cards = $this->getCards();
@@ -132,11 +137,12 @@ class story
 	}
 	public function toJsonObj() {
 		return array(
+			"id" => $this->i_id,
 			"roomCode" => $this->s_roomCode,
 			"name" => $this->s_name,
 			"playerId" => $this->i_playerId,
-			"playerOrder" => $this->getPlayerOrder,
-			"cardIds" => implodeIds($this->a_cardIds),
+			"playerOrder" => $this->getPlayerOrder(),
+			"cardIds" => $this->getCardIdsInPlayerOrder(),
 			"startingPlayerName" => $this->getStartingPlayer()->getName()
 		);
 	}

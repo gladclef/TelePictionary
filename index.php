@@ -61,7 +61,9 @@ if (isset($_GET['refresh']))
 
 					// show the content
 					var s_content = "about";
-					if (serverStats['isInGame']) {
+					if (serverStats['isInReveal']) {
+						s_content = "reveal";
+					} else if (serverStats['isInGame']) {
 						s_content = "game";
 					}
 					commands.showContent(s_content);
