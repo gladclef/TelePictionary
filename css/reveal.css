@@ -1,43 +1,87 @@
 #reveal {
-	width: 200px;
+	margin-top: 150px;
+}
+
+#revealHidyBar {
+	width: 100%;
+	height: 132px;
+	position: fixed;
+	top: 0;
+	left: 0;
+	background-color: #8888FF;
+	border-bottom: 3px solid #8888FF;
+	opacity: 0.85;
 }
 
 #revealPlayerBar {
 	width: 100%;
-	height: 200px;
+	height: 132px;
+	position: fixed;
+	left: 0;
+	top: 0;
+	background-color: white;
+	border-bottom: 3px solid black;
 	overflow-x: auto;
 	overflow-y: hidden;
 }
 
 #revealPlayerBar > .scrollPanel {
 	margin: 0 auto;
-	height: 200px;
 }
 
 #revealPlayerBar .playerTokenContainer {
-	display: inline-block;
+	position: absolute;
+	left: 0;
+	top: 0;
 	width: 85px;
 	padding: 10px;
-}
-
-#revealPlayerBar .revealPlayerMiniCard {
-	height: 89px;
-	margin-top: 5px;
 	overflow-y: hidden;
 }
 
-#revealPlayerBar .revealPlayerToken .playerImage {
+#revealPlayerBar .playerTokenContainer.cardActive {
+	top: -2px;
+}
+
+#revealPlayerBar .revealPlayerToken {
+	position: relative;
+	padding-top: 20px;
+}
+
+#revealPlayerBar .playerTokenContainer .playerImage {
 	margin: 0 auto;
 }
 
-#revealPlayerBar .revealPlayerToken .playerImagePlaceholder {
+#revealPlayerBar .playerTokenContainer .playerImagePlaceholder {
 	margin: 0 auto;
 }
 
-#revealPlayerBar .revealPlayerToken .readyCheck {
+#revealPlayerBar .playerTokenContainer.cardActive .playerImage {
+	border: 2px solid rgb(50,210,50);
+}
+
+#revealPlayerBar .playerTokenContainer.cardActive .playerImagePlaceholder {
+	border: 2px solid rgb(50,210,50);
+}
+
+#revealPlayerBar .playerTokenContainer .player1Crown {
+	left: -19px;
+	top: -8px;
+}
+
+#revealPlayerBar .playerTokenContainer .readyCheck {
 	display: none;
 }
 
-#reveal .gameCard.minimized {
-	cursor: pointer;
+#revealCardBar {
+	width: 800px;
+	margin: 0 auto;
+	overflow-x: hidden;
+	padding-top: 20px;
+}
+
+#revealCardBar .gameCard {
+	position: relative;
+	margin: 0 auto;
+	left: unset;
+	top: unset;
 }

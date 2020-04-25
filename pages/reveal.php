@@ -2,7 +2,8 @@
 	<script type="text/javascript">
 		reveal = {
 			i_cardWidth: 700,
-			i_cardHeight: (625.0/500.0)*700,
+			f_cardRatio: (625.0/500.0),
+			i_cardHeight: 0,
 
 			o_cachedStory: null,
 			a_cachedPlayerIdToCardId: {},
@@ -49,7 +50,41 @@
 			},
 
 			updatePlayerTokenOrder: function(a_playerIdsInOrder) {
+				var jPlayerBar = $("#revealPlayerBar");
+				var jScrollPanel = jPlayerBar.children(".scrollPanel");
+				var i_tokenWidth = -1;
 
+				for (var i = 0; i < a_playerIdsInOrder.length-1; i++) {
+					// reorder the player token containers
+					var i_playerId = a_playerIdsInOrder[i];
+					var jRevealPlayerContainer = jScrollPanel.find(".playerTokenContainer[playerId=" + i_playerId + "]");
+					if (jRevealPlayerContainer.length > 0) {
+						if (i_tokenWidth < 0) {
+							i_tokenWidth = jRevealPlayerContainer.fullWidth(true, true, true);
+						}
+						jRevealPlayerContainer.css({
+							'left': (i_tokenWidth * i) + 'px'
+						});
+					}
+
+					// reorder the cards
+					var i_nextId = a_playerIdsInOrder[i+1];
+					var jRevealCardBar = $("#revealCardBar");
+					var jCard = jRevealCardBar.find(".gameCard[playerId=" + i_playerId + "]");
+					var jNextCard = jRevealCardBar.find(".gameCard[playerId=" + i_nextId + "]");
+					if (jCard.length > 0 && jNextCard.length > 0) {
+						jCard.remove();
+						jCard.insertBefore(jNextCard);
+						
+						var o_player = playerFuncs.getPlayer(i_playerId);
+						var i_cardId = jCard.attr('cardId');
+						var o_card = reveal.a_cards[i_cardId];
+						reveal.registerCardEvents(jCard, o_card, o_player);
+					}
+				};
+
+				// other things
+				reveal.indicateActivePlayerCard();
 			},
 
 			addPlayer: function(o_player) {
@@ -63,18 +98,61 @@
 				var jRevealPlayerContainer = jScrollPanel.find(".playerTokenContainer[playerId=" + o_player.id + "]");
 				if (jRevealPlayerContainer.length == 0)
 				{
+					// create and add the player token
 					var jRevealPlayerTemplate = $("#revealPlayerTemplate");
 					jRevealPlayerContainer = $(jRevealPlayerTemplate.html());
 					jRevealPlayerContainer.attr('playerId', o_player.id);
 					jScrollPanel.append(jRevealPlayerContainer);
 					var containerWidths = jScrollPanel.children().length * jRevealPlayerContainer.fullWidth(true, true);
-					jScrollPanel.css({ 'width': containerWidths + 'px' })
+					containerWidths += 4; // this is for the cardActive green border around the player token
+
+					// set the position of the player token
+					var i_tokenWidth = jRevealPlayerContainer.fullWidth(true, true, true);
+					var i_numChildren = jScrollPanel.children().length;
+					jRevealPlayerContainer.css({
+						'left': (i_tokenWidth * (i_numChildren-1)) + 'px'
+					});
+
+					// update the scroll panel
+					jScrollPanel.css({ 'width': containerWidths + 'px' });
+					var f_winWidth = $(window).width();
+					var f_scrollPanelWidth = jScrollPanel.fullWidth(true, false, true);
+					if (f_scrollPanelWidth < f_winWidth - 100) {
+						var i_width = 200; // f_scrollPanelWidth;
+						jPlayerBar.css({
+							'width': i_width + 'px',
+							'left': ((f_winWidth - i_width) / 2) + 'px',
+							'border-left-width': jPlayerBar.css('border-bottom-width'),
+							'border-left-color': jPlayerBar.css('border-bottom-color'),
+							'border-left-style': jPlayerBar.css('border-bottom-style'),
+							'border-right-width': jPlayerBar.css('border-bottom-width'),
+							'border-right-color': jPlayerBar.css('border-bottom-color'),
+							'border-right-style': jPlayerBar.css('border-bottom-style'),
+							'border-bottom-left-radius': '10px',
+							'border-bottom-right-radius': '10px',
+						});
+					} else {
+						jPlayerBar.css({
+							'width': '100%',
+							'left': 0,
+							'border-left': 'none',
+							'border-right': 'none',
+							'border-bottom-left-radius': 0,
+							'border-bottom-right-radius': 0,
+						});
+					}
 				}
 
 				// copy over the new player token
 				var jRevealPlayerToken = jRevealPlayerContainer.find(".revealPlayerToken");
 				jRevealPlayerToken.children().remove();
 				jRevealPlayerToken.html(jGamePlayerToken.html());
+				reveal.registerPlayerTokenEvents(jRevealPlayerToken, o_player);
+			},
+
+			registerPlayerTokenEvents: function(jRevealPlayerToken, o_player) {
+				var f_playerClick = function() { reveal.playerClick(jRevealPlayerToken, o_player); };
+				jRevealPlayerToken.off("click").on("click", f_playerClick);
 			},
 
 			getCardMaximizedPosition: function() {
@@ -85,6 +163,7 @@
 				};
 			},
 
+			i_cardFullHeight: -1,
 			updateCard: function(o_card) {
 				// verify this card is part of the current story
 				if (reveal.o_cachedStory === null || reveal.a_cachedCardIdToPlayerId === undefined) {
@@ -98,123 +177,176 @@
 				// get the player for this card
 				var o_player = playerFuncs.getPlayer(reveal.a_cachedCardIdToPlayerId[o_card.id]);
 
-				// create a new mini card for the player token
+				// create a new card for the player token
 				var jPlayerBar = $("#revealPlayerBar");
 				var jRevealPlayerContainer = jPlayerBar.find(".playerTokenContainer[playerId=" + o_player.id + "]");
-				var jRevealPlayerMiniCard = jRevealPlayerContainer.find(".revealPlayerMiniCard");
-				var jCard = jRevealPlayerMiniCard.children();
+				var jRevealCardBar = $("#revealCardBar");
+				var jCard = jRevealCardBar.find(".gameCard[playerId=" + o_player.id + "]");
 				var jCardTemplate = $("#revealCard");
 				var b_isMaximized = false;
+				var jNext = null, jPrev = null;
 				if (jCard.length > 0)
 				{
 					b_isMaximized = !jCard.hasClass('minimized');
+					jNext = jCard.next();
+					jPrev = jCard.prev();
 				}
 				jCard.remove();
 				jCard = $(jCardTemplate.html());
 				jCard.attr('cardId', o_card.id);
+				jCard.attr('playerId', o_player.id);
 				jCard.css({
 					'width': reveal.i_cardWidth + 'px',
 					'height': reveal.i_cardHeight + 'px'
 				});
 
-				// maximize or minimize the card, as appropriate
-				jRevealPlayerMiniCard.append(jCard);
-				if (b_isMaximized) {
-					jCard.css(reveal.getCardMaximizedPosition());
-					reveal.maximizeRevealCard(jCard);
+				// add the card to the card bar
+				if (jNext !== null && jNext.length > 0) {
+					jCard.insertBefore(jNext);
+				} else if (jPrev !== null && jPrev.length > 0) {
+					jCard.insertAfter(jPrev);
 				} else {
-					reveal.minimizeRevealCard(jCard);
+					jRevealCardBar.append(jCard);
 				}
-				jCard.finish();
+				reveal.i_cardFullHeight = jCard.fullHeight(true, true, true);
+				var jReveal = $("#reveal");
+				var i_cardBarHeight = jRevealCardBar.fullHeight(true, true, true);
+				var i_playerBarHeight = jPlayerBar.fullHeight(true, false, true);
+				var i_winHeight = $(window).height();
+				var i_marginSpacer = (i_winHeight - i_playerBarHeight) % reveal.i_cardFullHeight - 35;
+				$("#reveal").css({ 'margin-bottom': i_marginSpacer + 'px' });
 
-				// add onclick properties
-				var f_maxMinCard = function() { reveal.autoMaximizeRevealCard(jCard); };
-				jCard.off("click").on("click", f_maxMinCard);
+				// indicate the active player according the the card scroll position
+				reveal.indicateActivePlayerCard();
+
+				// register events
+				reveal.registerCardEvents(jCard, o_card, o_player);
 			},
 
-			autoMaximizeRevealCard: function(jCard) {
-				// only maximize cards
-				// cards can be minimized by maximizing another card or changed automatically when somebody reveals their card
-				if (jCard.hasClass('minimized'))
-				{
-					// minimize all the other cards
-					var jCards = $("#revealPlayerBar").find(".gameCard");
-					$.each(jCards, function(k, h_otherCard) {
-						// skip this card
-						if (h_otherCard == jCard[0])
-							return;
+			registerCardEvents: function(jCard, o_card, o_player) {
+				var f_cardClick = function() { reveal.cardClick(jCard, o_card, o_player); };
+				jCard.off("click").on("click", f_cardClick);
+			},
 
-						// minimize other cards
-						var jOtherCard = $(h_otherCard);
-						if (!jOtherCard.hasClass('minimized')) {
-							reveal.minimizeRevealCard(jOtherCard);
-						}
-					});
+			t_winScroll: null,
+			playerClick: function(jPlayerToken, o_player) {
+				// figure out the player order index
+				var i_activeIdx = reveal.o_cachedStory.playerOrder.indexOf(o_player.id);
 
-					// maximize this card
-					reveal.maximizeRevealCard(jCard);
+				// scroll to the active card
+				var jWindow = $(window);
+				var jRevealCardBar = $("#revealCardBar");
+				var i_scrollPos = 0;
+				if (i_activeIdx > 0) {
+					i_scrollPos = reveal.i_cardFullHeight * i_activeIdx;
+					i_scrollPos += parseInt(jRevealCardBar.css('padding-top'));
 				}
+				jWindow.smoothScroll(i_scrollPos, 300);
 			},
 
-			maxMinRevealCard: function(jCard, s_action) {
-				var i_transitionTime = 200;
-				var o_card = reveal.getCard(jCard.attr('cardId'));
-				var o_player = playerFuncs.getPlayer(o_card.authorId);
-				var jPlayerBar = $("#revealPlayerBar");
-				var jRevealPlayerContainer = jPlayerBar.find(".playerTokenContainer[playerId=" + o_player.id + "]");
-				var jRevealPlayerMiniCard = jRevealPlayerContainer.find(".revealPlayerMiniCard");
-				var a_miniCardPos = jRevealPlayerMiniCard.fixedPosition();
-				var animationOptions = { 'duration': i_transitionTime, 'queue': false, 'easing': 'linear' };
-				a_miniCardPos.left += 'px';
-				a_miniCardPos.top += 'px';
+			cardClick: function(jCard, o_card, o_player) {
 
-				if (s_action == 'minimize') {
-					// use the game code to minimize the card
-					if (jCard.hasClass('minimized'))
-						jCard.removeClass('minimized');
-					game.minimizeGameCard(jCard, o_card.type, animationOptions);
+			},
 
-					// put the card back in the player bar
-					jCard.css(reveal.getCardMaximizedPosition());
-					jCard.css({ 'position': 'fixed' });
-					var animationOptions2 = { 'complete': function() {
-						jCard.css({ 'position': 'relative', 'left': 0, 'top': 0 });
-					}};
-					$.extend(animationOptions2, animationOptions);
-					jCard.animate(a_miniCardPos, animationOptions2);
-				} else { // if (s_action == 'maximize')
-					// use the game code to maximize the card
-					if (!jCard.hasClass('minimized'))
-						jCard.addClass('minimized');
-					game.minimizeGameCard(jCard, o_card.type, animationOptions);
+			onWindowGestureChange: function(e_gesture) {
+				if (e_gesture.rotation > 0)
+					return;
+				if (e_gesture.scale > 1)
+					return;
+				reveal.onWindowScroll(null, window.pageYOffset);
+			},
 
-					// move the card out of the player bar to center stage
-					jCard.css(a_miniCardPos);
-					jCard.css({ 'position': 'fixed' });
-					jCard.animate(reveal.getCardMaximizedPosition(), animationOptions);
+			onWindowScroll: function(e_scrollEvt, i_scrollAmount, b_isGesture) {
+				if (arguments.length < 2 || i_scrollAmount === undefined || i_scrollAmount === null)
+					i_scrollAmount = $(window).scrollTop();
+				if (arguments.length < 3 || b_isGesture === undefined || b_isGesture === null)
+					b_isGesture = false;
+				var jHidyBar = $("#revealHidyBar");
+
+				// some aesthetic stuff
+				if (i_scrollAmount > 12) {
+					jHidyBar.css({ 'border-bottom-color': '#5555FF' });
+				} else {
+					jHidyBar.css({ 'border-bottom-color': '#8888FF' });
 				}
+
+				// indicate who is active
+				var i_duration = (b_isGesture) ? 0 : undefined;
+				reveal.indicateActivePlayerCard(i_scrollAmount, i_duration);
 			},
 
-			minimizeRevealCard: function(jCard) {
-				reveal.maxMinRevealCard(jCard, 'minimize');
-			},
+			indicateActivePlayerCard: function(i_scrollAmount, i_duration) {
+				if (arguments.length < 1 || i_scrollAmount === undefined || i_scrollAmount === null)
+					i_scrollAmount = $(window).scrollTop();
+				if (arguments.length < 2 || i_duration === undefined || i_duration === null)
+					i_duration = 150;
 
-			maximizeRevealCard: function(jCard) {
-				reveal.maxMinRevealCard(jCard, 'maximize');
+				// calculate who is active
+				var i_activePlayerId = -1;
+				var i_activeIdx = -1;
+				if (reveal.i_cardFullHeight > 0) {
+					var i_partCardHeight = reveal.i_cardFullHeight / 4;
+					i_activeIdx = Math.floor((i_scrollAmount + i_partCardHeight) / reveal.i_cardFullHeight);
+					i_activeIdx = Math.max(i_activeIdx, 0);
+					var i_activePlayerId = reveal.o_cachedStory.playerOrder[i_activeIdx];
+				}
+
+				// update the class for the active player
+				if (i_activePlayerId > -1) {
+					var jPlayerBar = $("#revealPlayerBar");
+					var jScrollPanel = jPlayerBar.children(".scrollPanel");
+					var jRevealPlayerContainer = jScrollPanel.children(".playerTokenContainer[playerId=" + i_activePlayerId + "]");
+					jRevealPlayerContainer.addClass('cardActive');
+					jRevealPlayerContainer.siblings().removeClass('cardActive');
+
+					// scroll to the active player if they are not visible
+					var i_tokenWidth = jRevealPlayerContainer.fullWidth(true, true, true);
+					var i_playerBarWidth= jPlayerBar.width();
+					var i_tokenLeft = i_activeIdx * i_tokenWidth;
+					var i_tokenRight = i_tokenLeft + i_tokenWidth;
+					var i_visLeft = jPlayerBar.scrollLeft();
+					var i_visRight = i_visLeft + i_playerBarWidth;
+					if (i_visLeft > i_tokenLeft) {
+						// scrolled too far to the right to be able to see the full token
+						jPlayerBar.smoothScroll(i_tokenLeft, i_duration, 'swing', true);
+					} else if (i_visRight < i_tokenRight) {
+						// scrolled too far to the left to be able to see the full token
+						jPlayerBar.smoothScroll(i_tokenRight - i_playerBarWidth, i_duration, 'swing', true);
+					}
+				}
 			}
 		};
-
 		a_toExec[a_toExec.length] = {
 			"name": "reveal_overrides",
 			"dependencies": ["jQuery", "jqueryExtension.js", "game"],
 			"function": function() {
+				var jWindow = $(window);
+
+				// choose a card size
+				var i_winHeight = jWindow.height();
+				var i_cardHeight = reveal.i_cardWidth * reveal.f_cardRatio;
+				i_cardHeight = Math.min(i_cardHeight, (i_winHeight - 150) / 1.25);
+				reveal.i_cardHeight = i_cardHeight;
+				reveal.i_cardWidth = i_cardHeight / reveal.f_cardRatio;
+
 				// override some of the game functions
 				// we call reveal.addPlayer immediately after game.addPlayer so that we can copy the player token created by the game code
 				var oldAddPlayer = game.addPlayer;
+				var oldSetPlayer1 = game.setPlayer1;
 				game.addPlayer = function(o_player) {
 					oldAddPlayer(o_player);
 					reveal.addPlayer(o_player);
 				}
+				game.setPlayer1 = function(i_id) {
+					oldSetPlayer1(i_id);
+					var o_player = playerFuncs.getPlayer(i_id);
+					if (o_player !== null && o_player !== undefined)
+						reveal.addPlayer(o_player); // we do this so that we also capture the player1 crown
+				}
+
+				// add some event handlers
+				jWindow.scroll(reveal.onWindowScroll);
+				jWindow.on('gestureChange', reveal.onWindowGestureChange);
 			}
 		}
 		a_toExec[a_toExec.length] = {
@@ -235,9 +367,13 @@
 		}
 	</script>
 
+	<div id="revealCardBar"></div>
+	<div id="revealHidyBar"></div>
 	<div id="revealPlayerBar">
 		<div class="scrollPanel"></div>
 	</div>
+
+	<!-- templates -->
 	<div id="revealCard" style="display:none;">
 		<div class="gameCard centered" cardId="__cardId__">
 			<div class="noData">
@@ -257,7 +393,6 @@
 	<div id="revealPlayerTemplate" style="display:none;">
 		<div class="playerTokenContainer" playerId="__playerId__">
 			<div class="revealPlayerToken"></div>
-			<div class="revealPlayerMiniCard"></div>
 		</div>
 	</div>
 </div>

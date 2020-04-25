@@ -161,25 +161,6 @@ function cancel_enter_keypress(e) {
 	}
 };
 
-function draw_error(jform, s_errormsg, t_success) {
-	var jerror = jform.find(".errors");
-	if (t_success === true) {
-		jerror.stop(true, true);
-		jerror.css({color:"green", opacity:0});
-		jerror.html(s_errormsg);
-		jerror.animate({opacity:1}, 200);
-	} else if (t_success === false) {
-		jerror.stop(true, true);
-		jerror.css({color:"red", opacity:0});
-		jerror.html(s_errormsg);
-		jerror.animate({opacity:1}, 200);
-	} else {
-		jerror.stop(true, true);
-		jerror.css({color:"lightgrey", opacity:1});
-		jerror.html(s_errormsg);
-	}
-};
-
 function form_enter_press(element, e) {
 	if (e.which == 13) {
 		var jelement = $(element);
@@ -199,30 +180,6 @@ function pad_left(str, padstr, length) {
 		ps += padstr;
 	}
 	return ps.substring(0, length - str.length) + str;
-};
-
-/**
- * Meant to be used as the second argument in a call to jQuery.each(array, callback).
- *
- * Calls the given callback in a setTimeout(callback, 0) timeout in order
- * to allow other javascript stuff to execute in a "parallel" sort of way.
- *
- * @param keyAndValue True to pass two arguments (key and value), false to just pass value.
- */
-function multithreadedForEachCallback(callback, keyAndValue) {
-	var c2 = callback;
-	var kav = keyAndValue;
-	return function(k, v) {
-		var k2 = k;
-		var v2 = v;
-		setTimeout(function() {
-			if (kav) {
-				c2(k2, v2);
-			} else {
-				c2(v2);
-			}
-		}, 0);
-	}
 };
 
 function colorFade(ratio, emptyColor, midColor, fullColor) {
@@ -252,50 +209,6 @@ function colorFade(ratio, emptyColor, midColor, fullColor) {
 	return retval;
 };
 
-function findNextSibling(jelement) {
-	var jparent = jelement.parent();
-	if (jparent === null || jparent === undefined || jparent.length == 0)
-		return null;
-	
-	var children = jparent.children();
-	var foundSame = false;
-	var foundNext = false;
-	var next = null;
-	$.each(children, function(k, v) {
-		var jchild = $(v);
-		if (foundSame && !foundNext) {
-			next = $(v);
-			foundNext = true;
-		}
-		if (jchild.is(jelement)) {
-			foundSame = true;
-		}
-	});
-
-	return next;
-};
-
-function findPrevSibling(jelement) {
-	var jparent = jelement.parent();
-	if (jparent === null || jparent === undefined || jparent.length == 0)
-		return null;
-	
-	var children = jparent.children();
-	var foundSame = false;
-	var prev = null;
-	$.each(children, function(k, v) {
-		var jchild = $(v);
-		if (jchild.is(jelement)) {
-			foundSame = true;
-		}
-		if (!foundSame) {
-			prev = $(v);
-		}
-	});
-
-	return prev;
-};
-
 function uploadFile(jelement, files) {
 	var retfunc = function() { hoverFile(jelement, false); return false; };
 	if (files.length !== 1) { alert("Incorrect number of image files (must be 1)."); return retfunc(); }
@@ -323,92 +236,16 @@ function uploadFile(jelement, files) {
 	return retfunc();
 };
 
-function prepImgBox() {
-	var jbox = $("#imgbox");
-	var jcloseButton = jbox.children(".closebutton");
-	var jimgBox = jbox.children("img");
-	jcloseButton.on('click', function() {
-		jbox.hide(0);
-	});
-	jimgBox.attr("width", jimgBox.css("width")+"px");
-	jimgBox.attr("height", jimgBox.css("height")+"px");
-};
+// returns a jquery swing-like easing from a linear f_progress 0-1 value
+function getSwing(f_progress, b_gentle) {
+	if (arguments.length < 2 || b_gentle === undefined || b_gentle === null)
+		b_gentle = false;
 
-function registerImgBox(jimg) {
-	jimg.off('click');
-	jimg.on('click', function() {
-		var jbox = $("#imgbox");
-		var jimgBox = jbox.children("img");
-		var joptions = jbox.children(".options");
-		var juploadButton = jbox.find("input[type='file']");
-		var jtags = jbox.find(".tags.appliedTags");
-		var jsuggested = jbox.find(".tags.suggestedTags");
-		jimgBox.attr('src', jimg.attr('src'));
-		juploadButton.off('change');
-		juploadButton.on('change', function(e) {
-			e.preventDefault();
-			e.stopPropagation();
-			uploadFile(jimg, juploadButton[0].files);
-			return false;
-		});
+	var f_sin = Math.sin(f_progress * Math.PI - 0.5 * Math.PI);
+	var f_swing = (f_sin + 1) / 2;
+	if (!b_gentle)
+		return f_swing;
 
-		// add the tags
-		if (jtags.length > 0)
-		{
-			var atags = jimg.attr('tags').split('||', 10000, '|', '|');
-			var tagbox = jtags;
-			var createTags = function(k, tagname) {
-				var color = (['#ff6666', '#ffff99', '#ff99cc', '#99ff66', '#66ffcc', '#0099ff', '#9966ff', '#66ccff', '#cc9900', '#666699'])[tagname.sum() % 10];
-				var borderColor = color.replaceAll('3','2').replaceAll('6','4').replaceAll('9','6').replaceAll('c','8').replaceAll('f','a');
-				tagbox.append('<span class="tag" style="background-color:' + color + '; border-color:' + borderColor + '">' + tagname + '</span>');
-			};
-			kill_children(jtags);
-			$.each(atags, createTags);
-		}
-
-		// show image box
-		var top = $(window).height()/2 - jbox.height()/2;
-		var left = $(window).width()/2 - jbox.width()/2;
-		jbox.css({
-			"top": top + "px",
-			"left": left + "px"
-		});
-		jbox.show(0);
-
-		// register drag-n-drop
-		jimgBox.imgDrop(hoverFile, function(jelement, files) {
-			var ret = uploadFile(jimg, files);
-			hoverFile(jimgBox, false);
-			return ret;
-		});
-
-		// once the box is visible do resizing
-		setTimeout(function() {
-			// get the base width and height of the image container, and the actual size of the image
-			var w = jbox.width(), h = jbox.height()-joptions.height();
-			var nw = jimg[0].naturalWidth, nh = jimg[0].naturalHeight;
-
-			// fit image within the image container width and height
-			var h2 = 0, w2 = 0, spacex = 0, spacey = 0;
-			if (nh/h > nw/w) { // image is height bound, add margin on left and right and shrink image width
-				h2 = h;
-				w2 = (h/nh)*nw;
-				spacex = (w - w2) / 2;
-			} else { // image is width bound, add margin on top and bottom and shrink image height
-				w2 = w;
-				h2 = (w/nw)*nh;
-				spacey = (h - h2) / 2;
-			}
-			jimgBox.attr("width", w2 + "px");
-			jimgBox.attr("height", h2 + "px");
-			jimgBox.css({
-				"width": w2 + "px",
-				"height": h2 + "px",
-				"margin": spacey+"px " +spacex+"px "
-			});
-		}, 0);
-	});
-	jimg.css({
-		"cursor": "pointer"
-	});
-};
+	var f_gentleSwing = Math.pow(f_swing, 0.9);
+	return f_gentleSwing;
+}

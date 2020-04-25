@@ -1,5 +1,7 @@
 loadJqueryExtensions = function()
 {
+    if (window.jqueryExtension === undefined) window.jqueryExtension = {};
+
     /** Thanks to Ryan https://stackoverflow.com/questions/1891444/cursor-position-in-a-textarea-character-index-not-x-y-coordinates */
     $.fn.getCursorPosition = function() {
         var el = $(this).get(0);
@@ -61,6 +63,14 @@ loadJqueryExtensions = function()
         return { "obj": jv, "val": val };
     }
     
+    $.fn.border = function() {
+        return {
+            'top': parseInt(this.css('border-top-width')),
+            'right': parseInt(this.css('border-right-width')),
+            'bottom': parseInt(this.css('border-bottom-width')),
+            'left': parseInt(this.css('border-left-width')),
+        }
+    };
     $.fn.paddingTop = function() { return getCssInt(this, "padding-top").val; };
     $.fn.paddingBottom = function() { return getCssInt(this, "padding-bottom").val; };
     $.fn.paddingRight = function() { return getCssInt(this, "padding-right").val; };
@@ -109,41 +119,31 @@ loadJqueryExtensions = function()
             "left": jobj.marginLeft()
         };
     };
-    $.fn.fullWidth = function(b_includePadding, b_includeMargin) {
+    $.fn.fullWidth = function(b_includePadding, b_includeMargin, b_includeBorder) {
         var me = $(this);
         var ret = me.width();
         if (b_includePadding)
             ret += me.paddingLeftPlusRight();
         if (b_includeMargin)
             ret += me.marginLeftPlusRight();
+        if (b_includeBorder) {
+            var border = me.border();
+            ret += border.left + border.right;
+        }
         return ret;
     };
-    $.fn.fullHeight = function(b_includePadding, b_includeMargin) {
+    $.fn.fullHeight = function(b_includePadding, b_includeMargin, b_includeBorder) {
         var me = $(this);
         var ret = me.height();
         if (b_includePadding)
             ret += me.paddingTopPlusBottom();
         if (b_includeMargin)
             ret += me.marginTopPlusBottom();
+        if (b_includeBorder) {
+            var border = me.border();
+            ret += border.top + border.bottom;
+        }
         return ret;
-    };
-    $.fn.fullPosition = function(b_includeBodyMargin) {
-        var me = $(this);
-        var a_ret = me.position();
-        if (b_includeBodyMargin) {
-            var a_margin = $("body").margin();
-            a_ret.left -= a_margin.left;
-            a_ret.top -= a_margin.top;
-        }
-        return a_ret;
-    };
-    $.fn.border = function() {
-        return {
-            'top': parseInt(this.css('border-top-width')),
-            'right': parseInt(this.css('border-right-width')),
-            'bottom': parseInt(this.css('border-bottom-width')),
-            'left': parseInt(this.css('border-left-width')),
-        }
     };
 
     // These three functions help find the fixed position relative to the window
@@ -225,6 +225,58 @@ loadJqueryExtensions = function()
         };
         $.each(["dragover", "dragenter", "dragleave", "drop"], applyStopProp);
     };
+
+    window.jqueryExtension.smoothScrollIntervals = [];
+    $.fn.smoothScroll = function(i_scrollPos, i_duration, s_easing, b_horizontalScroll) {
+        var me = this;
+        if (arguments.length < 2 || i_duration === undefined || i_duration === null)
+            i_duration = 200;
+        if (arguments.length < 3 || s_easing === undefined || s_easing === null)
+            s_easing = 'swing';
+        if (arguments.length < 4 || b_horizontalScroll === undefined || b_horizontalScroll === null)
+            b_horizontalScroll = false;
+
+        // get the smooth scroll index
+        var i_idx = me.attr('smoothScrollIdx');
+        if (i_idx === undefined) {
+            i_idx = window.jqueryExtension.smoothScrollIntervals.length;
+            window.jqueryExtension.smoothScrollIntervals[i_idx] = 0;
+            window.jqueryExtension.smoothScrollIntervals[i_idx+1] = 0;
+            me.attr('smoothScrollIdx', i_idx);
+        } else {
+            i_idx = parseInt(i_idx)
+        }
+        if (b_horizontalScroll) {
+            i_idx++;
+        }
+
+        var i_intervalCount = 0;
+        var s_scrollFunc = (b_horizontalScroll) ? 'scrollLeft' : 'scrollTop';
+        var i_startScroll = me[s_scrollFunc]();
+        var i_scrollAmount = i_scrollPos - i_startScroll;
+        clearInterval(window.jqueryExtension.smoothScrollIntervals[i_idx]);
+        if (i_duration > 0) {
+            window.jqueryExtension.smoothScrollIntervals[i_idx] = setInterval(function() {
+                var i_ellapsedMs = i_intervalCount * 30;
+                var f_progress = i_ellapsedMs / i_duration;
+                var f_percent = f_progress;
+
+                if (f_progress >= 1) {
+                    me[s_scrollFunc](i_scrollPos);
+                    clearInterval(window.jqueryExtension.smoothScrollIntervals[i_idx]);
+                } else {
+                    if (s_easing === 'swing') {
+                        f_percent = getSwing(f_progress, true);
+                    }
+                    var i_intermediaryScrollPos = i_startScroll + (f_percent * i_scrollAmount);
+                    me[s_scrollFunc](i_intermediaryScrollPos);
+                }
+                i_intervalCount++;
+            }, 30);
+        } else {
+            me[s_scrollFunc](i_scrollPos);
+        }
+    }
 };
 
 a_toExec[a_toExec.length] = {
