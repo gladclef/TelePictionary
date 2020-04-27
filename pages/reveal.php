@@ -4,6 +4,8 @@
 			i_cardWidth: 700,
 			f_cardRatio: (625.0/500.0),
 			i_cardHeight: 0,
+			f_paddingRatio: (50.0/875.0),
+			i_cardPadding: 0,
 
 			o_cachedStory: null,
 			a_cachedPlayerIdToCardId: {},
@@ -118,7 +120,7 @@
 					var f_winWidth = $(window).width();
 					var f_scrollPanelWidth = jScrollPanel.fullWidth(true, false, true);
 					if (f_scrollPanelWidth < f_winWidth - 100) {
-						var i_width = 200; // f_scrollPanelWidth;
+						var i_width = f_scrollPanelWidth;
 						jPlayerBar.css({
 							'width': i_width + 'px',
 							'left': ((f_winWidth - i_width) / 2) + 'px',
@@ -197,8 +199,23 @@
 				jCard.attr('playerId', o_player.id);
 				jCard.css({
 					'width': reveal.i_cardWidth + 'px',
-					'height': reveal.i_cardHeight + 'px'
+					'height': reveal.i_cardHeight + 'px',
+					'padding-top': reveal.i_cardPadding + 'px'
 				});
+
+				// set the card contents
+				var jImage = jCard.find(".currentImage");
+				var jText = jCard.find(".currentText");
+				var jCurrCard = jCard.find(".card" + o_card.type);
+				var i_maxWidth = reveal.i_cardWidth - 2*reveal.i_cardPadding;
+				var i_maxHeight = reveal.i_cardHeight - 2*reveal.i_cardPadding;
+				jImage.attr('src', o_card.imageURL);
+				jText.text(o_card.text);
+				if (o_card.isRevealed || true) {
+					jCurrCard.show();
+				}
+				fitImageSize(jImage, i_maxWidth, i_maxHeight);
+				jText.css({ 'max-width': i_maxWidth + 'px' });
 
 				// add the card to the card bar
 				if (jNext !== null && jNext.length > 0) {
@@ -245,7 +262,34 @@
 			},
 
 			cardClick: function(jCard, o_card, o_player) {
+				var jRevealOverlay = $("#revealOverlay");
+				var jImg = jRevealOverlay.find(".currentImage");
+				var jTxt = jRevealOverlay.find(".currentText");
+				var i_winWidth = $(window).width();
+				var i_winHeight = $(window).height();
+				var i_padding = 100;
+				var i_maxWidth = i_winWidth - 2*i_padding;
+				var i_maxHeight = i_winHeight - 2*i_padding;
+				var jType = jRevealOverlay.find(".card" + o_card.type);
 
+				jImg.attr('src', o_card.imageURL);
+				jTxt.text(o_card.text);
+				jImg.hide();
+				jTxt.hide();
+				jType.show();
+				jRevealOverlay.show();
+
+				var f_updateWidthHeight = function(jElement) {
+					var i_width = parseInt(jElement.width());
+					var i_height = parseInt(jElement.height());
+					jElement.css({
+						'margin-top': ((i_winHeight - i_height) / 2) + 'px',
+						'margin-left': ((i_winWidth - i_width) / 2) + 'px'
+					});
+				}
+				fitImageSize(jImg, i_maxWidth, i_maxHeight, f_updateWidthHeight);
+				jTxt.css({ 'max-width': i_maxWidth + 'px' });
+				f_updateWidthHeight(jTxt);
 			},
 
 			onWindowGestureChange: function(e_gesture) {
@@ -328,6 +372,7 @@
 				i_cardHeight = Math.min(i_cardHeight, (i_winHeight - 150) / 1.25);
 				reveal.i_cardHeight = i_cardHeight;
 				reveal.i_cardWidth = i_cardHeight / reveal.f_cardRatio;
+				reveal.i_cardPadding = reveal.f_paddingRatio * reveal.i_cardHeight;
 
 				// override some of the game functions
 				// we call reveal.addPlayer immediately after game.addPlayer so that we can copy the player token created by the game code
@@ -372,21 +417,19 @@
 	<div id="revealPlayerBar">
 		<div class="scrollPanel"></div>
 	</div>
+	<div id="revealOverlay" style="display: none;" onclick="$(this).hide();">
+		<img class="card0 currentImage centered" />
+		<div class="card1 currentText centered"></div>
+	</div>
 
 	<!-- templates -->
 	<div id="revealCard" style="display:none;">
 		<div class="gameCard centered" cardId="__cardId__">
-			<div class="noData">
-				Waiting to retrieve data from the server...
+			<div class="card0" style="display: none;">
+				<img class="currentImage centered" />
 			</div>
 			<div class="card1" style="display: none;">
-				<img class="previousImage hideMeFirst centered" />
 				<div class="currentText centered"></div>
-			</div>
-			<div class="card0" style="display: none;">
-				<span class="previousText centered"></span><br />
-				<br />
-				<img src="" class="currentImage centered" command="setCardImage" style="display: none;" />
 			</div>
 		</div>
 	</div>

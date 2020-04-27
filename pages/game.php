@@ -344,49 +344,6 @@
 				});
 			},
 
-			limitImageSize: function(jImage, maxWidth, maxHeight) {
-				var jGameCard = $("#gameCard");
-
-				var limitSize = function(img) {
-					var width = parseInt(img.width);
-					var height = parseInt(img.height);
-					var ratio = 1;
-
-					if (width * ratio < maxWidth)
-					{
-						ratio = maxWidth / width;
-					}
-					if (height * ratio < maxHeight)
-					{
-						ratio = maxHeight / height;
-					}
-					if (width * ratio > maxWidth)
-					{
-						ratio = Math.min(maxWidth / width, ratio);
-					}
-					if (height * ratio > maxHeight)
-					{
-						ratio = Math.min(maxHeight / height);
-					}
-
-					jImage.css({
-						'width': (width * ratio) + 'px',
-						'height': (height * ratio) + 'px',
-						'margin-top': ((maxHeight - (height * ratio)) / 2) + 'px'
-					});
-				}
-
-				jImage.off('load');
-				jImage.on('load', function() {
-					var img = new Image();
-					img.onload = function() {
-						limitSize(img);
-					};
-					img.src = jImage.attr('src');
-				});
-				limitSize(jImage[0]);
-			},
-
 			updateCard: function(o_card) {
 				var i_currentTurn = game.o_cachedGame.currentTurn;
 
@@ -411,7 +368,7 @@
 							var jCurrentImage = jGameCard.find(".currentImage");
 							var jPreviousText = jGameCard.find(".previousText");
 							var previousText = (o_card.text.trim() != "") ? '"'+o_card.text.trim()+'"' : "";
-							game.limitImageSize(jCurrentImage, jGameCard.width() - 150, jGameCard.height() - 200);
+							fitImageSize(jCurrentImage, jGameCard.width() - 150, jGameCard.height() - 200);
 							jPreviousText.text(previousText);
 							jCurrentImage.attr('src', o_card.imageURL);
 							jCurrentImage.show();
@@ -427,7 +384,7 @@
 								jCurrentText.hide();
 							else
 								jCurrentText.show();
-							game.limitImageSize(jPreviousImage, jGameCard.width() - 150, jGameCard.height() - 250);
+							fitImageSize(jPreviousImage, jGameCard.width() - 150, jGameCard.height() - 250);
 							jPreviousImage.attr('src', o_card.imageURL);
 						}
 					}

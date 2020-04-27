@@ -249,3 +249,53 @@ function getSwing(f_progress, b_gentle) {
 	var f_gentleSwing = Math.pow(f_swing, 0.9);
 	return f_gentleSwing;
 }
+
+function fitImageSize(jImage, i_maxWidth, i_maxHeight, f_onload) {
+	if (arguments.length < 4 || f_onload === undefined || f_onload === null)
+		f_onload = null;
+
+	var limitSize = function(img) {
+		var i_width = parseInt(img.width);
+		var i_height = parseInt(img.height);
+		var ratio = 1;
+
+		if (i_width * ratio < i_maxWidth)
+		{
+			ratio = i_maxWidth / i_width;
+		}
+		if (i_height * ratio < i_maxHeight)
+		{
+			ratio = i_maxHeight / i_height;
+		}
+		if (i_width * ratio > i_maxWidth)
+		{
+			ratio = Math.min(i_maxWidth / i_width, ratio);
+		}
+		if (i_height * ratio > i_maxHeight)
+		{
+			ratio = Math.min(i_maxHeight / i_height);
+		}
+
+		jImage.css({
+			'width': (i_width * ratio) + 'px',
+			'height': (i_height * ratio) + 'px',
+			'margin-top': ((i_maxHeight - (i_height * ratio)) / 2) + 'px'
+		});
+	}
+
+	jImage.off('load');
+	jImage.on('load', function() {
+		var img = new Image();
+		img.onload = function() {
+			limitSize(img);
+			if (f_onload !== null) {
+				f_onload(jImage);
+			}
+		};
+		img.src = jImage.attr('src');
+	});
+	limitSize(jImage[0]);
+	if (f_onload !== null) {
+		f_onload(jImage);
+	}
+}

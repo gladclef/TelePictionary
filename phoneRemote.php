@@ -131,7 +131,7 @@ require_once(dirname(__FILE__) . "/resources/include.php");
 
 					// update the size of everything else to match
 					var jCurrentImage = jGameCard.find(".currentImage");
-					game.limitImageSize(jCurrentImage, jGameCard.width() - 200, jGameCard.height() - 300);
+					fitImageSize(jCurrentImage, jGameCard.width() - 200, jGameCard.height() - 300);
 
 					// re-update the current turn, since this should have already happened
 					if (game.o_cachedGame !== null && game.o_cachedGame !== undefined) {

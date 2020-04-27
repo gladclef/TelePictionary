@@ -84,4 +84,26 @@
 	margin: 0 auto;
 	left: unset;
 	top: unset;
+	cursor: pointer;
+}
+
+#revealOverlay {
+	position: fixed;
+	left: 0;
+	top: 0;
+	width: 100%;
+	height: 100%;
+	background-color: rgba(0,0,0,0.3);
+	cursor: pointer;
+}
+
+#revealOverlay .currentImage {
+	box-shadow: 0px 0px 48px black;
+}
+
+#revealOverlay .currentText {
+	box-shadow: 0px 0px 48px black;
+	font-size: 60px;
+	background-color: white;
+	padding: 20px;
 }
