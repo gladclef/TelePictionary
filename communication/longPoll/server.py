@@ -21,6 +21,7 @@ class Room():
     l_eventLock = None
     l_clientLock = None
     l_timeLock = None
+    i_nextEventId = -1
 
     def __init__(self, s_roomCode):
         self.s_roomCode = s_roomCode
@@ -30,6 +31,7 @@ class Room():
         self.l_eventLock = threading.Lock()
         self.l_clientLock = threading.Lock()
         self.l_timeLock = threading.Lock()
+        self.i_nextEventId = -1
 
     def checkTimeKill(self):
         if (self.s_roomCode == ""):
@@ -110,6 +112,9 @@ class Room():
                     return event
             return None
 
+    def getEventIds(self):
+        return [x['i_id'] for x in self.a_events]
+
     # puts the given event at the front of the queue
     def appendEvent(self, o_event):
         with self.l_timeLock:
@@ -118,10 +123,10 @@ class Room():
         o_newEvent = { 'f_serverTime': f_serverTime, 'i_id': 0, 'event': o_event }
         with self.l_eventLock:
             # set the id for this new event
-            i_newId = 0
-            for i in range(len(self.a_events)-1, -1, -1):
-                if (self.a_events[i]['i_id'] >= i_newId):
-                    i_newId = self.a_events[i]['i_id'] + 1
+            a_eventIds = self.getEventIds()
+            i_newId = max(0, self.i_nextEventId)
+            if (len(a_eventIds) > 0):
+                i_newId = max(  i_newId,  max(a_eventIds) + 1  )
             o_newEvent['i_id'] = i_newId
 
             # append this event and limit the number of events kept in memory
@@ -130,6 +135,13 @@ class Room():
             while (len(self.a_events) > 100):
                 self.a_events.remove(self.a_events[0])
         return o_newEvent
+
+    def updateLatestEventId(self, i_eventId):
+        a_eventIds = self.getEventIds()
+        i_maxEventId = max(self.i_nextEventId-1, i_eventId)
+        if (len(a_eventIds) > 0):
+            i_maxEventId = max(i_maxEventId, max(a_eventIds))
+        self.i_nextEventId = i_maxEventId + 1
 
 # Multithreaded Python server : TCP Server Socket Thread Pool
 class ClientThread(Thread):
@@ -321,6 +333,13 @@ class ClientThread(Thread):
         self.checkTimeKillAll(self.s_roomCode, CLIENT_LIFETIME)
         room.appendClient(self)
  
+    def updateLatestEventIds(self, a_latestEventIds):
+        self.a_latestEvents = a_latestEventIds
+        if (len(self.a_latestEvents) > 0):
+            eventId = max(self.a_latestEvents)
+            room = a_rooms[self.s_roomCode]
+            room.updateLatestEventId(eventId)
+
     def run(self):
         while True:
             if not self.checkConn():
@@ -353,7 +372,7 @@ class ClientThread(Thread):
                     self.tryRemove()
                     a_data = json.loads(s_data[len("subscribe "):])
                     self.setRoomCode(a_data['roomCode'])
-                    self.a_latestEvents = a_data['latestEvents']
+                    self.updateLatestEventIds(a_data['latestEvents'])
                     self.checkLatestEvents()
                 
                 elif (s_data.startswith("push ")):
