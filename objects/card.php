@@ -31,6 +31,9 @@ class card
 	public function getAuthor() {
 		return player::loadById($this->i_authorId);
 	}
+	public function getAuthorId() {
+		return $this->i_authorId;
+	}
 	public function getStory() {
 		return story::loadById($this->i_storyId);
 	}

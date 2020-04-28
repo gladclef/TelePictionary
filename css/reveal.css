@@ -84,7 +84,40 @@
 	margin: 0 auto;
 	left: unset;
 	top: unset;
+}
+
+#revealCardBar .gameCard.notRevealed {
+	background-image: url('../imagesStatic/paper1_hidden_small.png');
+}
+
+#revealCardBar .gameCard.notRevealed.localPlayer {
+	background-image: url('../imagesStatic/paper1_reveal_small.png');
 	cursor: pointer;
+}
+
+#revealCardBar .gameCard.notRevealed .userContents {
+	display: none;
+}
+
+#revealCardBar .gameCard.revealed .userContents {
+	display: block;
+	cursor: pointer;
+}
+
+#revealCardBar .gameCard.notRevealed.localPlayer .userContents {
+	display: block;
+}
+
+#revealCardBar .gameCard .revealHint {
+	display: none;
+}
+
+#revealCardBar .gameCard.notRevealed.localPlayer .revealHint {
+	display: block;
+	width: 400px;
+	padding: 10px;
+	font-size: 34px;
+	color: white;
 }
 
 #revealOverlay {

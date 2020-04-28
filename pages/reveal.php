@@ -203,6 +203,16 @@
 					'padding-top': reveal.i_cardPadding + 'px'
 				});
 
+				// indicate the card reveal state
+				if (o_card.isRevealed) {
+					jCard.addClass("revealed");
+				} else {
+					jCard.addClass("notRevealed");
+				}
+				if (o_card.authorId == playerFuncs.getPlayer().id) {
+					jCard.addClass("localPlayer");
+				}
+
 				// set the card contents
 				var jImage = jCard.find(".currentImage");
 				var jText = jCard.find(".currentText");
@@ -213,6 +223,9 @@
 				jText.text(o_card.text);
 				if (o_card.isRevealed || true) {
 					jCurrCard.show();
+				}
+				if (jCard.hasClass('notRevealed') && jCard.hasClass('localPlayer')) {
+					i_maxHeight -= 100;//jCard.find('.revealHint').height();
 				}
 				fitImageSize(jImage, i_maxWidth, i_maxHeight);
 				jText.css({ 'max-width': i_maxWidth + 'px' });
@@ -241,8 +254,15 @@
 			},
 
 			registerCardEvents: function(jCard, o_card, o_player) {
-				var f_cardClick = function() { reveal.cardClick(jCard, o_card, o_player); };
-				jCard.off("click").on("click", f_cardClick);
+				var f_revealCard = function() { reveal.revealCard(jCard, o_card, o_player); };
+				var f_maximizeCardContents = function() { reveal.maximizeCardContents(jCard, o_card, o_player); };
+
+				if (jCard.hasClass('revealed')) {
+					jCard.children().off("click").on("click", f_maximizeCardContents);
+				} else if (jCard.hasClass('notRevealed') && jCard.hasClass('localPlayer')) {
+					jCard.children().off("click");
+					jCard.off("click").on("click", f_revealCard);
+				}
 			},
 
 			t_winScroll: null,
@@ -261,7 +281,14 @@
 				jWindow.smoothScroll(i_scrollPos, 300);
 			},
 
-			cardClick: function(jCard, o_card, o_player) {
+			revealCard: function(jCard, o_card, o_player) {
+				outgoingMessenger.pushData({
+					command: 'revealCard',
+					cardId: o_card.id
+				});
+			},
+
+			maximizeCardContents: function(jCard, o_card, o_player) {
 				var jRevealOverlay = $("#revealOverlay");
 				var jImg = jRevealOverlay.find(".currentImage");
 				var jTxt = jRevealOverlay.find(".currentText");
@@ -426,11 +453,12 @@
 	<div id="revealCard" style="display:none;">
 		<div class="gameCard centered" cardId="__cardId__">
 			<div class="card0" style="display: none;">
-				<img class="currentImage centered" />
+				<img class="userContents currentImage centered" />
 			</div>
 			<div class="card1" style="display: none;">
-				<div class="currentText centered"></div>
+				<div class="userContents currentText centered"></div>
 			</div>
+			<div class="revealHint centered">Reveal your card so that other people can see it.</div>
 		</div>
 	</div>
 	<div id="revealPlayerTemplate" style="display:none;">

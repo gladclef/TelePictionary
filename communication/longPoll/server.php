@@ -435,6 +435,37 @@ class ajax {
         return new command("success", "");
     }
 
+    function revealCard() {
+        global $o_globalPlayer;
+
+        $i_cardId = intval(get_post_var("cardId"));
+
+        // check to make sure that the player is in a game
+        $o_game = $o_globalPlayer->getGame();
+        if (($bo_playerInGame = _ajax::isPlayerInGame($o_globalPlayer, $o_game)) !== TRUE)
+            return $bo_playerInGame;
+
+        // get the card and make sure this player matches the author
+        $o_card = card::loadById($i_cardId);
+        if ($o_card->getAuthorId() != $o_globalPlayer->getId()) {
+            return new command("showError", "Can't reveal this card. Not the card author.");
+        }
+
+        // check if already revealed
+        $a_revealStatus = $o_card->getRevealStatus();
+        if ($a_revealStatus[0] == 1) {
+            return new command("showError", $a_revealStatus[1]);
+        }
+
+        // update the card
+        $o_card->b_isRevealed = TRUE;
+        $o_card->save();
+        _ajax::pushCard($o_card);
+
+        // return success
+        return new command("success", "");
+    }
+
     function pushEvent() {
         $s_event = get_post_var("event");
         $o_event = json_decode($s_event);
