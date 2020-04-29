@@ -16,6 +16,7 @@ $o_globalPlayer = player::getGlobalPlayer();
 ob_start();
 ?>
 		<script type="text/javascript" src="<?php echo $global_path_to_jquery; ?>"></script>
+		<script type="text/javascript" src="<?php echo $global_path_to_jquery_ui; ?>.min.js"></script>
 		<script type="text/javascript" src="<?php echo $global_path_to_d3; ?>"></script>
 		<script type="text/javascript" src="communication/longPoll/pushPull.js"></script>
 		<script type="text/javascript" src="js/common.js"></script>
@@ -39,6 +40,8 @@ ob_end_clean();
 
 ob_start();
 ?>
+		<link rel="stylesheet" type="text/css" href="<?php echo $global_path_to_jquery_ui; ?>.min.css" />
+		<link rel="stylesheet" type="text/css" href="<?php echo $global_path_to_jquery_ui; ?>.theme.min.css" />
 		<link rel="stylesheet" type="text/css" href="css/common.css" />
 		<link rel="stylesheet" type="text/css" href="css/game.css" />
 		<link rel="stylesheet" type="text/css" href="css/reveal.css" />
@@ -82,7 +85,8 @@ function includeServerStats()
 	echo "serverStats['hasUsername'] = {$s_hasUsername};\r\n";
 	echo "serverStats['isInGame'] = {$s_isInGame};\r\n";
 	echo "serverStats['isInReveal'] = {$s_isInReveal};\r\n";
-	echo "serverStats['localPlayer'] = {$o_globalPlayer->getId()};\r\n";
+	echo "serverStats['localPlayer'] = " . json_encode(json_encode($o_globalPlayer->toJsonObj())) . ";\r\n";
+	echo "serverStats['localPlayerId'] = {$o_globalPlayer->getId()};\r\n";
 	echo "serverStats['currentStory'] = {$s_currentStory};\r\n";
 	echo "serverStats['currentCards'] = {$s_currentCards};\r\n";
 }

@@ -53,7 +53,7 @@ require_once(dirname(__FILE__) . "/resources/include.php");
 				"function": function() {
 					// add special application-level data to every push-pull ajax request
 					outgoingMessenger.customData = {
-						playerId: serverStats['localPlayer']
+						playerId: serverStats['localPlayerId']
 					};
 				}
 			};
@@ -63,8 +63,8 @@ require_once(dirname(__FILE__) . "/resources/include.php");
 				"dependencies": ["jQuery", "jqueryExtension.js", "commands.js", "playerFuncs", "game", "control.js"],
 				"function": function() {
 					// set some things
-					playerFuncs.setLocalPlayer(serverStats['localPlayer']);
-					game.setLocalPlayer(serverStats['localPlayer']);
+					playerFuncs.setLocalPlayer(serverStats['localPlayerId']);
+					game.setLocalPlayer(serverStats['localPlayerId']);
 
 					// never show the desktop content
 					commands.showContent = function() {

@@ -1,4 +1,4 @@
-#gameLeaveGame {
+.leaveGame {
 	position: absolute;
 	width: 20px;
 	height: 20px;
@@ -14,7 +14,7 @@
 	font-size: 23px;
 }
 
-#gameLeaveGame > div {
+.leaveGame > div {
 	position: relative;
 	top: -7px;
 	left: -2px;

@@ -31,8 +31,24 @@
 					reveal.a_cachedCardIdToPlayerId[i_cardId] = i_playerInOrderId;
 				}
 
+				// remove the old story cards
+				var jRevealCardBar = $("#revealCardBar");
+				$.each(jRevealCardBar.children(), function(k, h_card) {
+					var jCard = $(h_card);
+					var i_cardId = parseInt(jCard.attr('cardId'));
+					if (!o_story.cardIds.includes(i_cardId)) {
+						jCard.remove();
+					}
+				});
+
 				// upate the player tokens
 				reveal.updatePlayerTokenOrder(o_story.playerOrder);
+
+				// update player1 controls
+				var jPlayer1Controls = $("#reveal").find(".player1Controls");
+				var jNextStory = jPlayer1Controls.find("input.nextStory");
+				jNextStory.val("Start " + o_story.nextStory);
+				reveal.updatePlayer1Controls();
 			},
 
 			getCardId: function(i_playerId) {
@@ -53,10 +69,10 @@
 
 			updatePlayerTokenOrder: function(a_playerIdsInOrder) {
 				var jPlayerBar = $("#revealPlayerBar");
-				var jScrollPanel = jPlayerBar.children(".scrollPanel");
+				var jScrollPanel = jPlayerBar.find(".scrollPanel");
 				var i_tokenWidth = -1;
 
-				for (var i = 0; i < a_playerIdsInOrder.length-1; i++) {
+				for (var i = 0; i < a_playerIdsInOrder.length; i++) {
 					// reorder the player token containers
 					var i_playerId = a_playerIdsInOrder[i];
 					var jRevealPlayerContainer = jScrollPanel.find(".playerTokenContainer[playerId=" + i_playerId + "]");
@@ -70,18 +86,20 @@
 					}
 
 					// reorder the cards
-					var i_nextId = a_playerIdsInOrder[i+1];
-					var jRevealCardBar = $("#revealCardBar");
-					var jCard = jRevealCardBar.find(".gameCard[playerId=" + i_playerId + "]");
-					var jNextCard = jRevealCardBar.find(".gameCard[playerId=" + i_nextId + "]");
-					if (jCard.length > 0 && jNextCard.length > 0) {
-						jCard.remove();
-						jCard.insertBefore(jNextCard);
-						
-						var o_player = playerFuncs.getPlayer(i_playerId);
-						var i_cardId = jCard.attr('cardId');
-						var o_card = reveal.a_cards[i_cardId];
-						reveal.registerCardEvents(jCard, o_card, o_player);
+					if (i < a_playerIdsInOrder.length-1) {
+						var i_nextId = a_playerIdsInOrder[i+1];
+						var jRevealCardBar = $("#revealCardBar");
+						var jCard = jRevealCardBar.find(".gameCard[playerId=" + i_playerId + "]");
+						var jNextCard = jRevealCardBar.find(".gameCard[playerId=" + i_nextId + "]");
+						if (jCard.length > 0 && jNextCard.length > 0) {
+							jCard.remove();
+							jCard.insertBefore(jNextCard);
+							
+							var o_player = playerFuncs.getPlayer(i_playerId);
+							var i_cardId = jCard.attr('cardId');
+							var o_card = reveal.a_cards[i_cardId];
+							reveal.registerCardEvents(jCard, o_card, o_player);
+						}
 					}
 				};
 
@@ -93,7 +111,7 @@
 				// we call this immediately after game.addPlayer so that we can copy the player token created by the game code
 				var jPlayersCircle = $("#gamePlayersCircle");
 				var jPlayerBar = $("#revealPlayerBar");
-				var jScrollPanel = jPlayerBar.children(".scrollPanel");
+				var jScrollPanel = jPlayerBar.find(".scrollPanel");
 				var jGamePlayerToken = jPlayersCircle.find(".playerToken[playerId=" + o_player.id + "]");
 
 				// get the container
@@ -149,6 +167,21 @@
 				var jRevealPlayerToken = jRevealPlayerContainer.find(".revealPlayerToken");
 				jRevealPlayerToken.children().remove();
 				jRevealPlayerToken.html(jGamePlayerToken.html());
+
+				// update the player name
+				var jPlayerName = jRevealPlayerContainer.find(".revealPlayerName");
+				jPlayerName.text(o_player.name);
+
+				// update player1 controls
+				var jReveal = $("#reveal");
+				if (playerFuncs.allPlayersReady()) {
+					jReveal.addClass("allPlayersReady");
+				} else {
+					jReveal.removeClass("allPlayersReady");
+				}
+				reveal.updatePlayer1Controls();
+
+				// register events
 				reveal.registerPlayerTokenEvents(jRevealPlayerToken, o_player);
 			},
 
@@ -365,7 +398,7 @@
 				// update the class for the active player
 				if (i_activePlayerId > -1) {
 					var jPlayerBar = $("#revealPlayerBar");
-					var jScrollPanel = jPlayerBar.children(".scrollPanel");
+					var jScrollPanel = jPlayerBar.find(".scrollPanel");
 					var jRevealPlayerContainer = jScrollPanel.children(".playerTokenContainer[playerId=" + i_activePlayerId + "]");
 					jRevealPlayerContainer.addClass('cardActive');
 					jRevealPlayerContainer.siblings().removeClass('cardActive');
@@ -385,6 +418,67 @@
 						jPlayerBar.smoothScroll(i_tokenRight - i_playerBarWidth, i_duration, 'swing', true);
 					}
 				}
+			},
+
+			setPlayer1: function(i_oldPlayer1Id, i_newPlayer1Id, o_newPlayer1) {
+				// we do this after the game code updates player tokens to capture the player1 crown
+				reveal.addPlayer(o_newPlayer1);
+				if (i_oldPlayer1Id != i_newPlayer1Id) {
+					// remove the crown from the old player1
+					reveal.addPlayer(players.getPlayer(i_oldPlayer1Id));
+				}
+
+				// update player1 controls
+				reveal.updatePlayer1Controls(); 
+			},
+
+			updatePlayer1Controls: function() {
+				if (reveal.o_cachedStory === null)
+					return;
+				var jReveal = $("#reveal");
+				var jPlayerBar = $("#revealPlayerBar");
+				var jPlayer1Controls = jPlayerBar.find(".player1Controls");
+
+				// generally show or hide the player1 functions
+				if (playerFuncs.isPlayer1()) {
+					jReveal.addClass("player1");
+				} else {
+					jReveal.removeClass("player1");
+				}
+
+				// show the next story/new game button if all players are ready
+				var jNextStory = jPlayer1Controls.find("input.nextStory");
+				var jNewGame = jPlayer1Controls.find("input.newGameSamePlayers");
+				jNextStory.hide();
+				jNewGame.hide();
+				if (playerFuncs.allPlayersReady()) {
+					var b_lastStory = (reveal.o_cachedStory.nextStory == "");
+					if (b_lastStory) {
+						jNewGame.show();
+					} else {
+						jNextStory.show();
+					}
+				}
+
+				// center the controls
+				var i_playerBarWidth = jPlayerBar.fullWidth(true, false, false);
+				var i_controlsWidth = jPlayer1Controls.fullWidth(true, false, true);
+				jPlayer1Controls.css({
+					'left': ((i_playerBarWidth - i_controlsWidth) / 2) + 'px'
+				});
+			},
+
+			controlNextStoryClick: function() {
+				outgoingMessenger.pushData({
+					command: 'setSharingTurn',
+					turn: (game.o_cachedGame.currentTurn - playerFuncs.playerCount() + 1)
+				});
+			},
+
+			controlNewGameSamePlayersClick: function() {
+				outgoingMessenger.pushData({
+					command: 'createGame'
+				});
 			}
 		};
 		a_toExec[a_toExec.length] = {
@@ -410,10 +504,12 @@
 					reveal.addPlayer(o_player);
 				}
 				game.setPlayer1 = function(i_id) {
+					var i_oldId = playerFuncs.getPlayer1Id();
 					oldSetPlayer1(i_id);
 					var o_player = playerFuncs.getPlayer(i_id);
-					if (o_player !== null && o_player !== undefined)
-						reveal.addPlayer(o_player); // we do this so that we also capture the player1 crown
+					if (o_player !== null && o_player !== undefined) {
+						reveal.setPlayer1(i_oldId, i_id, o_player);
+					}
 				}
 
 				// add some event handlers
@@ -423,10 +519,13 @@
 		}
 		a_toExec[a_toExec.length] = {
 			"name": "reveal.php",
-			"dependencies": ["index.php", "game.php"],
+			"dependencies": ["index.php", "game.php", "playerFuncs"],
 			"function": function() {
 				// set some values
-				if (serverStats !== undefined && serverStats['currentStory'] !== undefined && serverStats['currentStory'] != "") {
+				if (serverStats !== undefined &&
+					serverStats['currentStory'] !== undefined &&
+					JSON.parse(serverStats['currentStory']) != "")
+				{
 					commands.updateStory(JSON.parse(serverStats['currentStory']));
 					var a_cards = JSON.parse(serverStats['currentCards']);
 					$.each(a_cards, function(k, o_card) {
@@ -442,8 +541,15 @@
 	<div id="revealCardBar"></div>
 	<div id="revealHidyBar"></div>
 	<div id="revealPlayerBar">
-		<div class="scrollPanel"></div>
+		<div class="playerBar">
+			<div class="scrollPanel"></div>
+		</div>
+		<div class="player1Controls">
+			<input type="button" class="nextStory" value="Next Story" onclick="reveal.controlNextStoryClick();" />
+			<input type="button" class="newGameSamePlayers" value="Start New Game" onclick="reveal.controlNewGameSamePlayersClick();" />
+		</div>
 	</div>
+	<div class="leaveGame"><div>&#x2B05;</div></div>
 	<div id="revealOverlay" style="display: none;" onclick="$(this).hide();">
 		<img class="card0 currentImage centered" />
 		<div class="card1 currentText centered"></div>
@@ -464,6 +570,7 @@
 	<div id="revealPlayerTemplate" style="display:none;">
 		<div class="playerTokenContainer" playerId="__playerId__">
 			<div class="revealPlayerToken"></div>
+			<div class="revealPlayerName"></div>
 		</div>
 	</div>
 </div>

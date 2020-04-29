@@ -19,6 +19,9 @@ body > .firefoxPlaceholder {
 
 .generalError {
 	display: none;
+	position: fixed;
+	top: 0;
+	left: 0;
 	width: 800px;
 	margin: 20px auto;
 	padding: 10px 0;

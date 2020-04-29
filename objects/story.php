@@ -136,6 +136,9 @@ class story
 		return array(-1, 'Error: unknown story reveal state');
 	}
 	public function toJsonObj() {
+		$o_nextStory = $this->getGame()->getNextStory();
+		$s_nextStoryPlayer = (($o_nextStory === null) ? "" : $o_nextStory->getStartingPlayer()->getName());
+
 		return array(
 			"id" => $this->i_id,
 			"roomCode" => $this->s_roomCode,
@@ -143,7 +146,8 @@ class story
 			"playerId" => $this->i_playerId,
 			"playerOrder" => $this->getPlayerOrder(),
 			"cardIds" => $this->getCardIdsInPlayerOrder(),
-			"startingPlayerName" => $this->getStartingPlayer()->getName()
+			"startingPlayerName" => $this->getStartingPlayer()->getName(),
+			"nextStory" => (($s_nextStoryPlayer === "") ? "" : "{$s_nextStoryPlayer}'s Story")
 		);
 	}
 

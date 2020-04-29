@@ -7,6 +7,7 @@ function define_global_vars() {
 	global $global_opened_db;
 	global $session_started;
 	global $global_path_to_jquery;
+	global $global_path_to_jquery_ui;
 	global $global_path_to_d3;
 	global $tab_init_function;
 	global $global_loaded_server_settings;
@@ -15,6 +16,7 @@ function define_global_vars() {
 
 	$maindb = "";
 	$global_path_to_jquery = "";
+	$global_path_to_jquery_ui = "";
 	$global_user = NULL;
 	$global_opened_db = FALSE;
 	$session_started = FALSE;
@@ -41,6 +43,9 @@ function define_global_vars() {
 		$global_path_to_jquery = $a_configs["global_path_to_jquery"];
 	} else {
 		print_debug_as_html_paragraph("global_path_to_jquery is not set in server_config.ini");
+	}
+	if (isset($a_configs["global_path_to_jquery_ui"])) {
+		$global_path_to_jquery_ui = $a_configs["global_path_to_jquery_ui"];
 	}
 	if (isset($a_configs["global_path_to_d3"])) {
 		$global_path_to_d3 = $a_configs["global_path_to_d3"];

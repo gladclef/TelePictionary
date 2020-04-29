@@ -48,6 +48,11 @@ playerFuncs.setLocalPlayer = function(i_id)
 	players.localPlayer = i_id;
 }
 
+playerFuncs.getPlayer1Id = function()
+{
+	return players.player1;
+}
+
 playerFuncs.setPlayer1 = function(i_id)
 {
 	players.player1 = i_id;

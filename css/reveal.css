@@ -2,6 +2,16 @@
 	margin-top: 150px;
 }
 
+#reveal.player1.allPlayersReady {
+	margin-top: 190px;
+}
+
+#reveal .leaveGame {
+	position: fixed;
+	left: 25px;
+	top: 25px;
+}
+
 #revealHidyBar {
 	width: 100%;
 	height: 132px;
@@ -11,6 +21,11 @@
 	background-color: #8888FF;
 	border-bottom: 3px solid #8888FF;
 	opacity: 0.85;
+	overflow: hidden;
+}
+
+#reveal.player1.allPlayersReady #revealHidyBar {
+	height: 172px;
 }
 
 #revealPlayerBar {
@@ -21,12 +36,32 @@
 	top: 0;
 	background-color: white;
 	border-bottom: 3px solid black;
+}
+
+#reveal.player1.allPlayersReady #revealPlayerBar {
+	height: 172px;
+}
+
+#revealPlayerBar .playerBar {
+	width: 100%;
 	overflow-x: auto;
 	overflow-y: hidden;
 }
 
-#revealPlayerBar > .scrollPanel {
+#revealPlayerBar .scrollPanel {
+	position: relative;
 	margin: 0 auto;
+	height: 132px;
+}
+
+#revealPlayerBar .player1Controls {
+	display: none;
+	position: absolute;
+	bottom: 2px;
+}
+
+#reveal.player1.allPlayersReady .player1Controls {
+	display: block;
 }
 
 #revealPlayerBar .playerTokenContainer {
@@ -70,6 +105,17 @@
 
 #revealPlayerBar .playerTokenContainer .readyCheck {
 	display: none;
+}
+
+#revealPlayerBar .playerTokenContainer .revealPlayerName {
+	text-align: center;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+#revealPlayerBar .playerTokenContainer.cardActive .revealPlayerName {
+	font-weight: bold;
 }
 
 #revealCardBar {

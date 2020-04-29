@@ -259,9 +259,24 @@
 			},
 
 			controlLeaveClick: function() {
-				outgoingMessenger.setNoPoll(10000);
-				outgoingMessenger.pushData({
-					'command': 'leaveGame'
+				$( "#dialog-confirm-exit" ).dialog({
+					resizable: false,
+					height: "auto",
+					width: 400,
+					modal: true,
+					draggable: false,
+					buttons: {
+						"Leave Game": function() {
+							$( this ).dialog( "close" );
+							outgoingMessenger.setNoPoll(10000);
+							outgoingMessenger.pushData({
+								'command': 'leaveGame'
+							});
+						},
+						"Cancel": function() {
+							$( this ).dialog( "close" );
+						}
+					}
 				});
 			},
 
@@ -395,7 +410,7 @@
 			},
 
 			updateStory: function(o_story) {
-				if (o_story === null)
+				if (o_story === null || game.o_cachedGame === null)
 					return;
 
 				var jGameCard = $("#gameCard");
@@ -646,7 +661,6 @@
 			$s_players = json_encode(json_encode($a_encodedPlayers));
 			echo "serverStats['game'] = {$s_game};\r\n";
 			echo "serverStats['players'] = {$s_players}\r\n";
-			echo "serverStats['localPlayer'] = {$o_globalPlayer->getId()}\r\n";
 
 			// draw the current card
 			$a_gameState = $o_game->getGameState();
@@ -675,7 +689,7 @@
 				var jGameNameEdit = $("#gameGameNameEdit");
 				var jGameNameEditText = jGameNameEdit.find("input[type=text]");
 				var jGameNameEditDone = jGameNameEdit.find("input[type=button]");
-				var jLeaveGame = $("#gameLeaveGame");
+				var jLeaveGame = $(".leaveGame");
 				jGameNameEditDone.on("click", function() {
 					game.setGameName(jGameNameEditText.val());
 				});
@@ -796,7 +810,7 @@
 			<img class="readyCheck" src="imagesStatic/checkmark.png" />
 		</div>
 	</div>
-	<div id="gameLeaveGame"><div>&#x2B05;</div></div>
+	<div class="leaveGame"><div>&#x2B05;</div></div>
 	<div id="gameJoinOnPhone">
 		<div class="button" onclick="game.showQrCode();"></div>
 		<div class="code">
@@ -804,4 +818,7 @@
 			<a class="link"></a>
 		</div>
 	</div>
+</div>
+<div id="dialog-confirm-exit" title="Leave the game?" style="display: none;">
+	<p><span class="ui-icon ui-icon-alert" style="float:left; margin:12px 12px 20px 0;"></span>Leaving the game effectively ends the game for everyone. Do you still want to leave?</p>
 </div>

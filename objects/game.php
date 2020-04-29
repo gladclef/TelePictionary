@@ -9,7 +9,6 @@ class game
 	public $i_id = 0;
 	public $s_roomCode = '';
 	public $a_playerIds = array();
-	public $a_players = array();
 	public $a_playerOrder = array();
 	public $d_startTime = null;
 	public $i_cardStartType = 0;
@@ -19,12 +18,18 @@ class game
 	public $d_turnStart = null;//new DateTime('now');
 	public $i_currentTurn = -1;
 
-	function __construct($s_name, $i_player1Id) {
+	function __construct($s_name, $i_player1Id, $o_otherGame = null) {
 		$this->d_startTime = new DateTime('now');
 		$this->d_turnStart = $this->d_startTime;
 		$this->s_name = $s_name;
 		$this->i_player1Id = $i_player1Id;
 		$this->s_roomCode = self::getUnusedRoomCode();
+
+		if ($o_otherGame !== null) {
+			$this->i_cardStartType = $o_otherGame->i_cardStartType;
+			$this->i_drawTimerLen = $o_otherGame->i_drawTimerLen;
+			$this->i_textTimerLen = $o_otherGame->i_textTimerLen;
+		}
 	}
 
 	/*********************************************************************
@@ -46,12 +51,12 @@ class game
 		return $this->a_playerIds;
 	}
 	public function getPlayers() {
-		$this->a_players = array();
+		$a_players = array();
 		for ($i = 0; $i < count($this->a_playerIds); $i++)
 		{
-			$this->a_players[$i] = player::loadById($this->a_playerIds[$i]);
+			$a_players[$i] = player::loadById($this->a_playerIds[$i]);
 		}
-		return $this->a_players;
+		return $a_players;
 	}
 	public function getPlayerOrder() {
 		return $this->a_playerOrder;
@@ -81,13 +86,22 @@ class game
 		$d_now = DateTime('now');
 		return $d_now->getTimestamp() - $this->d_turnStart->getTimestamp();
 	}
-	public function getCurrentStory() {
+	public function getStory($i_turn) {
 		if ($this->getGameState()[0] != 3)
 			return null;
-		$i_turn = $this->i_currentTurn - $this->getPlayerCount();
+		$i_turn %= $this->getPlayerCount();
 		$i_playerId = $this->a_playerIds[$i_turn];
 		$o_player = player::loadById($i_playerId);
 		return $o_player->getStory();
+	}
+	public function getCurrentStory() {
+		return $this->getStory($this->i_currentTurn);
+	}
+	public function getNextStory() {
+		$i_turn = $this->i_currentTurn - $this->getPlayerCount() + 1;
+		if ($i_turn >= $this->getPlayerCount())
+			return null;
+		return $this->getStory($i_turn);
 	}
 	public function getCurrentTurn() {
 		return $this->i_currentTurn;
@@ -153,6 +167,15 @@ class game
 	public function getPlayerInOrder($i_startingPlayerId, $i_turnsLater) {
 		$i_playerId = getPlayerIdInOrder($i_startingPlayerId, $i_turnsLater);
 	}
+	public function allPlayersReady() {
+		$a_players = $this->getPlayers();
+		foreach ($a_players as $i_playerIdx => $o_player) {
+			if (!$o_player->isReady()) {
+				return FALSE;
+			}
+		}
+		return TRUE;
+	}
 	public function getGameState() {
 		if ($this->i_currentTurn == -1)
 		{
@@ -169,7 +192,8 @@ class game
 			return array(3, 'Revealing cards');
 		}
 
-		if ($this->i_currentTurn == count($this->a_playerIds)*2)
+		if ($this->i_currentTurn == count($this->a_playerIds)*2 - 1 &&
+		    $this->allPlayersReady())
 		{
 			return array(4, 'Done');
 		}

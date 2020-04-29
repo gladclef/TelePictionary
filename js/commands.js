@@ -20,6 +20,12 @@ commands.showError = function(s_error) {
 		s_error = s_error.action;
 	}
 	var jGeneralError = $(".generalError");
+	var jBody = $("body");
+	var i_errorWidth = jGeneralError.fullWidth(true, false, true);
+	var i_bodyWidth = jBody.fullWidth(true, false, true);
+	jGeneralError.css({
+		'left': ((i_bodyWidth - i_errorWidth) / 2) + 'px'
+	});
 	jGeneralError.html("Error: " + s_error);
 	jGeneralError.show(200);
 

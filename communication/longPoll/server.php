@@ -51,17 +51,21 @@ class ajax {
 
         // check to make sure that the player isn't already in a game
         $o_game = $o_globalPlayer->getGame();
-        if (($bo_playerInGame = _ajax::isPlayerInGame($o_globalPlayer, $o_game)) === true)
-            return new command("showError", "Can't create a game while in a game.");
+        $bo_playerInGame = _ajax::isPlayerInGame($o_globalPlayer, $o_game);
+        if ($bo_playerInGame === true) {
+            if ($o_game->getGameState()[0] < 4) {
+                return new command("showError", "Can't create a game while in a game.");
+            }
+        }
 
         // create a new game
-        $o_game = new game($o_globalPlayer->getName() . "'s Game", $o_globalPlayer->getId());
-        $o_oldGame = $o_globalPlayer->getGame();
+        $o_oldGame = $o_game;
         $b_old = FALSE;
-        if ($o_oldGame != null && $o_oldGame->getPlayer1Id() == $o_globalPlayer->getId())
-        {
-            $o_game->copyOldGame($o_oldGame);
+        if ($o_oldGame != null && $o_oldGame->getPlayer1Id() == $o_globalPlayer->getId()) {
+            $o_game = new game($o_globalPlayer->getName() . "'s Game", $o_globalPlayer->getId(), $o_oldGame);
             $b_old = TRUE;
+        } else {
+            $o_game = new game($o_globalPlayer->getName() . "'s Game", $o_globalPlayer->getId());
         }
 
         // have all the players from the old game join the new game
@@ -262,7 +266,7 @@ class ajax {
         foreach ($o_game->getPlayers() as $i => $o_player) {
             $o_player->b_ready = FALSE;
             $o_player->save();
-            array_push(  $a_commands, $o_player->toJsonObj()  );
+            array_push(  $a_commands, new command("addPlayer", $o_player->toJsonObj())  );
         }
         _ajax::pushEvent(new command("composite", $a_commands));
 
@@ -461,6 +465,11 @@ class ajax {
         $o_card->b_isRevealed = TRUE;
         $o_card->save();
         _ajax::pushCard($o_card);
+
+        // update the player
+        $o_globalPlayer->b_ready = TRUE;
+        $o_globalPlayer->save();
+        _ajax::pushPlayer($o_globalPlayer);
 
         // return success
         return new command("success", "");
