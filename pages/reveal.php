@@ -45,7 +45,7 @@
 				reveal.updatePlayerTokenOrder(o_story.playerOrder);
 
 				// update player1 controls
-				var jPlayer1Controls = $("#reveal").find(".player1Controls");
+				var jPlayer1Controls = $("#revealPlayerBar").children(".player1Controls");
 				var jNextStory = jPlayer1Controls.find("input.nextStory");
 				jNextStory.val("Start " + o_story.nextStory);
 				reveal.updatePlayer1Controls();
@@ -68,6 +68,8 @@
 			},
 
 			updatePlayerTokenOrder: function(a_playerIdsInOrder) {
+				// updates player token order and card order
+
 				var jPlayerBar = $("#revealPlayerBar");
 				var jScrollPanel = jPlayerBar.find(".scrollPanel");
 				var i_tokenWidth = -1;
@@ -87,18 +89,23 @@
 
 					// reorder the cards
 					if (i < a_playerIdsInOrder.length-1) {
+						// find the card that follows this card
 						var i_nextId = a_playerIdsInOrder[i+1];
 						var jRevealCardBar = $("#revealCardBar");
 						var jCard = jRevealCardBar.find(".gameCard[playerId=" + i_playerId + "]");
 						var jNextCard = jRevealCardBar.find(".gameCard[playerId=" + i_nextId + "]");
+
+						// reorder things so that this card comes before the next card
 						if (jCard.length > 0 && jNextCard.length > 0) {
-							jCard.remove();
-							jCard.insertBefore(jNextCard);
-							
-							var o_player = playerFuncs.getPlayer(i_playerId);
-							var i_cardId = jCard.attr('cardId');
-							var o_card = reveal.a_cards[i_cardId];
-							reveal.registerCardEvents(jCard, o_card, o_player);
+							if (jCard.next()[0] != jNextCard[0]) {
+								jCard.remove();
+								jCard.insertBefore(jNextCard);
+								
+								var o_player = playerFuncs.getPlayer(i_playerId);
+								var i_cardId = jCard.attr('cardId');
+								var o_card = reveal.a_cards[i_cardId];
+								reveal.registerCardEvents(jCard, o_card, o_player);
+							}
 						}
 					}
 				};
@@ -204,13 +211,14 @@
 				if (reveal.o_cachedStory === null || reveal.a_cachedCardIdToPlayerId === undefined) {
 					return;
 				}
-				if (reveal.a_cachedCardIdToPlayerId[o_card.id] === null) {
-					return;
-				}
 				reveal.a_cards[o_card.id] = o_card;
 
 				// get the player for this card
-				var o_player = playerFuncs.getPlayer(reveal.a_cachedCardIdToPlayerId[o_card.id]);
+				var i_playerId = reveal.a_cachedCardIdToPlayerId[o_card.id];
+				if (i_playerId === undefined || i_playerId === null) {
+					return;
+				}
+				var o_player = playerFuncs.getPlayer(i_playerId);
 
 				// create a new card for the player token
 				var jPlayerBar = $("#revealPlayerBar");
@@ -278,6 +286,9 @@
 				var i_winHeight = $(window).height();
 				var i_marginSpacer = (i_winHeight - i_playerBarHeight) % reveal.i_cardFullHeight - 35;
 				$("#reveal").css({ 'margin-bottom': i_marginSpacer + 'px' });
+
+				// update the card order
+				reveal.updatePlayerTokenOrder(reveal.o_cachedStory.playerOrder);
 
 				// indicate the active player according the the card scroll position
 				reveal.indicateActivePlayerCard();
@@ -437,7 +448,7 @@
 					return;
 				var jReveal = $("#reveal");
 				var jPlayerBar = $("#revealPlayerBar");
-				var jPlayer1Controls = jPlayerBar.find(".player1Controls");
+				var jPlayer1Controls = jPlayerBar.children(".player1Controls");
 
 				// generally show or hide the player1 functions
 				if (playerFuncs.isPlayer1()) {
@@ -449,13 +460,13 @@
 				// show the next story/new game button if all players are ready
 				var jNextStory = jPlayer1Controls.find("input.nextStory");
 				var jNewGame = jPlayer1Controls.find("input.newGameSamePlayers");
-				jNextStory.hide();
-				jNewGame.hide();
 				if (playerFuncs.allPlayersReady()) {
 					var b_lastStory = (reveal.o_cachedStory.nextStory == "");
 					if (b_lastStory) {
+						jNextStory.hide();
 						jNewGame.show();
 					} else {
+						jNewGame.hide();
 						jNextStory.show();
 					}
 				}

@@ -664,15 +664,12 @@
 
 			// draw the current card
 			$a_gameState = $o_game->getGameState();
-			if ($a_gameState[0] == 2) { // game started but not revealing cards yet
+			if ($a_gameState[0] == GAME_GSTATE::IN_PROGRESS) { // game started but not revealing cards yet
 				$o_card = $o_globalPlayer->getCurrentCard();
 				if ($o_card !== null) {
 					$s_card = json_encode(json_encode($o_card->toJsonObj()));
 					echo "serverStats['currentCard'] = {$s_card}\r\n";
 				}
-			}
-			else if ($a_gameState[0] == 3) { // revealing cards
-				// TODO
 			}
 		}
 		drawGame();

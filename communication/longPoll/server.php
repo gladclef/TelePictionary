@@ -53,7 +53,7 @@ class ajax {
         $o_game = $o_globalPlayer->getGame();
         $bo_playerInGame = _ajax::isPlayerInGame($o_globalPlayer, $o_game);
         if ($bo_playerInGame === true) {
-            if ($o_game->getGameState()[0] < 4) {
+            if (!$o_game->isFinished()) {
                 return new command("showError", "Can't create a game while in a game.");
             }
         }
@@ -67,23 +67,13 @@ class ajax {
         } else {
             $o_game = new game($o_globalPlayer->getName() . "'s Game", $o_globalPlayer->getId());
         }
+        $o_game->save();
 
         // have all the players from the old game join the new game
         if ($b_old)
         {
-            // update values locally
-            $a_players = $o_oldGame->getPlayers();
-            for ($i = 0; $i < count($a_players); $i++)
-            {
-                $o_player = $a_players[$i];
-                $o_player->joinGame($o_game);
-                $o_player->save();
-            }
-            $o_game->player1Id = $o_globalPlayer->getId();
-            $o_game->save();
-
             // push events to all the listening players
-            $o_cmd = pushEvent(
+            $o_cmd = _ajax::pushEvent(
                 new command(
                     "composite",
                     array(new command(
@@ -104,9 +94,8 @@ class ajax {
         }
         else
         {
-            // save current state
-            $o_globalPlayer->save();
-            $o_game->save();
+            // have the player join the game
+            return new command("joinGame", $o_game->toJsonObj());
         }
 
         return new command("success", "");
@@ -121,8 +110,12 @@ class ajax {
 
         // check to make sure that the player isn't already in a game
         $o_game = $o_globalPlayer->getGame();
-        if (($bo_playerInGame = _ajax::isPlayerInGame($o_globalPlayer, $o_game)) === true)
-            return new command("showError", "Can't join a game while in a game.");
+        $bo_playerInGame = _ajax::isPlayerInGame($o_globalPlayer, $o_game);
+        if ($bo_playerInGame === true) {
+            if (!$o_game->isFinished()) {
+                return new command("showError", "Can't join a game while in a game.");
+            }
+        }
 
         // find the game
         $o_game = game::loadByRoomCode($s_roomCode);
@@ -131,8 +124,13 @@ class ajax {
         }
 
         // check to make sure the game hasn't already started
-        if ($o_game->getGameState()[0] >= 2 && $o_game->getCurrentTurn() > 0) {
+        if ($o_game->getGameState()[0] >= GAME_GSTATE::IN_PROGRESS && $o_game->getCurrentTurn() > 0) {
             return new command("showError", "Can't join a game that's already in progress.");
+        }
+
+        // lock and reload the game
+        if (!$o_game->lock()) {
+            return new command("showError", "Failed to join game. Ran out of time while waiting for access to the game object.");
         }
 
         // join the game
@@ -140,7 +138,7 @@ class ajax {
         $o_globalPlayer->save();
         $o_game->save();
 
-        // push this event to other clients in the game
+        // get ready push this event to other clients already in the game
         $a_commands = array(
             new command("addPlayer", $o_globalPlayer->toJsonObj()),
             new command("updateGame", $o_game->toJsonObj())
@@ -149,6 +147,7 @@ class ajax {
 
         // respond to this client
         $a_commands = array(
+            new command("noPoll", 2), // don't try to pull from the server during the time it takes to fully redraw the game board, and while waiting for other players to join the game
             new command("setLatestEvents", _ajax::getLatestEvents($o_game->getRoomCode())),
             new command("clearPlayers", ""),
             new command("updateGame", $o_game->toJsonObj()),
@@ -159,6 +158,10 @@ class ajax {
         }
         array_push(   $a_commands, new command( "setLocalPlayer", $o_globalPlayer->getId() )   );
         array_push(   $a_commands, new command( "setPlayer1", $o_game->getPlayer1Id() )   );
+
+        // unlock the game
+        $o_game->unlock();
+
         return new command("composite", $a_commands);
     }
 

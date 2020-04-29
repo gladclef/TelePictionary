@@ -99,7 +99,7 @@ class _ajax {
     function isPlayerInGame($o_player, $o_game)
     {
         $a_gameState = $o_player->getGameState();
-        if ($a_gameState[0] < 2 || $a_gameState[0] > 4 || $o_game === null)
+        if ($a_gameState[0] < GAME_PSTATE::WAITING || $a_gameState[0] > GAME_PSTATE::DONE || $o_game === null)
         {
             return new command("showError", "Player not in a game");
         }

@@ -100,6 +100,11 @@ function initPushPull(onmessageCallback, pushObj, onerror, onclose)
 		return o_data;
 	}
 
+	pushObj.clearLatestEvents = function()
+	{
+		latestEvents.clear();
+	}
+
 	pushObj.pushData = function(data, successFunc, options, progressCallback)
 	{
 		if (arguments.length < 2 || successFunc === null || successFunc === undefined)
@@ -141,6 +146,8 @@ function initPushPull(onmessageCallback, pushObj, onerror, onclose)
 			},
 			'success': function(data) {
 				o_command = getCommand(data);
+				if (successFunc !== null)
+					successFunc(o_command, false);
 				if (commands[o_command.event.command] !== undefined)
 					commands[o_command.event.command](o_command.event.action);
 				else
@@ -148,7 +155,7 @@ function initPushPull(onmessageCallback, pushObj, onerror, onclose)
 				if (progressCallback !== null)
 					progressCallback(1.0);
 				if (successFunc !== null)
-					successFunc(o_command);
+					successFunc(o_command, true);
 			},
 			'error': function(xhr, ajaxOptions, thrownError) {
 				if (parseInt(xhr.status) == 0 && thrownError) {
@@ -252,6 +259,7 @@ function initPushPull(onmessageCallback, pushObj, onerror, onclose)
 	{
 		if (o_command.b_hasServerTime)
 		{
+			// console.log("received event " + o_command.i_id);
 			latestEvents = latestEvents.enqueue(o_command.i_id);
 			while (latestEvents.length > 100)
 			{

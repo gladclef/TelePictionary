@@ -38,7 +38,9 @@ $a_basic_tables_structure = array(
 		"drawTimerLen" =>          array("type" => "INT",           "indexed" => FALSE, "isPrimaryKey" => FALSE, "special" => ""), // how many seconds a drawing turn is limited to
 		"textTimerLen" =>          array("type" => "INT",           "indexed" => FALSE, "isPrimaryKey" => FALSE, "special" => ""), // how many seconds a text turn is limited to
 		"turnStart" =>             array("type" => "DATETIME",      "indexed" => FALSE, "isPrimaryKey" => FALSE, "special" => ""), // when this turn started, used to determine how much time is left on the timer
-		"currentTurn" =>           array("type" => "INT",           "indexed" => FALSE, "isPrimaryKey" => FALSE, "special" => "") // the current turn, 0 indexed, -1 when the game hasn't started
+		"currentTurn" =>           array("type" => "INT",           "indexed" => FALSE, "isPrimaryKey" => FALSE, "special" => ""), // the current turn, 0 indexed, -1 when the game hasn't started
+		"isFinished" =>            array("type" => "TINYINT",       "indexed" => FALSE, "isPrimaryKey" => FALSE, "special" => ""),
+		"atomicLock" =>            array("type" => "DATETIME",      "indexed" => FALSE, "isPrimaryKey" => FALSE, "special" => "")
 	),
 	"players" => array(
 		"id" =>                    array("type" => "INT",           "indexed" => TRUE,  "isPrimaryKey" => TRUE,  "special" => "AUTO_INCREMENT"),

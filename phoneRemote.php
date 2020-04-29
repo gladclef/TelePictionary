@@ -25,7 +25,7 @@ require_once(dirname(__FILE__) . "/resources/include.php");
 						var jGameCard = $("#gameCard");
 						var jStoryDescription = jGameCard.find(".storyDescription");
 
-						if (o_player.gameState[0] < 2) {
+						if (o_player.gameState[0] < 2) { // GAME_PSTATE::WAITING
 							jStoryDescription.text("Waiting to join a game");
 						}
 					}
@@ -36,7 +36,7 @@ require_once(dirname(__FILE__) . "/resources/include.php");
 					var jStoryDescription = jGameCard.find(".storyDescription");
 					var o_localPlayer = playerFuncs.getPlayer();
 
-					if (o_localPlayer === null || o_localPlayer.gameState[0] >= 2) // local player is in a game
+					if (o_localPlayer === null || o_localPlayer.gameState[0] >= 2) // GAME_PSTATE::WAITING=2, local player is in a game
 					{
 						if (i_currentTurn < 0) {
 							jStoryDescription.text("Waiting for host to start the game");

@@ -3,6 +3,16 @@
 require_once(dirname(__FILE__)."/../resources/db_query.php");
 require_once(dirname(__FILE__)."/../resources/globals.php");
 
+abstract class GAME_PSTATE
+{
+	const NOT_READY   = 0;
+	const READY       = 1;
+	const WAITING     = 2;
+	const IN_PROGRESS = 3;
+	const REVEALING   = 4;
+	const DONE        = 5;
+}
+
 class player
 {
 	public $s_name = '';
@@ -34,7 +44,7 @@ class player
 		return game::loadByRoomCode($this->s_roomCode);
 	}
 	public function getCurrentCard() {
-		if ($this->getGameState()[0] != 3)
+		if ($this->getGameState()[0] != GAME_PSTATE::IN_PROGRESS)
 			return null;
 		$o_game = $this->getGame();
 		$o_prevPlayer = $o_game->getPlayerRevOrder($this->i_id, $o_game->getCurrentTurn());
@@ -69,34 +79,34 @@ class player
 	public function getGameState() {
 		if ($this->s_name == '')
 		{
-			return array(0, 'Player not ready');
+			return array(GAME_PSTATE::NOT_READY, 'Player not ready');
 		}
 
 		$o_game = $this->getGame();
 		if ($o_game == null)
 		{
-			return array(1, 'Ready to join game');
+			return array(GAME_PSTATE::READY, 'Ready to join game');
 		}
 
 		$a_gameState = $o_game->getGameState();
-		if ($a_gameState[0] == 1)
+		if ($a_gameState[0] == GAME_GSTATE::READY)
 		{
-			return array(2, 'Ready to begin');
+			return array(GAME_PSTATE::WAITING, 'Ready to begin');
 		}
 
-		if ($a_gameState[0] == 2)
+		if ($a_gameState[0] == GAME_GSTATE::IN_PROGRESS)
 		{
-			return array(3, 'Game in progress');
+			return array(GAME_PSTATE::IN_PROGRESS, 'Game in progress');
 		}
 
-		if ($a_gameState[0] == 3)
+		if ($a_gameState[0] == GAME_GSTATE::REVEALING)
 		{
-			return array(4, 'Finishing game'); // in reveal
+			return array(GAME_PSTATE::REVEALING, 'Finishing game'); // in reveal
 		}
 
-		if ($a_gameState[0] == 4)
+		if ($a_gameState[0] == GAME_GSTATE::DONE)
 		{
-			return array(5, 'Game done');
+			return array(GAME_PSTATE::DONE, 'Game done'); // done revealing, ready to start next game
 		}
 
 		return array(-1, 'Error: unknown player game state');
@@ -124,8 +134,10 @@ class player
 		$this->i_storyId = -1;
 		$o_game->addPlayer($this->i_id);
 		$this->s_roomCode = $o_game->s_roomCode;
-		if ($this->getGameState()[0] <= 2)
-		{
+		if (!in_array($o_game->getId(), $this->a_gameIds)) {
+			array_push($this->a_gameIds, $o_game->getId());
+		}
+		if ($this->getGameState()[0] <= GAME_PSTATE::IN_PROGRESS) {
 			$this->i_storyId = -1;
 		}
 	}
@@ -218,20 +230,20 @@ class player
 		}
 
 		$a_gameState = $o_player->getGameState();
-		if ($a_gameState[0] == 0)
+		if ($a_gameState[0] == GAME_PSTATE::NOT_READY)
 		{
 			return array(FALSE, "Error: player not ready");
 		}
-		if ($a_gameState[0] > 1)
+		if ($a_gameState[0] >= GAME_PSTATE::WAITING && $a_gameState[0] < GAME_PSTATE::DONE)
 		{
 			return array(FALSE, "Error: player already in a game");
 		}
-		if ($a_gameState[0] != 1)
+		if ($a_gameState[0] == GAME_PSTATE::READY || $a_gameState[0] == GAME_PSTATE::DONE)
 		{
-			return array(FALSE, $a_gameState[1]);
+			return array(TRUE, "Player can be added");
 		}
 
-		return array(TRUE, "Player can be added");
+		return array(FALSE, $a_gameState[1]);
 	}
 
 	/**

@@ -100,6 +100,9 @@ Array.prototype.join = function(joinmiddle, joinstart, joinend) {
     }
     return ret;
 };
+Array.prototype.clear = function() {
+    return this.splice(0, this.length);
+};
 
 Array.prototype.pushIfNotExisting = function(element) {
     if (this.indexOf(element) === -1)

@@ -67,9 +67,9 @@ function includeServerStats()
 {
 	global $o_globalPlayer;
 	$i_gameState = $o_globalPlayer->getGameState()[0];
-	$b_hasUsername = $i_gameState > 0;
-	$b_isInGame = ($b_hasUsername) ? ($i_gameState >= 2) : false;
-	$b_isInReveal = ($b_isInGame && $i_gameState == 4);
+	$b_hasUsername = $i_gameState > GAME_PSTATE::NOT_READY;
+	$b_isInGame = ($b_hasUsername) ? ($i_gameState >= GAME_PSTATE::WAITING) : false;
+	$b_isInReveal = ($b_isInGame && ($i_gameState >= GAME_PSTATE::REVEALING));
 	$o_game = ($b_isInGame) ? $o_globalPlayer->getGame() : null;
 
 	$a_latestEvents = ($b_isInGame) ? _ajax::getLatestEvents($o_game->getRoomCode()) : array();

@@ -129,6 +129,10 @@ commands.joinGame = function(o_game)
 	outgoingMessenger.pushData({
 		command: 'joinGame',
 		roomCode: o_game.roomCode
+	}, function(o_command, b_postProcessed) {
+		if (!b_postProcessed) {
+			outgoingMessenger.setNoPoll(1000);
+		}
 	});
 }
 

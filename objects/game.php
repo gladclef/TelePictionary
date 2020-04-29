@@ -3,6 +3,14 @@
 require_once(dirname(__FILE__)."/../resources/db_query.php");
 require_once(dirname(__FILE__)."/../resources/globals.php");
 
+abstract class GAME_GSTATE
+{
+	const READY       = 1;
+	const IN_PROGRESS = 2;
+	const REVEALING   = 3;
+	const DONE        = 4;
+}
+
 class game
 {
 	public $s_name = '';
@@ -17,6 +25,7 @@ class game
 	public $i_textTimerLen = 30;
 	public $d_turnStart = null;//new DateTime('now');
 	public $i_currentTurn = -1;
+	public $b_finished = FALSE;
 
 	function __construct($s_name, $i_player1Id, $o_otherGame = null) {
 		$this->d_startTime = new DateTime('now');
@@ -87,8 +96,8 @@ class game
 		return $d_now->getTimestamp() - $this->d_turnStart->getTimestamp();
 	}
 	public function getStory($i_turn) {
-		if ($this->getGameState()[0] != 3)
-			return null;
+		if ($this->getGameState()[0] < GAME_GSTATE::REVEALING)
+			return NULL;
 		$i_turn %= $this->getPlayerCount();
 		$i_playerId = $this->a_playerIds[$i_turn];
 		$o_player = player::loadById($i_playerId);
@@ -165,7 +174,8 @@ class game
 		return -1;
 	}
 	public function getPlayerInOrder($i_startingPlayerId, $i_turnsLater) {
-		$i_playerId = getPlayerIdInOrder($i_startingPlayerId, $i_turnsLater);
+		$i_playerId = $this->getPlayerIdInOrder($i_startingPlayerId, $i_turnsLater);
+		return player::loadById($i_playerId);
 	}
 	public function allPlayersReady() {
 		$a_players = $this->getPlayers();
@@ -176,26 +186,39 @@ class game
 		}
 		return TRUE;
 	}
+	public function isFinished() {
+		if (!$this->b_finished) {
+			$this->getGameState();
+		}
+		return $this->b_finished;
+	}
 	public function getGameState() {
 		if ($this->i_currentTurn == -1)
 		{
-			return array(1, 'Waiting to start game');
+			return array(GAME_GSTATE::READY, 'Waiting to start game');
 		}
 
 		if ($this->i_currentTurn < count($this->a_playerIds))
 		{
-			return array(2, 'Game in progress');
+			return array(GAME_GSTATE::IN_PROGRESS, 'Game in progress');
 		}
 
-		if ($this->i_currentTurn < count($this->a_playerIds)*2)
+		if ($this->i_currentTurn < count($this->a_playerIds)*2 - 1)
 		{
-			return array(3, 'Revealing cards');
+			return array(GAME_GSTATE::REVEALING, 'Revealing cards');
 		}
 
-		if ($this->i_currentTurn == count($this->a_playerIds)*2 - 1 &&
-		    $this->allPlayersReady())
+		if ($this->i_currentTurn == count($this->a_playerIds)*2 - 1)
 		{
-			return array(4, 'Done');
+			if (!$this->b_finished && !$this->allPlayersReady()) {
+				return array(GAME_GSTATE::REVEALING, 'Revealing cards');
+			} else {
+				if (!$this->b_finished) {
+					$this->b_finished = TRUE;
+					$this->save();
+				}
+				return array(GAME_GSTATE::DONE, 'Done');
+			}
 		}
 
 		return array(-1, 'Error: unknown game state');
@@ -279,12 +302,59 @@ class game
 			"drawTimerLen" => $this->i_drawTimerLen,
 			"textTimerLen" => $this->i_textTimerLen,
 			"turnStart" => self::getStringFromDateTime($this->d_turnStart),
-			"currentTurn" => $this->i_currentTurn
+			"currentTurn" => $this->i_currentTurn,
+			"isFinished" => ($this->isFinished() ? 1 : 0),
 		);
 		$s_updateClause = array_to_update_clause($a_updateVals);
 
 		create_row_if_not_existing(array_merge($a_whereVals, $a_createVals));
 		db_query("UPDATE {$maindb}.games SET {$s_updateClause} WHERE {$s_whereClause}", array_merge($a_updateVals, $a_whereVals));
+	}
+
+	public function lock()
+	{
+		// for performing atomic operations
+		// attempts to place a 10 second lock the game row in the database via the `atomicLock` column
+		// reloads the game object after becoming locked
+		// times out after 30 seconds
+
+		global $maindb;
+		global $mysqli;
+		$a_params = array('roomCode' => $this->getRoomCode());
+        $a_games = null;
+        $t_failTime = new DateTime('now');
+        $t_failTime->add(new DateInterval("PT30S"));
+
+        while (!is_array($a_games) || count($a_games) == 0) {
+            $t_currTime = new DateTime('now');
+            $t_lockTime = new DateTime('now');
+            $t_lockTime->add(new DateInterval("PT30S"));
+            $s_currTime = game::getStringFromDateTime($t_currTime);
+            $s_lockTime = game::getStringFromDateTime($t_lockTime);
+
+            if ($t_currTime >= $t_failTime) {
+                return FALSE;
+            }
+
+            $b_success = db_query("UPDATE `{$maindb}`.`games` SET `atomicLock`='{$s_lockTime}' where `roomCode`='[roomCode]' and `atomicLock` <= '{$s_currTime}'", $a_params);
+            if ($b_success && $mysqli->affected_rows > 0) {
+            	break;
+            }
+
+            // don't hit the mysql server too hard
+            sleep(1);
+        }
+
+        self::loadByRoomCode($this->getRoomCode(), TRUE, $this);
+        return TRUE;
+	}
+	public function unlock()
+	{
+		// unsets the `atomicLock` column for this game object row
+
+		global $maindb;
+		$a_params = array('roomCode' => $this->getRoomCode());
+        $a_games = db_query("UPDATE `{$maindb}`.`games` SET `atomicLock`='0000-00-00 00:00:00' where `roomCode`='[roomCode]'", $a_params);
 	}
 
 	/*******************************************************
@@ -352,23 +422,30 @@ class game
 	/**
 	 * @return             object  either a game object or NULL
 	 */
-	public static function loadByRoomCode($s_roomCode) {
+	public static function loadByRoomCode($s_roomCode, $b_force = FALSE, $o_game = null) {
 		global $maindb;
 		global $game_staticGames;
 		
 		// check if already loaded
 		if (!isset($game_staticGames))
 			$game_staticGames = [];
-		if (isset($game_staticGames[$s_roomCode]))
-		{
-			return $game_staticGames[$s_roomCode];
+		if (!$b_force) {
+			if (isset($game_staticGames[$s_roomCode]))
+			{
+				return $game_staticGames[$s_roomCode];
+			}
 		}
 		
 		// load the game
-		$o_game = null;
 		$a_games = db_query("SELECT * FROM `{$maindb}`.`games` WHERE `roomCode`='[roomCode]'", array("roomCode"=>$s_roomCode));
 		if (is_array($a_games) && count($a_games) > 0) {
-			$o_game = new game($a_games[0]['name'], intval($a_games[0]['player1Id']));
+			if ($o_game === null) {
+				$o_game = new game($a_games[0]['name'], intval($a_games[0]['player1Id']));
+			} else {
+				$o_game->s_name = $a_games[0]['name'];
+				$o_game->i_player1Id = intval($a_games[0]['player1Id']);
+			}
+
 			$o_game->i_id = intval($a_games[0]['id']);
 			$o_game->s_roomCode = $a_games[0]['roomCode'];
 			$o_game->a_playerIds = explodeIds($a_games[0]['playerIds'], 'intval');
@@ -380,6 +457,7 @@ class game
 			$o_game->i_textTimerLen = intval($a_games[0]['textTimerLen']);
 			$o_game->d_turnStart = self::getDateTimeFromString($a_games[0]['turnStart']);
 			$o_game->i_currentTurn = intval($a_games[0]['currentTurn']);
+			$o_game->b_finished = (intval($a_games[0]['isFinished']) == 0) ? FALSE : TRUE;
 
 			$game_staticGames[$s_roomCode] = $o_game;
 		}
