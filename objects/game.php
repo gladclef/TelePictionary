@@ -110,6 +110,7 @@ class game
 		$i_turn = $this->i_currentTurn - $this->getPlayerCount() + 1;
 		if ($i_turn >= $this->getPlayerCount())
 			return null;
+		error_log("game getting next story, roomCode {$this->getRoomCode()}, turn {$i_turn}, current turn {$this->i_currentTurn}, player count {$this->getPlayerCount()}");
 		return $this->getStory($i_turn);
 	}
 	public function getCurrentTurn() {
@@ -121,13 +122,12 @@ class game
 		
 		// double the length of the array so that we can wrap around without having to do as much housekeeping
 		$i_count = count($a_playerOrder);
-		for ($i = 0; $i < $i_count; $i++)
-		{
+		for ($i = 0; $i < $i_count; $i++) {
 			array_push($a_playerOrder, $a_playerOrder[$i]);
 		}
 
 		// find the current player twice, then return the player id from turnsPrevious ago
-		for ($i = 0; $i < count($a_playerOrder) * 2; $i++)
+		for ($i = 0; $i < count($a_playerOrder); $i++)
 		{
 			// go through until we find the current player
 			if ($a_playerOrder[$i] == $i_currentPlayer) {

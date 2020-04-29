@@ -237,13 +237,12 @@ class _ajax {
                     // Thanks, orrd101! https://www.php.net/manual/en/imagick.getimageorientation.php#111448
                     $imagick->setImageOrientation(imagick::ORIENTATION_TOPLEFT); 
 
-                    $imagick->writeImage($imageFile);
-                    $imagick->clear();
-                    $imagick->destroy();
+                    return $imagick;
                 }
-
             }
         }
+
+        return NULL;
     }
 
     function checkFileUpload($a_fileUpload, $b_isImage = TRUE)
@@ -338,17 +337,18 @@ class _ajax {
         }
 
         // rotate if an iphone image
+        $im_tmp = NULL;
+        $b_needToSave = FALSE;
         try {
-            _ajax::rotateIphonePhotos($s_fileNewPath);
+            $im_tmp = _ajax::rotateIphonePhotos($s_fileNewPath);
+            if ($im_tmp !== NULL) {
+                $b_needToSave = TRUE;
+            } else {
+                $im_tmp = new imagick();
+                $im_tmp->readImage($s_fileNewPath);
+            }
         } catch (Exception $e) {
             error_log($e);
-        }
-
-        // verify is a good image
-        $im_tmp = new imagick();
-        try {
-            $im_tmp->readImage($s_fileNewPath);
-        } catch (Exception $e) {
             return array(FALSE, "Error parsing image");
         }
 
@@ -365,11 +365,7 @@ class _ajax {
             } catch (Exception $e) {
                 return array(FALSE, "Error cropping image");
             }
-            try {
-                $im_tmp->writeImage($s_fileNewPath);
-            } catch (Exception $e) {
-                return array(FALSE, "Error saving image after cropping");
-            }
+            $b_needToSave = TRUE;
         }
 
         // resize the image to a new maximum size
@@ -400,12 +396,17 @@ class _ajax {
             } catch (Exception $e) {
                 return array(FALSE, "Error resizing image");
             }
+            if ($b_changed) {
+                $b_needToSave = TRUE;
+            }
+        }
+
+        // save the image, if modified
+        if ($b_needToSave) {
             try {
-                if ($b_changed) {
-                    $im_tmp->writeImage($s_fileNewPath);
-                }
+                $im_tmp->writeImage($s_fileNewPath);
             } catch (Exception $e) {
-                return array(FALSE, "Error saving image after resizing");
+                return array(FALSE, "Error saving image after cropping");
             }
         }
 

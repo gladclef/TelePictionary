@@ -259,25 +259,33 @@
 			},
 
 			controlLeaveClick: function() {
-				$( "#dialog-confirm-exit" ).dialog({
-					resizable: false,
-					height: "auto",
-					width: 400,
-					modal: true,
-					draggable: false,
-					buttons: {
-						"Leave Game": function() {
-							$( this ).dialog( "close" );
-							outgoingMessenger.setNoPoll(10000);
-							outgoingMessenger.pushData({
-								'command': 'leaveGame'
-							});
-						},
-						"Cancel": function() {
-							$( this ).dialog( "close" );
+				var f_leaveGame = function() {
+					outgoingMessenger.setNoPoll(10000);
+					outgoingMessenger.pushData({
+						'command': 'leaveGame'
+					});
+				};
+
+				if (game.o_cachedGame === undefined || game.o_cachedGame === null || game.o_cachedGame.currentTurn <= 0) {
+					f_leaveGame();
+				} else {
+					$( "#dialog-confirm-exit" ).dialog({
+						resizable: false,
+						height: "auto",
+						width: 400,
+						modal: true,
+						draggable: false,
+						buttons: {
+							"Leave Game": function() {
+								$( this ).dialog( "close" );
+								f_leaveGame();
+							},
+							"Cancel": function() {
+								$( this ).dialog( "close" );
+							}
 						}
-					}
-				});
+					});
+				}
 			},
 
 			uploadProgress: function(f_progress) {
@@ -385,6 +393,7 @@
 							var previousText = (o_card.text.trim() != "") ? '"'+o_card.text.trim()+'"' : "";
 							fitImageSize(jCurrentImage, jGameCard.width() - 150, jGameCard.height() - 200);
 							jPreviousText.text(previousText);
+							jPreviousText[(previousText.trim() == "" ? "hide" : "show")]();
 							jCurrentImage.attr('src', o_card.imageURL);
 							jCurrentImage.show();
 						} else { // text/sentence card

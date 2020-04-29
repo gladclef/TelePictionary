@@ -143,6 +143,7 @@ commands.removePlayer = function(o_player)
 	// remove the player
 	playerFuncs.removePlayer(o_player);
 	game.removePlayer(o_player);
+	reveal.removePlayer(o_player);
 
 	// check if the removed player is me
 	if (i_localPlayer == o_player.id)

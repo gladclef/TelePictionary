@@ -130,8 +130,6 @@
 					jRevealPlayerContainer = $(jRevealPlayerTemplate.html());
 					jRevealPlayerContainer.attr('playerId', o_player.id);
 					jScrollPanel.append(jRevealPlayerContainer);
-					var containerWidths = jScrollPanel.children().length * jRevealPlayerContainer.fullWidth(true, true);
-					containerWidths += 4; // this is for the cardActive green border around the player token
 
 					// set the position of the player token
 					var i_tokenWidth = jRevealPlayerContainer.fullWidth(true, true, true);
@@ -141,33 +139,7 @@
 					});
 
 					// update the scroll panel
-					jScrollPanel.css({ 'width': containerWidths + 'px' });
-					var f_winWidth = $(window).width();
-					var f_scrollPanelWidth = jScrollPanel.fullWidth(true, false, true);
-					if (f_scrollPanelWidth < f_winWidth - 100) {
-						var i_width = f_scrollPanelWidth;
-						jPlayerBar.css({
-							'width': i_width + 'px',
-							'left': ((f_winWidth - i_width) / 2) + 'px',
-							'border-left-width': jPlayerBar.css('border-bottom-width'),
-							'border-left-color': jPlayerBar.css('border-bottom-color'),
-							'border-left-style': jPlayerBar.css('border-bottom-style'),
-							'border-right-width': jPlayerBar.css('border-bottom-width'),
-							'border-right-color': jPlayerBar.css('border-bottom-color'),
-							'border-right-style': jPlayerBar.css('border-bottom-style'),
-							'border-bottom-left-radius': '10px',
-							'border-bottom-right-radius': '10px',
-						});
-					} else {
-						jPlayerBar.css({
-							'width': '100%',
-							'left': 0,
-							'border-left': 'none',
-							'border-right': 'none',
-							'border-bottom-left-radius': 0,
-							'border-bottom-right-radius': 0,
-						});
-					}
+					reveal.updatePlayerScrollPanel();
 				}
 
 				// copy over the new player token
@@ -190,6 +162,55 @@
 
 				// register events
 				reveal.registerPlayerTokenEvents(jRevealPlayerToken, o_player);
+			},
+
+			removePlayer: function(o_player) {
+				var jPlayerBar = $("#revealPlayerBar");
+				var jScrollPanel = jPlayerBar.find(".scrollPanel");
+				var jRevealPlayerContainer = jScrollPanel.find(".playerTokenContainer[playerId=" + o_player.id + "]");
+				jRevealPlayerContainer.remove();
+				reveal.updatePlayerScrollPanel();
+			},
+
+			updatePlayerScrollPanel: function() {
+				var jPlayerBar = $("#revealPlayerBar");
+				var jScrollPanel = jPlayerBar.find(".scrollPanel");
+				var jRevealPlayerContainer = jScrollPanel.find(".playerTokenContainer");
+
+				// get the new desired with
+				if (jRevealPlayerContainer.length == 0)
+					return;
+				var containerWidths = jScrollPanel.children().length * jRevealPlayerContainer.fullWidth(true, true);
+				containerWidths += 4; // this is for the cardActive green border around the player token
+
+				// update css for the scroll panel
+				jScrollPanel.css({ 'width': containerWidths + 'px' });
+				var f_winWidth = $(window).width();
+				var f_scrollPanelWidth = jScrollPanel.fullWidth(true, false, true);
+				if (f_scrollPanelWidth < f_winWidth - 100) {
+					var i_width = f_scrollPanelWidth;
+					jPlayerBar.css({
+						'width': i_width + 'px',
+						'left': ((f_winWidth - i_width) / 2) + 'px',
+						'border-left-width': jPlayerBar.css('border-bottom-width'),
+						'border-left-color': jPlayerBar.css('border-bottom-color'),
+						'border-left-style': jPlayerBar.css('border-bottom-style'),
+						'border-right-width': jPlayerBar.css('border-bottom-width'),
+						'border-right-color': jPlayerBar.css('border-bottom-color'),
+						'border-right-style': jPlayerBar.css('border-bottom-style'),
+						'border-bottom-left-radius': '10px',
+						'border-bottom-right-radius': '10px',
+					});
+				} else {
+					jPlayerBar.css({
+						'width': '100%',
+						'left': 0,
+						'border-left': 'none',
+						'border-right': 'none',
+						'border-bottom-left-radius': 0,
+						'border-bottom-right-radius': 0,
+					});
+				}
 			},
 
 			registerPlayerTokenEvents: function(jRevealPlayerToken, o_player) {
@@ -219,6 +240,9 @@
 					return;
 				}
 				var o_player = playerFuncs.getPlayer(i_playerId);
+				if (o_player === undefined) {
+					return;
+				}
 
 				// create a new card for the player token
 				var jPlayerBar = $("#revealPlayerBar");
