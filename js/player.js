@@ -111,7 +111,7 @@ playerFuncs.allPlayersReady = function()
 {
 	var i_readyCnt = 0;
 	$.each(players.players, function(k, o_player) {
-		if (o_player.ready)
+		if (o_player.isReady)
 			i_readyCnt++;
 	});
 	return (i_readyCnt == playerFuncs.playerCount());

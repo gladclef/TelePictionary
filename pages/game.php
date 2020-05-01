@@ -82,7 +82,7 @@
 				}
 
 				// set the player readiness
-				if (o_player.ready) {
+				if (o_player.isReady) {
 					jPlayerToken.addClass("ready");
 				} else {
 					jPlayerToken.removeClass("ready");

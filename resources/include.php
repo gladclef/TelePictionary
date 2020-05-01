@@ -33,7 +33,7 @@ ob_start();
 			if (window.serverStats === undefined) window.serverStats = {};
 		</script>
 <?php
-$s_includeScripts = ob_get_contents();
+$s_includeScripts = manage_output(ob_get_contents());
 ob_end_clean();
 
 

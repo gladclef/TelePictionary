@@ -22,7 +22,7 @@ class player
 	public $s_storyName = '';
 	public $a_gameIds = array();
 	public $i_imageId = -1;
-	public $b_ready = FALSE;
+	public $b_isReady = FALSE;
 
 	function __construct($s_name) {
 		$this->s_name = $s_name;
@@ -112,7 +112,7 @@ class player
 		return array(-1, 'Error: unknown player game state');
 	}
 	public function isReady() {
-		return $this->b_ready;
+		return $this->b_isReady;
 	}
 	public function toJsonObj() {
 		return array(
@@ -122,7 +122,7 @@ class player
 			'storyId' => $this->i_storyId,
 			'storyName' => $this->s_storyName,
 			'imageURL' => $this->getImageURL(),
-			'ready' => $this->b_ready,
+			'isReady' => $this->b_isReady,
 			'gameState' => $this->getGameState()
 		);
 	}
@@ -130,7 +130,7 @@ class player
 	public function joinGame($o_game) {
 		if ($this->s_roomCode == $o_game->getRoomCode())
 			return;
-		$this->b_ready = FALSE;
+		$this->b_isReady = FALSE;
 		$this->i_storyId = -1;
 		$o_game->updatePlayer($this->i_id);
 		$this->s_roomCode = $o_game->s_roomCode;
@@ -189,7 +189,7 @@ class player
 			"storyId" => $this->i_storyId,
 			"gameIds" => implodeIds($this->a_gameIds),
 			"imageId" => $this->i_imageId,
-			"ready" => ($this->b_ready ? 1 : 0)
+			"isReady" => ($this->b_isReady ? 1 : 0)
 		);
 		$s_updateClause = array_to_update_clause($a_updateVals);
 
@@ -271,7 +271,7 @@ class player
 			$o_player->i_storyId = intval($a_players[0]['storyId']);
 			$o_player->a_gameIds = explodeIds($a_players[0]['gameIds'], 'intval');
 			$o_player->i_imageId = intval($a_players[0]['imageId']);
-			$o_player->b_ready = (intval($a_players[0]['ready']) == 0) ? FALSE : TRUE;
+			$o_player->b_isReady = (intval($a_players[0]['isReady']) == 0) ? FALSE : TRUE;
 
 			$player_staticPlayers[$i_playerId] = $o_player;
 		}

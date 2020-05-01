@@ -13,6 +13,7 @@ function define_global_vars() {
 	global $global_loaded_server_settings;
 	global $mysqli;
 	global $fqdn;
+	global $filesystem_root;
 
 	$maindb = "";
 	$global_path_to_jquery = "";
@@ -61,6 +62,12 @@ function define_global_vars() {
 		$fqdn = $a_configs["fqdn"];
 	} else {
 		print_debug_as_html_paragraph("fqdn is not set in server_config.ini");
+	}
+	if (isset($a_configs["filesystem_root"]) &&
+	    file_exists($a_configs["filesystem_root"])) {
+		$filesystem_root = $a_configs["filesystem_root"];
+	} else {
+		print_debug_as_html_paragraph("filesystem_root is not set or has a bad value in server_config.ini");
 	}
 	if (isset($a_configs["maindb"]) &&
 		isset($a_configs["global_path_to_jquery"]) &&

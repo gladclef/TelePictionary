@@ -110,7 +110,7 @@ class game
 		$i_turn = $this->i_currentTurn - $this->getPlayerCount() + 1;
 		if ($i_turn >= $this->getPlayerCount())
 			return null;
-		error_log("game getting next story, roomCode {$this->getRoomCode()}, turn {$i_turn}, current turn {$this->i_currentTurn}, player count {$this->getPlayerCount()}");
+		//error_log("game getting next story, roomCode {$this->getRoomCode()}, turn {$i_turn}, current turn {$this->i_currentTurn}, player count {$this->getPlayerCount()}");
 		return $this->getStory($i_turn);
 	}
 	public function getCurrentTurn() {
