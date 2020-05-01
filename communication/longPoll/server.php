@@ -140,7 +140,7 @@ class ajax {
 
         // get ready push this event to other clients already in the game
         $a_commands = array(
-            new command("addPlayer", $o_globalPlayer->toJsonObj()),
+            new command("updatePlayer", $o_globalPlayer->toJsonObj()),
             new command("updateGame", $o_game->toJsonObj())
         );
         _ajax::pushEvent(new command("composite", $a_commands));
@@ -154,7 +154,7 @@ class ajax {
             new command("showContent", "game"),
         );
         foreach ($o_game->getPlayers() as $i => $o_player) {
-            array_push(   $a_commands, new command( "addPlayer", $o_player->toJsonObj() )   );
+            array_push(   $a_commands, new command( "updatePlayer", $o_player->toJsonObj() )   );
         }
         array_push(   $a_commands, new command( "setLocalPlayer", $o_globalPlayer->getId() )   );
         array_push(   $a_commands, new command( "setPlayer1", $o_game->getPlayer1Id() )   );
@@ -269,7 +269,7 @@ class ajax {
         foreach ($o_game->getPlayers() as $i => $o_player) {
             $o_player->b_ready = FALSE;
             $o_player->save();
-            array_push(  $a_commands, new command("addPlayer", $o_player->toJsonObj())  );
+            array_push(  $a_commands, new command("updatePlayer", $o_player->toJsonObj())  );
         }
         _ajax::pushEvent(new command("composite", $a_commands));
 
@@ -553,7 +553,7 @@ if ($s_command != '') {
             // 'playerId' post variable is set and is bad
             $o_ret = new command("composite", array(
                 new command("clearPlayers", ""),
-                new command("addPlayer", $o_globalPlayer->toJsonObj()),
+                new command("updatePlayer", $o_globalPlayer->toJsonObj()),
                 new command("setPlayer1", $o_globalPlayer->getId())
             ));
         } else {

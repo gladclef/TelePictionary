@@ -65,7 +65,7 @@ class _ajax {
     function pushPlayer($o_player, $s_roomCode = null, $b_showError = true)
     {
         return self::pushEvent(new command(
-            "addPlayer",
+            "updatePlayer",
             $o_player->toJsonObj()
         ), $s_roomCode, $b_showError);
     }

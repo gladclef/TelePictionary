@@ -11,7 +11,7 @@ require_once(dirname(__FILE__) . "/../objects/image.php");
 require_once(dirname(__FILE__) . "/../communication/longPoll/private.php");
 
 global $o_globalPlayer;
-$o_globalPlayer = player::getGlobalPlayer();
+$o_globalPlayer = player::getGlobalPlayer(TRUE);
 
 ob_start();
 ?>

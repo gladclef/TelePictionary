@@ -42,7 +42,7 @@
 				commands.setPlayer1(o_game.player1Id);
 			},
 
-			addPlayer: function(o_player) {
+			updatePlayer: function(o_player) {
 				var jPlayersCircle = $("#gamePlayersCircle");
 
 				// get or create the player token
@@ -535,10 +535,6 @@
 				game.updateStatusText();
 			},
 
-			endGame: function() {
-				game.resetGuiState();
-			},
-
 			updateStatusText: function() {
 				var jGameStatus = $("#gameGameStatus");
 				var o_game = game.o_cachedGame;
@@ -574,6 +570,8 @@
 			},
 
 			makeTransparent: function(h_child) {
+				// Runs the animation to make the card mostly transparent.
+				// Counterpart function to makeOpaque.
 				var jchild = $(h_child);
 				var jparent = jchild.parent();
 				if (jchild.attr('old-opacity') === undefined)
@@ -583,6 +581,8 @@
 			},
 
 			makeOpaque: function(h_child) {
+				// Runs the animation to make the card opaque.
+				// Counterpart function to makeTransparent.
 				var jchild = $(h_child);
 				var jparent = jchild.parent();
 				var opacity = parseFloat(jchild.attr('old-opacity'));
@@ -731,7 +731,7 @@
 					var a_players = JSON.parse(serverStats['players']);
 					for (var i = 0; i < a_players.length; i++)
 					{
-						commands.addPlayer(a_players[i]);
+						commands.updatePlayer(a_players[i]);
 					}
 				}
 
@@ -809,7 +809,7 @@
 			<div class="playerName" style="display: none;">
 				<div class="playerNameName"></div>
 				<input class="playerControl" type="button" value="Change Picture" onclick="$(this).parent().find('input[type=file]').click();" />
-				<input type="file" accept="image/jpg,image/jpeg,image/png,image/gif,image/bmp,image/tiff" style="display: none;" /><!-- calls uploadImage on click, as set in addPlayer -->
+				<input type="file" accept="image/jpg,image/jpeg,image/png,image/gif,image/bmp,image/tiff" style="display: none;" /><!-- calls uploadImage on click, as set in updatePlayer -->
 				<input class="player1Control" type="button" value="Promote" onclick="game.controlPromotePlayer(__playerId__);" />
 				<input class="player1Control" type="button" value="Kick" onclick="game.controlKickPlayer(__playerId__);" />
 			</div>

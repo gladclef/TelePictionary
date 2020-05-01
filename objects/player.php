@@ -132,7 +132,7 @@ class player
 			return;
 		$this->b_ready = FALSE;
 		$this->i_storyId = -1;
-		$o_game->addPlayer($this->i_id);
+		$o_game->updatePlayer($this->i_id);
 		$this->s_roomCode = $o_game->s_roomCode;
 		if (!in_array($o_game->getId(), $this->a_gameIds)) {
 			array_push($this->a_gameIds, $o_game->getId());
@@ -296,41 +296,46 @@ class player
 	 * that accesses this function will be forced to wait until other
 	 * threads release the $_SESSION object.
 	 */
-	public static function getGlobalPlayer() {
+	public static function getGlobalPlayer($b_forceMatchSession = FALSE) {
 		global $o_globalPlayer;
 		global $b_badPlayerPostId;
 
 		// check if already loaded
 		if (isset($o_globalPlayer) && $o_globalPlayer !== undefined && $o_globalPlayer !== null)
 		{
-			return $o_globalPlayer;
+			if (!$b_forceMatchSession)
+			{
+				return $o_globalPlayer;
+			}
 		}
-		$o_globalPlayer = null;
 
-		// not loaded, get the player id
+		// not loaded, get the player id and player
 		$i_playerId = -1;
+		$o_player = null;
 		if (isset($_GET['playerId']))
 		{
 			// load from get var
 			$i_playerId = intval($_GET['playerId']);
-			$o_globalPlayer = self::loadById($i_playerId);
-			if ($o_globalPlayer === null) {
+			$o_player = self::loadById($i_playerId);
+			if ($o_player === null) {
 				$url = "https://{$_SERVER['HTTP_HOST']}{$_SERVER['REQUEST_URI']}";
 				$url = preg_replace('/playerId=[0-9]+/', '', $url);
 				header('Location: ' . $url);
 			}
 			// error_log("getting player from get var: {$i_playerId}");
 		}
-		if ($o_globalPlayer === null && isset($_POST['playerId']))
+		if ($o_player === null && isset($_POST['playerId']))
 		{
 			// loading from get var failed
 			// load from post var
 			$i_playerId = intval($_POST['playerId']);
-			$o_globalPlayer = self::loadById($i_playerId);
-			$b_badPlayerPostId = ($o_globalPlayer === null); // indicates that the post var is bad
+			$o_player = self::loadById($i_playerId);
+			$b_badPlayerPostId = ($o_player === null); // indicates that the post var is bad
 			// error_log("getting player from post var: {$i_playerId}");
 		}
-		if ($o_globalPlayer === null)
+
+		// get/update session variables
+		if ($o_player === null)
 		{
 			// loading from get and post vars failed
 			// load from session
@@ -338,20 +343,31 @@ class player
 			if (isset($_SESSION['playerId']))
 			{
 				$i_playerId = $_SESSION['playerId'];
-				$o_globalPlayer = self::loadById($i_playerId);
+				$o_player = self::loadById($i_playerId);
 				// error_log("getting player from session: {$i_playerId}");
 			}
-			if ($o_globalPlayer === null)
+			if ($o_player === null)
 			{
 				// player not set in session variable
-				$o_globalPlayer = new player('');
-				$o_globalPlayer->save();
-				$_SESSION['playerId'] = $o_globalPlayer->getId();
-				$i_playerId = $o_globalPlayer->getId();
+				$o_player = new player('');
+				$o_player->save();
+				$_SESSION['playerId'] = $o_player->getId();
+				$i_playerId = $o_player->getId();
 				// error_log("created new player: {$i_playerId}");
 			}
 		}
+		else // if ($o_player != NULL)
+		{
+			if ($b_forceMatchSession)
+			{
+				// double-check that the session playerId matches
+				// the get/post var playerId
+				my_session_start();
+				$_SESSION['playerId'] = $o_player->getId();
+			}
+		}
 
+		$o_globalPlayer = $o_player;
 		return $o_globalPlayer;
 	}
 }

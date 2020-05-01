@@ -101,10 +101,10 @@ commands.clearPlayers = function()
 	});
 }
 
-commands.addPlayer = function(o_player)
+commands.updatePlayer = function(o_player)
 {
-	playerFuncs.addPlayer(o_player);
-	game.addPlayer(o_player);
+	playerFuncs.updatePlayer(o_player);
+	game.updatePlayer(o_player);
 }
 
 commands.setLocalPlayer = function(i_id)

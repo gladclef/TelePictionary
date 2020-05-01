@@ -240,7 +240,7 @@ class game
 		);
 	}
 
-	public function addPlayer($i_playerId) {
+	public function updatePlayer($i_playerId) {
 		if (in_array($i_playerId, $this->a_playerIds))
 		{
 			return array(TRUE, "Player already in game");

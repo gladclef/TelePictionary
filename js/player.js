@@ -10,7 +10,7 @@ playerFuncs.clearPlayers = function()
 	players.players = {};
 }
 
-playerFuncs.addPlayer = function(o_player)
+playerFuncs.updatePlayer = function(o_player)
 {
 	var i_id = o_player.id;
 	var b_old = false;

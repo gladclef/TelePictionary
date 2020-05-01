@@ -114,8 +114,8 @@
 				reveal.indicateActivePlayerCard();
 			},
 
-			addPlayer: function(o_player) {
-				// we call this immediately after game.addPlayer so that we can copy the player token created by the game code
+			updatePlayer: function(o_player) {
+				// we call this immediately after game.updatePlayer so that we can copy the player token created by the game code
 				var jPlayersCircle = $("#gamePlayersCircle");
 				var jPlayerBar = $("#revealPlayerBar");
 				var jScrollPanel = jPlayerBar.find(".scrollPanel");
@@ -457,10 +457,10 @@
 
 			setPlayer1: function(i_oldPlayer1Id, i_newPlayer1Id, o_newPlayer1) {
 				// we do this after the game code updates player tokens to capture the player1 crown
-				reveal.addPlayer(o_newPlayer1);
+				reveal.updatePlayer(o_newPlayer1);
 				if (i_oldPlayer1Id != i_newPlayer1Id) {
 					// remove the crown from the old player1
-					reveal.addPlayer(players.getPlayer(i_oldPlayer1Id));
+					reveal.updatePlayer(players.getPlayer(i_oldPlayer1Id));
 				}
 
 				// update player1 controls
@@ -531,12 +531,12 @@
 				reveal.i_cardPadding = reveal.f_paddingRatio * reveal.i_cardHeight;
 
 				// override some of the game functions
-				// we call reveal.addPlayer immediately after game.addPlayer so that we can copy the player token created by the game code
-				var oldAddPlayer = game.addPlayer;
+				// we call reveal.updatePlayer immediately after game.updatePlayer so that we can copy the player token created by the game code
+				var oldAddPlayer = game.updatePlayer;
 				var oldSetPlayer1 = game.setPlayer1;
-				game.addPlayer = function(o_player) {
+				game.updatePlayer = function(o_player) {
 					oldAddPlayer(o_player);
-					reveal.addPlayer(o_player);
+					reveal.updatePlayer(o_player);
 				}
 				game.setPlayer1 = function(i_id) {
 					var i_oldId = playerFuncs.getPlayer1Id();

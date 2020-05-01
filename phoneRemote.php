@@ -19,7 +19,7 @@ require_once(dirname(__FILE__) . "/resources/include.php");
 			?>
 
 			phoneRemote = {
-				addPlayer: function(o_player) {
+				updatePlayer: function(o_player) {
 					if (playerFuncs.isLocalPlayer(o_player))
 					{
 						var jGameCard = $("#gameCard");
@@ -72,10 +72,10 @@ require_once(dirname(__FILE__) . "/resources/include.php");
 					};
 
 					// do phoneRemote specific things when the local player changes
-					var oldAddPlayer = playerFuncs.addPlayer;
-					playerFuncs.addPlayer = function(o_player) {
+					var oldAddPlayer = playerFuncs.updatePlayer;
+					playerFuncs.updatePlayer = function(o_player) {
 						oldAddPlayer(o_player);
-						phoneRemote.addPlayer(o_player);
+						phoneRemote.updatePlayer(o_player);
 					}
 
 					// show the remote control content
