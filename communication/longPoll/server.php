@@ -139,11 +139,11 @@ class ajax {
         $o_game->save();
 
         // get ready push this event to other clients already in the game
-        $a_commands = array(
-            new command("updatePlayer", $o_globalPlayer->toJsonObj()),
-            new command("updateGame", $o_game->toJsonObj())
-        );
-        _ajax::pushEvent(new command("composite", $a_commands));
+        $o_command = new command("composite", array(
+            _ajax::getUpdatePlayerEvent($o_globalPlayer),
+            _ajax::getUpdateGameEvent($o_game)
+        ));
+        _ajax::pushEvent($o_command);
 
         // respond to this client
         $a_commands = array(
@@ -154,7 +154,7 @@ class ajax {
             new command("showContent", "game"),
         );
         foreach ($o_game->getPlayers() as $i => $o_player) {
-            array_push(   $a_commands, new command( "updatePlayer", $o_player->toJsonObj() )   );
+            array_push(   $a_commands, _ajax::getUpdatePlayerEvent($o_player)   );
         }
         array_push(   $a_commands, new command( "setLocalPlayer", $o_globalPlayer->getId() )   );
         array_push(   $a_commands, new command( "setPlayer1", $o_game->getPlayer1Id() )   );
@@ -185,8 +185,7 @@ class ajax {
             return $bo_playerInGame;
 
         // push this event to all clients in the game
-        $o_removeCmd = new command("removePlayer", $o_player->toJsonObj());
-        _ajax::pushEvent($o_removeCmd, $o_game->getRoomCode());
+        array_push($a_commands, new command("removePlayer", $o_player->toJsonObj()));
 
         // leave the game
         $o_player->leaveGame();
@@ -194,7 +193,8 @@ class ajax {
         $o_game->save();
 
         // push the changes to the game to other clients
-        _ajax::pushGame($o_game);
+        array_push($a_commands, _ajax::getUpdateGameEvent($o_game));
+        _ajax::pushEvent(new command("composite", $a_commands), $o_game->getRoomCode());
 
         // respond to this client
         if ($i_id == $i_globalId) {
@@ -236,6 +236,7 @@ class ajax {
     function setSharingTurn($i_turn = -1) {
         global $maindb;
         global $o_globalPlayer;
+        $a_commands = array();
 
         // get the post variables
         if ($i_turn < 0) {
@@ -252,7 +253,7 @@ class ajax {
 
         // change the content
         if ($i_turn == 0) {
-            _ajax::pushEvent(new command("showContent", "reveal"));
+            array_push($a_commands, new command("showContent", "reveal"));
         }
 
         // update the game
@@ -261,27 +262,25 @@ class ajax {
             $o_game->save();
 
             // push the changes to the game to other clients
-            _ajax::pushGame($o_game);
+            array_push($a_commands, _ajax::getUpdateGameEvent($o_game));
         }
 
         // update the players
-        $a_commands = array();
         foreach ($o_game->getPlayers() as $i => $o_player) {
-            $o_player->b_ready = FALSE;
+            $o_player->b_isReady = FALSE;
             $o_player->save();
-            array_push(  $a_commands, new command("updatePlayer", $o_player->toJsonObj())  );
+            array_push(  $a_commands, ajax::getUpdatePlayerEvent($o_player)  );
         }
-        _ajax::pushEvent(new command("composite", $a_commands));
 
         // push the story
         $a_playerIds = $o_game->getPlayerIds();
         $o_player = player::loadById($a_playerIds[$i_turn]);
         $o_story = $o_player->getStory();
         $a_cards = $o_story->getCards();
-        $a_commands = array(new command("updateStory", $o_story->toJsonObj()));
+        array_push($a_commands, _ajax::getUpdateStoryEvent($o_story));
         for ($i = 0; $i < count($a_cards); $i++) {
             $o_card = $a_cards[$i];
-            array_push(  $a_commands, new command("updateCard", $o_card->toJsonObj())  );
+            array_push(  $a_commands, _ajax::getUpdateCardEvent($o_card)  );
         }
         _ajax::pushEvent(new command("composite", $a_commands));
 
@@ -314,15 +313,18 @@ class ajax {
             $o_game->save();
 
             // push the changes to the game to other clients
-            _ajax::pushGame($o_game);
+            array_push($a_commands, _ajax::getUpdateGameEvent($o_game));
         }
 
         // update the players
         foreach ($o_game->getPlayers() as $i => $o_player) {
-            $o_player->b_ready = FALSE;
+            $o_player->b_isReady = FALSE;
             $o_player->save();
-            _ajax::pushPlayer($o_player, $o_game->getRoomCode(), FALSE);
+            array_push($a_commands, _ajax::getUpdatePlayerEvent($o_player));
         }
+
+        // push the events
+        _ajax::pushEvent(new command("composite", $a_commands), $o_game->getRoomCode(), FALSE);
 
         // respond to this client
         return new command("success", "");
@@ -402,13 +404,16 @@ class ajax {
 
         // update the image and the player
         $o_card->updateImage(intval($s_alias), $s_extension);
-        $o_globalPlayer->b_ready = TRUE;
+        $o_globalPlayer->b_isReady = TRUE;
         $o_globalPlayer->save();
 
         // alert everybody in the game
-        _ajax::pushStory($o_story);
-        _ajax::pushCard($o_card);
-        _ajax::pushPlayer($o_globalPlayer);
+        $a_commands = array(
+            _ajax::getUpdateStoryEvent($o_story),
+            _ajax::getUpdateCardEvent($o_card),
+            _ajax::getUpdatePlayerEvent($o_globalPlayer)
+        );
+        _ajax::pushEvent(new command("composite", $a_commands));
 
         // return success
         return new command("success", "");
@@ -430,13 +435,16 @@ class ajax {
 
         // update the text and the player
         $o_card->updateText($s_text);
-        $o_globalPlayer->b_ready = TRUE;
+        $o_globalPlayer->b_isReady = TRUE;
         $o_globalPlayer->save();
 
         // alert everybody in the game
-        _ajax::pushStory($o_story);
-        _ajax::pushCard($o_card);
-        _ajax::pushPlayer($o_globalPlayer);
+        $a_commands = array(
+            _ajax::getUpdateStoryEvent($o_story),
+            _ajax::getUpdateCardEvent($o_card),
+            _ajax::getUpdatePlayerEvent($o_globalPlayer)
+        );
+        _ajax::pushEvent(new commands("composite", $a_commands), $o_game->getRoomCode());
 
         // return success
         return new command("success", "");
@@ -467,12 +475,17 @@ class ajax {
         // update the card
         $o_card->b_isRevealed = TRUE;
         $o_card->save();
-        _ajax::pushCard($o_card);
 
         // update the player
-        $o_globalPlayer->b_ready = TRUE;
+        $o_globalPlayer->b_isReady = TRUE;
         $o_globalPlayer->save();
-        _ajax::pushPlayer($o_globalPlayer);
+
+        // push event
+        $a_commands = array(
+            _ajax::getUpdateCardEvent($o_card),
+            _ajax::getUpdatePlayerEvent($o_globalPlayer)
+        );
+        _ajax::pushEvent(new command("composite", $o_command), $o_game->getRoomCode());
 
         // return success
         return new command("success", "");

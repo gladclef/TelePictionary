@@ -62,42 +62,53 @@ class _ajax {
         return new command("success", "");
     }
 
-    function pushPlayer($o_player, $s_roomCode = null, $b_showError = true)
-    {
-        return self::pushEvent(new command(
+    function getUpdatePlayerEvent($o_player) {
+        return new command(
             "updatePlayer",
             $o_player->toJsonObj()
-        ), $s_roomCode, $b_showError);
+        );
     }
 
-    function pushGame($o_game, $s_roomCode = null, $b_showError = true)
-    {
-        if ($s_roomCode === null)
-            $s_roomCode = $o_game->getRoomCode();
-        return self::pushEvent(new command(
+    function pushPlayer($o_player, $s_roomCode = null, $b_showError = true) {
+        return self::pushEvent(self::getUpdatePlayerEvent($o_player), $s_roomCode, $b_showError);
+    }
+
+    function getUpdateGameEvent($o_game) {
+        return new command(
             "updateGame",
             $o_game->toJsonObj()
-        ), $s_roomCode, $b_showError);
+        );
     }
 
-    function pushStory($o_story, $s_roomCode = null, $b_showError = true)
-    {
-        return self::pushEvent(new command(
+    function pushGame($o_game, $s_roomCode = null, $b_showError = true) {
+        if ($s_roomCode === null)
+            $s_roomCode = $o_game->getRoomCode();
+        return self::pushEvent(self::getUpdateGameEvent($o_game), $s_roomCode, $b_showError);
+    }
+
+    function getUpdateStoryEvent($o_story) {
+        return new command(
             "updateStory",
             $o_story->toJsonObj()
-        ), $s_roomCode, $b_showError);
+        );
     }
 
-    function pushCard($o_card, $s_roomCode = null, $b_showError = true)
-    {
-        return self::pushEvent(new command(
+    function pushStory($o_story, $s_roomCode = null, $b_showError = true) {
+        return self::pushEvent(self::getUpdateStoryEvent($o_story), $s_roomCode, $b_showError);
+    }
+
+    function getUpdateCardEvent($o_card) {
+        return new command(
             "updateCard",
             $o_card->toJsonObj()
-        ), $s_roomCode, $b_showError);
+        );
     }
 
-    function isPlayerInGame($o_player, $o_game)
-    {
+    function pushCard($o_card, $s_roomCode = null, $b_showError = true) {
+        return self::pushEvent(self::getUpdateCardEvent($o_card), $s_roomCode, $b_showError);
+    }
+
+    function isPlayerInGame($o_player, $o_game) {
         $a_gameState = $o_player->getGameState();
         if ($a_gameState[0] < GAME_PSTATE::WAITING || $a_gameState[0] > GAME_PSTATE::DONE || $o_game === null)
         {
@@ -106,8 +117,7 @@ class _ajax {
         return true;
     }
 
-    function getLatestEvents($s_roomCode)
-    {
+    function getLatestEvents($s_roomCode) {
         // send the update event
         $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
         if(is_resource($socket)) {
@@ -141,8 +151,7 @@ class _ajax {
         }
     }
 
-    function getResponse($socket)
-    {
+    function getResponse($socket) {
         socket_set_option($socket,SOL_SOCKET, SO_RCVTIMEO, array("sec"=>0, "usec"=>10000));
 
         $sbo_ret = false;
@@ -200,8 +209,7 @@ class _ajax {
         return $sbo_ret;
     }
 
-    function rotateIphonePhotos($imageFile)
-    {
+    function rotateIphonePhotos($imageFile) {
         // Rotate iOS image
         // @author Richard Sumilang <me@richardsumilang.com>
         // https://www.richardsumilang.com/programming/php/graphics/working-with-apples-ios-image-orientation/
@@ -245,8 +253,7 @@ class _ajax {
         return NULL;
     }
 
-    function checkFileUpload($a_fileUpload, $b_isImage = TRUE)
-    {
+    function checkFileUpload($a_fileUpload, $b_isImage = TRUE) {
         // Check $_FILES['upfile']['error'] value.
         if (isset($a_fileUpload['error'])) {
             switch ($a_fileUpload['error']) {
@@ -291,8 +298,7 @@ class _ajax {
      * @param s_fileTmpName The name of the file that PHP uses.
      * @return either [TRUE, destination filename], or [FALSE, error string]
      */
-    function uploadFile($s_fileOrigName, $s_fileTmpName, $b_cropSquare, $i_maxWidth = -1, $i_maxHeight = -1)
-    {
+    function uploadFile($s_fileOrigName, $s_fileTmpName, $b_cropSquare, $i_maxWidth = -1, $i_maxHeight = -1) {
         global $maindb;
 
         // verify the file extension and size

@@ -606,7 +606,7 @@
 					jGameCard.removeClass('minimized');
 					$.each(jGameCard.children(), function(k, v) {
 						var jObj = $(v);
-						if (!jObj.hasClass('opaqueEye') && v != jotherCard[0]) {
+						if (!jObj.hasClass('dontMinimize') && v != jotherCard[0]) {
 							jObj.finish().show(o_animationOptions);
 						}
 					});
@@ -619,7 +619,7 @@
 					jGameCard.addClass('minimized');
 					$.each(jGameCard.children(), function(k, v) {
 						var jObj = $(v);
-						if (!jObj.hasClass('opaqueEye') && v != jotherCard[0]) {
+						if (!jObj.hasClass('dontMinimize') && v != jotherCard[0]) {
 							jObj.finish().hide(o_animationOptions);
 						}
 					});
@@ -762,10 +762,10 @@
 		<?php
 		ob_start(); // export the gameCard as a global variable so that we can use it in phoneRemote.php
 		?>
-		<div class="opaqueEye" onmouseenter="game.makeTransparent(this);" onmouseleave="game.makeOpaque(this);" onclick="game.minimizeGameCard($(this).parent());"></div>
+		<div class="opaqueEye dontMinimize" onmouseenter="game.makeTransparent(this);" onmouseleave="game.makeOpaque(this);" onclick="game.minimizeGameCard($(this).parent());"></div>
 		<div class="storyDescription centered">Player's Story:</div>
 		<div class="card1" style="display: none;">
-			<span class="hideMeFirst">Write a short description of this image:</span>
+			<span class="hideMeFirst">Write a short description of this image:</span><br />
 			<textarea class="newText" placeholder="short sentence" cols="40" rows="3"></textarea><br />
 			<input class="" type="button" value="Submit" onclick="game.controlUploadSentence();" /><br /><br />
 			<img class="previousImage hideMeFirst centered" />
@@ -783,7 +783,7 @@
 				<img src="" class="currentImage centered" command="setCardImage" style="display: none;" />
 			</div>
 		</div>
-		<div id="uploadProgress"><!-- put this inside the gameCard so that it will be included in the phoneRemote.php page -->
+		<div id="uploadProgress" class="dontMinimize"><!-- put this inside the gameCard so that it will be included in the phoneRemote.php page -->
 			Uploading...
 		</div>
 		<?php

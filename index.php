@@ -34,6 +34,7 @@ if (isset($_GET['refresh']))
 		echo $s_includeScripts;
 		echo $s_includeStylesheets;
 		?>
+		<?php echo $s_includeStartupJS; ?>
 		<script>
 			<?php
 			includeServerStats();
@@ -55,18 +56,7 @@ if (isset($_GET['refresh']))
 				"name": "index.php",
 				"dependencies": ["jQuery", "jqueryExtension.js", "commands.js", "playerFuncs", "game", "control.js", "reveal_overrides"],
 				"function": function() {
-					// set some things
-					playerFuncs.setLocalPlayer(serverStats['localPlayerId']);
-					game.setLocalPlayer(serverStats['localPlayerId']);
-
-					// show the content
-					var s_content = "about";
-					if (serverStats['isInReveal']) {
-						s_content = "reveal";
-					} else if (serverStats['isInGame']) {
-						s_content = "game";
-					}
-					commands.showContent(s_content);
+					f_commonStartupJs();
 				}
 			};
 		</script>

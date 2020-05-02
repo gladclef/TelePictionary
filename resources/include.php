@@ -31,6 +31,22 @@ ob_start();
 		<script>
 			if (window.a_toExec === undefined) window.a_toExec = [];
 			if (window.serverStats === undefined) window.serverStats = {};
+
+			// "dependencies": ["jQuery", "jqueryExtension.js", "commands.js", "playerFuncs", "game", "control.js", "reveal_overrides"],
+			window.f_commonStartupJs = function() {
+				// set some things
+				playerFuncs.setLocalPlayer(serverStats['localPlayerId']);
+				game.setLocalPlayer(serverStats['localPlayerId']);
+
+				// show the content
+				var s_content = "about";
+				if (serverStats['isInReveal']) {
+					s_content = "reveal";
+				} else if (serverStats['isInGame']) {
+					s_content = "game";
+				}
+				commands.showContent(s_content);
+			}
 		</script>
 <?php
 $s_includeScripts = manage_output(ob_get_contents());
@@ -45,6 +61,7 @@ ob_start();
 		<link rel="stylesheet" type="text/css" href="css/common.css" />
 		<link rel="stylesheet" type="text/css" href="css/game.css" />
 		<link rel="stylesheet" type="text/css" href="css/reveal.css" />
+		<link rel="stylesheet" type="text/css" href="css/phoneRemote.css" />
 <?php
 $s_includeStylesheets = ob_get_contents();
 ob_end_clean();

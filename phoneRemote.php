@@ -62,13 +62,15 @@ require_once(dirname(__FILE__) . "/resources/include.php");
 				"name": "index.php", // emulate the index.php value in order to get the game code to execute
 				"dependencies": ["jQuery", "jqueryExtension.js", "commands.js", "playerFuncs", "game", "control.js"],
 				"function": function() {
-					// set some things
-					playerFuncs.setLocalPlayer(serverStats['localPlayerId']);
-					game.setLocalPlayer(serverStats['localPlayerId']);
-
-					// never show the desktop content
-					commands.showContent = function() {
-						// don't do anything
+					// show our own content, not the full content
+					var oldShowContent = commands.showContent;
+					commands.showContent = function(s_content) {
+						s_content = 'phoneRemote' + s_content.capitalize();
+						if ($("#" + s_content).length > 0) {
+							oldShowContent(s_content);
+						} else {
+							oldShowContent('phoneRemoteAbout');
+						}
 					};
 
 					// do phoneRemote specific things when the local player changes
@@ -77,6 +79,9 @@ require_once(dirname(__FILE__) . "/resources/include.php");
 						oldAddPlayer(o_player);
 						phoneRemote.updatePlayer(o_player);
 					}
+
+					// basic setup
+					f_commonStartupJs();
 
 					// show the remote control content
 					$("#gameCard").remove();
@@ -146,11 +151,19 @@ require_once(dirname(__FILE__) . "/resources/include.php");
 		<?php
 		includeContents();
 		?>
-		<div id="remoteControlGameCard" class="centered" style="display: none;">
-			<?php
-			global $s_gameCardContents;
-			echo $s_gameCardContents;
-			?>
+		<div class="phoneRemoteContent" id="phoneRemoteAbout">
+			Waiting to join a game.
+		</div>
+		<div class="phoneRemoteContent" id="phoneRemoteGame">
+			<div id="remoteControlGameCard" class="gameCard centered" style="display: none;">
+				<?php
+				global $s_gameCardContents;
+				echo $s_gameCardContents;
+				?>
+			</div>
+		</div>
+		<div class="phoneRemoteContent" id="phoneRemoteReveal">
+			Reveal
 		</div>
 		<div class="firefoxPlaceholder">placeholder</div>
 	</body>

@@ -89,6 +89,37 @@ String.prototype.replaceAll = function(search, replacement) {
     return target.split(search).join(replacement);
 };
 
+String.prototype.capitalize = function(i_limit) {
+    if (arguments.length < 1 || i_limit === undefined || i_limit === null)
+        i_limit = 0;
+    var target = this;
+    var a_pieces = target.split(' ');
+    var i_changeCnt = 0;
+
+    for (var i = 0; i < a_pieces.length; i++) {
+        
+        // make the change
+        var s_piece = a_pieces[i];
+        if (s_piece.length == 0)
+            continue;
+        var s_newPiece = s_piece.substr(0, 1).toUpperCase() + s_piece.substr(1);
+        if (s_piece != s_newPiece) {
+            // apply the change
+            a_pieces[i] = s_newPiece;
+
+            // check if we're done making changes
+            if (i_limit > 0) {
+                i_changeCnt++;
+                if (i_changeCnt == i_limit) {
+                    break;
+                }
+            }
+        }
+    }
+
+    return a_pieces.join(' ');
+};
+
 Array.prototype.oldJoin = Array.prototype.join;
 Array.prototype.join = function(joinmiddle, joinstart, joinend) {
     var ret = this.oldJoin(joinmiddle);
