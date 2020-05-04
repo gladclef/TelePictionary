@@ -45,7 +45,7 @@ function manage_output($s_output) {
 	global $filesystem_root;
 	
 	// insert the latest datetime stamp into each javascript link
-	$parts_explode = "<script";
+	$parts_explode = "<script type=";
 	$a_parts = explode($parts_explode, $s_output);
 	for ($i = 0; $i < count($a_parts); $i++) {
 			$mid_explode = "</script";

@@ -230,12 +230,12 @@ class game
 			"name" => $this->s_name,
 			"playerIds" => $this->a_playerIds,
 			"playerOrder" => $this->a_playerOrder,
-			"startTime" => self::getStringFromDateTime($this->d_startTime),
+			"startTime" => getStringFromDateTime($this->d_startTime),
 			"cardStartType" => $this->i_cardStartType,
 			"player1Id" => $this->i_player1Id,
 			"drawTimerLen" => $this->i_drawTimerLen,
 			"textTimerLen" => $this->i_textTimerLen,
-			"turnStart" => self::getStringFromDateTime($this->d_turnStart),
+			"turnStart" => getStringFromDateTime($this->d_turnStart),
 			"currentTurn" => $this->i_currentTurn
 		);
 	}
@@ -296,12 +296,12 @@ class game
 			"name" => $this->s_name,
 			"playerIds" => implodeIds($this->a_playerIds),
 			"playerOrder" => implodeIds($this->a_playerOrder),
-			"startTime" => self::getStringFromDateTime($this->d_startTime),
+			"startTime" => getStringFromDateTime($this->d_startTime),
 			"cardStartType" => $this->i_cardStartType,
 			"player1Id" => $this->i_player1Id,
 			"drawTimerLen" => $this->i_drawTimerLen,
 			"textTimerLen" => $this->i_textTimerLen,
-			"turnStart" => self::getStringFromDateTime($this->d_turnStart),
+			"turnStart" => getStringFromDateTime($this->d_turnStart),
 			"currentTurn" => $this->i_currentTurn,
 			"isFinished" => ($this->isFinished() ? 1 : 0),
 		);
@@ -329,8 +329,8 @@ class game
             $t_currTime = new DateTime('now');
             $t_lockTime = new DateTime('now');
             $t_lockTime->add(new DateInterval("PT30S"));
-            $s_currTime = game::getStringFromDateTime($t_currTime);
-            $s_lockTime = game::getStringFromDateTime($t_lockTime);
+            $s_currTime = getStringFromDateTime($t_currTime);
+            $s_lockTime = getStringFromDateTime($t_lockTime);
 
             if ($t_currTime >= $t_failTime) {
                 return FALSE;
@@ -360,19 +360,6 @@ class game
 	/*******************************************************
 	 *           S T A T I C   F U N C T I O N S           *
 	 ******************************************************/
-	
-	/**
-	 * @param $s_datetime format 'YYYY-MM-DD hh:mm:ss'
-	 */
-	public static function getDateTimeFromString($s_datetime)
-	{
-		return DateTime::createFromFormat('Y-m-d H:i:s', $s_datetime);
-	}
-
-	public static function getStringFromDateTime($d_datetime)
-	{
-		return date_format($d_datetime, 'Y-m-d H:i:s');
-	}
 
 	public static function createGame($s_name, $i_player1Id, $i_cardStartType, $i_drawTimerLen, $i_textTimerLen)
 	{
@@ -450,12 +437,12 @@ class game
 			$o_game->s_roomCode = $a_games[0]['roomCode'];
 			$o_game->a_playerIds = explodeIds($a_games[0]['playerIds'], 'intval');
 			$o_game->a_playerOrder = explodeIds($a_games[0]['playerOrder'], 'intval');
-			$o_game->d_startTime = self::getDateTimeFromString($a_games[0]['startTime']);
+			$o_game->d_startTime = getDateTimeFromString($a_games[0]['startTime']);
 			$o_game->i_player1Id = intval($a_games[0]['player1Id']);
 			$o_game->i_cardStartType = intval($a_games[0]['cardStartType']);
 			$o_game->i_drawTimerLen = intval($a_games[0]['drawTimerLen']);
 			$o_game->i_textTimerLen = intval($a_games[0]['textTimerLen']);
-			$o_game->d_turnStart = self::getDateTimeFromString($a_games[0]['turnStart']);
+			$o_game->d_turnStart = getDateTimeFromString($a_games[0]['turnStart']);
 			$o_game->i_currentTurn = intval($a_games[0]['currentTurn']);
 			$o_game->b_finished = (intval($a_games[0]['isFinished']) == 0) ? FALSE : TRUE;
 

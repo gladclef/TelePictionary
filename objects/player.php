@@ -189,7 +189,8 @@ class player
 			"storyId" => $this->i_storyId,
 			"gameIds" => implodeIds($this->a_gameIds),
 			"imageId" => $this->i_imageId,
-			"isReady" => ($this->b_isReady ? 1 : 0)
+			"isReady" => ($this->b_isReady ? 1 : 0),
+			"accessTime" => getStringFromDateTime(new DateTime('now'))
 		);
 		$s_updateClause = array_to_update_clause($a_updateVals);
 
@@ -272,6 +273,10 @@ class player
 			$o_player->a_gameIds = explodeIds($a_players[0]['gameIds'], 'intval');
 			$o_player->i_imageId = intval($a_players[0]['imageId']);
 			$o_player->b_isReady = (intval($a_players[0]['isReady']) == 0) ? FALSE : TRUE;
+
+			// update the player
+			$s_accessTime = getStringFromDateTime(new DateTime('now'));
+			db_query("UPDATE `{$maindb}`.`players` SET `accessTime`='{$s_accessTime}' WHERE `id`={$o_player->i_id}");
 
 			$player_staticPlayers[$i_playerId] = $o_player;
 		}

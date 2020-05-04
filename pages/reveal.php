@@ -32,7 +32,7 @@
 				}
 
 				// remove the old story cards
-				var jRevealCardBar = $("#revealCardBar");
+				var jRevealCardBar = $("#reveal").find(".revealCardBar");
 				$.each(jRevealCardBar.children(), function(k, h_card) {
 					var jCard = $(h_card);
 					var i_cardId = parseInt(jCard.attr('cardId'));
@@ -91,7 +91,7 @@
 					if (i < a_playerIdsInOrder.length-1) {
 						// find the card that follows this card
 						var i_nextId = a_playerIdsInOrder[i+1];
-						var jRevealCardBar = $("#revealCardBar");
+						var jRevealCardBar = $("#reveal").find(".revealCardBar");
 						var jCard = jRevealCardBar.find(".gameCard[playerId=" + i_playerId + "]");
 						var jNextCard = jRevealCardBar.find(".gameCard[playerId=" + i_nextId + "]");
 
@@ -230,24 +230,24 @@
 			updateCard: function(o_card) {
 				// verify this card is part of the current story
 				if (reveal.o_cachedStory === null || reveal.a_cachedCardIdToPlayerId === undefined) {
-					return;
+					return null;
 				}
 				reveal.a_cards[o_card.id] = o_card;
 
 				// get the player for this card
 				var i_playerId = reveal.a_cachedCardIdToPlayerId[o_card.id];
 				if (i_playerId === undefined || i_playerId === null) {
-					return;
+					return null;
 				}
 				var o_player = playerFuncs.getPlayer(i_playerId);
 				if (o_player === undefined) {
-					return;
+					return null;
 				}
 
 				// create a new card for the player token
 				var jPlayerBar = $("#revealPlayerBar");
 				var jRevealPlayerContainer = jPlayerBar.find(".playerTokenContainer[playerId=" + o_player.id + "]");
-				var jRevealCardBar = $("#revealCardBar");
+				var jRevealCardBar = $("#reveal").find(".revealCardBar");
 				var jCard = jRevealCardBar.find(".gameCard[playerId=" + o_player.id + "]");
 				var jCardTemplate = $("#revealCard");
 				var b_isMaximized = false;
@@ -319,6 +319,8 @@
 
 				// register events
 				reveal.registerCardEvents(jCard, o_card, o_player);
+
+				return jCard;
 			},
 
 			registerCardEvents: function(jCard, o_card, o_player) {
@@ -340,7 +342,7 @@
 
 				// scroll to the active card
 				var jWindow = $(window);
-				var jRevealCardBar = $("#revealCardBar");
+				var jRevealCardBar = $("#reveal").find(".revealCardBar");
 				var i_scrollPos = 0;
 				if (i_activeIdx > 0) {
 					i_scrollPos = reveal.i_cardFullHeight * i_activeIdx;
@@ -573,7 +575,7 @@
 		}
 	</script>
 
-	<div id="revealCardBar"></div>
+	<div class="revealCardBar"></div>
 	<div id="revealHidyBar"></div>
 	<div id="revealPlayerBar">
 		<div class="playerBar">
@@ -592,7 +594,7 @@
 
 	<!-- templates -->
 	<div id="revealCard" style="display:none;">
-		<div class="gameCard centered" cardId="__cardId__">
+		<div class="revealCard gameCard centered" cardId="__cardId__">
 			<div class="card0" style="display: none;">
 				<img class="userContents currentImage centered" />
 			</div>

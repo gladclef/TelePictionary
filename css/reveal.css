@@ -118,47 +118,47 @@
 	font-weight: bold;
 }
 
-#revealCardBar {
+.revealCardBar {
 	width: 800px;
 	margin: 0 auto;
 	overflow-x: hidden;
 	padding-top: 20px;
 }
 
-#revealCardBar .gameCard {
+.revealCardBar .revealCard {
 	position: relative;
 	margin: 0 auto;
 	left: unset;
 	top: unset;
 }
 
-#revealCardBar .gameCard.notRevealed {
+.revealCardBar .revealCard.notRevealed {
 	background-image: url('../imagesStatic/paper1_hidden_small.png');
 }
 
-#revealCardBar .gameCard.notRevealed.localPlayer {
+.revealCardBar .revealCard.notRevealed.localPlayer {
 	background-image: url('../imagesStatic/paper1_reveal_small.png');
 	cursor: pointer;
 }
 
-#revealCardBar .gameCard.notRevealed .userContents {
+.revealCardBar .revealCard.notRevealed .userContents {
 	display: none;
 }
 
-#revealCardBar .gameCard.revealed .userContents {
+.revealCardBar .revealCard.revealed .userContents {
 	display: block;
 	cursor: pointer;
 }
 
-#revealCardBar .gameCard.notRevealed.localPlayer .userContents {
+.revealCardBar .revealCard.notRevealed.localPlayer .userContents {
 	display: block;
 }
 
-#revealCardBar .gameCard .revealHint {
+.revealCardBar .revealCard .revealHint {
 	display: none;
 }
 
-#revealCardBar .gameCard.notRevealed.localPlayer .revealHint {
+.revealCardBar .revealCard.notRevealed.localPlayer .revealHint {
 	display: block;
 	width: 400px;
 	padding: 10px;

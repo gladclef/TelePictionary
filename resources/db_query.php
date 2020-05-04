@@ -190,4 +190,15 @@ function getColumnNames($s_tablename)
 	}
 	return $a_column_names;
 }
+/**
+ * @param $s_datetime format 'YYYY-MM-DD hh:mm:ss'
+ */
+function getDateTimeFromString($s_datetime)
+{
+	return DateTime::createFromFormat('Y-m-d H:i:s', $s_datetime);
+}
+function getStringFromDateTime($d_datetime)
+{
+	return date_format($d_datetime, 'Y-m-d H:i:s');
+}
 ?>

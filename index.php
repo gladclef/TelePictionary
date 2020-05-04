@@ -34,7 +34,6 @@ if (isset($_GET['refresh']))
 		echo $s_includeScripts;
 		echo $s_includeStylesheets;
 		?>
-		<?php echo $s_includeStartupJS; ?>
 		<script>
 			<?php
 			includeServerStats();

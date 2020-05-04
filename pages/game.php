@@ -11,6 +11,22 @@
 			resetGuiState: function() {
 				$("#gamePlayersCircle").find(".playerToken").remove();
 				$("#gamePlayer1Control").hide();
+
+				var jGameCard = $("#gameCard");
+				var jHideMeFirsts = jGameCard.find(".hideMeFirst");
+				var jImgs = jGameCard.find("img");
+				var jPreviousText = jGameCard.find(".previousText");
+				var jNewText = jGameCard.find(".newText");
+				var jCurrentText = jGameCard.find(".currentText");
+				jHideMeFirsts.hide();
+				jPreviousText.text("");
+				jPreviousText.hide();
+				jImgs.attr('src', '');
+				jImgs.hide();
+				jImgs.css({ 'width': 0, 'height': 0 });
+				jNewText.val('');
+				jCurrentText.text('');
+				jCurrentText.hide();
 			},
 
 			setGameName: function(s_newGameName) {
@@ -391,7 +407,7 @@
 							var jCurrentImage = jGameCard.find(".currentImage");
 							var jPreviousText = jGameCard.find(".previousText");
 							var previousText = (o_card.text.trim() != "") ? '"'+o_card.text.trim()+'"' : "";
-							fitImageSize(jCurrentImage, jGameCard.width() - 150, jGameCard.height() - 200);
+							// fitImageSize(jCurrentImage, jGameCard.width() - 150, jGameCard.height() - 200);
 							jPreviousText.text(previousText);
 							jPreviousText[(previousText.trim() == "" ? "hide" : "show")]();
 							jCurrentImage.attr('src', o_card.imageURL);
@@ -408,14 +424,38 @@
 								jCurrentText.hide();
 							else
 								jCurrentText.show();
-							fitImageSize(jPreviousImage, jGameCard.width() - 150, jGameCard.height() - 250);
+							// fitImageSize(jPreviousImage, jGameCard.width() - 150, jGameCard.height() - 250);
+							jNewText.show();
 							jPreviousImage.attr('src', o_card.imageURL);
+							jPreviousImage.show();
 						}
+
+						// fit the image size to the available card size
+						var jImgs = jGameCard.find("img");
+						var jChildren = jGameCard.children();
+						var maxWidth = jGameCard.width() - 150;
+						var maxHeight = jGameCard.height() - 50;
+
+						jImgs.hide();
+						$.each(jChildren, function(k, h) {
+							var jChild = $(h);
+							if (jChild.css('display') === 'none')
+								return;
+							maxHeight -= jChild.fullHeight(true, true, true);
+						});
+						jImgs.show();
+
+						$.each(jImgs, function(k, h_img) {
+							var jImg = $(h_img);
+							fitImageSize(jImg, maxWidth, maxHeight);
+						});
 					}
 				} else {
 					// reveal step TODO
 					jGameCard.hide();
 				}
+
+				return jGameCard;
 			},
 
 			updateStory: function(o_story) {

@@ -49,7 +49,8 @@ $a_basic_tables_structure = array(
 		"storyId" =>               array("type" => "INT",           "indexed" => FALSE, "isPrimaryKey" => FALSE, "special" => ""),
 		"gameIds" =>               array("type" => "VARCHAR(1024)", "indexed" => FALSE, "isPrimaryKey" => FALSE, "special" => ""), // past games that have been played and not yet timed out, and the current game
 		"imageId" =>               array("type" => "INT",           "indexed" => FALSE, "isPrimaryKey" => FALSE, "special" => ""),
-		"isReady" =>               array("type" => "TINYINT",       "indexed" => FALSE, "isPrimaryKey" => FALSE, "special" => "")
+		"isReady" =>               array("type" => "TINYINT",       "indexed" => FALSE, "isPrimaryKey" => FALSE, "special" => ""),
+		"accessTime" =>            array("type" => "DATETIME",      "indexed" => TRUE,  "isPrimaryKey" => FALSE, "special" => "")
 	)
 );
 $a_database_insert_values = array();
