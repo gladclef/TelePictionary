@@ -1,4 +1,9 @@
-<div class="content" id="game" style="display: none;">
+<?php
+
+global $o_globalPlayer;
+$o_game = $o_globalPlayer->getGame();
+
+?><div class="content" id="game" style="display: none;">
 	<script type="text/javascript">
 		game = {
 			o_cachedGame: null,
@@ -357,6 +362,14 @@
 				});
 			},
 
+			controlStartCardChange: function(h_selection) {
+				var jControlStartCard = $(h_selection);
+				outgoingMessenger.pushData({
+					'command': 'setStartCard',
+					'startCard': parseInt(jControlStartCard.val())
+				});
+			},
+
 			controlStartClick: function() {
 				outgoingMessenger.pushData({
 					'command': 'setGameTurn',
@@ -482,16 +495,27 @@
 				// on the current turn and the players readiness.
 				var i_currentTurn = game.o_cachedGame.currentTurn;
 				var jPlayer1Control = $("#gamePlayer1Control");
+				var jControlStartCard = jPlayer1Control.find("select.startCard");
+				var jStartBreak = jPlayer1Control.find(".startGameBreak");
 				var jControlStart = jPlayer1Control.find("input.startGame");
 				var jControlNextTurn = jPlayer1Control.find("input.nextTurn");
 				var jControlStartReviewing = jPlayer1Control.find(".finishGame");
 				jPlayer1Control.show();
+				jControlStartCard.hide();
+				jStartBreak.hide();
 				jControlStart.hide();
 				jControlNextTurn.hide();
 				jControlStartReviewing.hide();
+
+				// hide all controls if not player1
 				if (!playerFuncs.isPlayer1()) {
 					jPlayer1Control.hide();
-				} else if (i_currentTurn == -1) {
+				}
+
+				// show certain controls to player1
+				else if (i_currentTurn == -1) {
+					jControlStartCard.show();
+					jStartBreak.show();
 					jControlStart.show();
 				} else if (!playerFuncs.allPlayersReady()) {
 					jPlayer1Control.hide();
@@ -499,6 +523,11 @@
 					jControlNextTurn.show();
 				} else if (i_currentTurn == playerFuncs.playerCount()-1) {
 					jControlStartReviewing.show();
+				}
+
+				// update some the controls based on the game object
+				if (game.o_cachedGame.cardStartType != parseInt(jControlStartCard.val())) {
+					jControlStartCard.val(game.o_cachedGame.cardStartType + '');
 				}
 			},
 
@@ -835,6 +864,11 @@
 	</div>
 	<div id="gamePlayer1Control" class="centered" style="width: 700px; display: none;">
 		<div class="centered" gameControl="start">
+			<select class="startCard" onchange="game.controlStartCardChange(this);">
+				<option value="0" <?php echo ($o_game->getCardStartType() == 0) ? 'selected' : '' ?>>Start with Drawing</option>
+				<option value="1" <?php echo ($o_game->getCardStartType() == 1) ? 'selected' : '' ?>>Start with Sentence</option>
+			</select>
+			<br class="startGameBreak" />
 			<input type="button" class="startGame" value="Start Game" onclick="game.controlStartClick();" style="display:none;" />
 			<input type="button" class="nextTurn" value="Next Turn" onclick="game.controlNextTurnClick();" style="display:none;" />
 			<div class="finishGame" style="display:none;">End this round and <input type="button" value="Start Sharing" onclick="game.controlStartSharingClick();" /></div>

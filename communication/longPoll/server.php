@@ -290,6 +290,27 @@ class ajax {
         return self::setSharingTurn(0);
     }
 
+    function setStartCard() {
+        global $o_globalPlayer;
+
+        // check to make sure that the player is in a game
+        $o_game = $o_globalPlayer->getGame();
+        if (($bo_playerInGame = _ajax::isPlayerInGame($o_globalPlayer, $o_game)) !== TRUE)
+            return $bo_playerInGame;
+
+        // get the new start card
+        $i_newStartCard = intval(get_post_var("startCard", "-1"));
+        if ($i_newTurn < 0 || $i_newTurn > 1)
+            return new command("showError", "Bad start card type. Must be one of '0' or '1'.");
+
+        // update the game and broadcast the change
+        $o_game->i_cardStartType = $i_newStartCard;
+        _ajax::pushGame($o_game);
+
+        // respond to this client
+        return new command("success", "");
+    }
+
     function setGameTurn() {
         global $maindb;
         global $o_globalPlayer;
