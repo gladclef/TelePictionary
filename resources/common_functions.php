@@ -18,7 +18,7 @@ function my_session_start() {
 	if ($session_started === FALSE) {
 		$i_sessionTime = 60*60*24*7; // 7 days
 		// server should keep session data for AT LEAST session time
-		//error_log(ini_get('session.gc_maxlifetime')); // we do this in the global php.ini file
+		//error_log(ini_get('session.gc_maxlifetime')); // we set this in the global php.ini file
 		// each client should remember their session id for EXACTLY session time
 		session_set_cookie_params($i_sessionTime);
 
@@ -30,6 +30,7 @@ function my_session_start() {
 	}
 }
 
+// Get the full URL used to access this script
 // from http://webcheatsheet.com/php/get_current_page_url.php
 function curPageURL() {
 	$pageURL = stripos($_SERVER['SERVER_PROTOCOL'],'https') === true ? 'https://' : 'http://';
@@ -41,7 +42,11 @@ function curPageURL() {
 	return $pageURL;
 }
 
-function manage_output($s_output) {
+// adds the last modified datetime of the javascript file to the src as a get var
+// example usage:
+// $s_includes = append_js_timestamps('<script type="text/javascript" src="js/jquery.qrcode.min.js"></script>')
+// returns string '<script type="text/javascript" src="js/jquery.qrcode.min.js?2020-05-01+11%3A35%3A28"></script>'
+function append_js_timestamps($s_output) {
 	global $filesystem_root;
 	
 	// insert the latest datetime stamp into each javascript link
@@ -77,6 +82,7 @@ function manage_output($s_output) {
 	return $s_output;
 }
 
+// for pretty printing arrays to the error log for quick debugging
 function error_log_array($a_output, $i_tab_level = 0) {
 	$s_tab = str_repeat("  ", $i_tab_level);
 	foreach ($a_output as $k=>$v) {
@@ -92,6 +98,7 @@ function error_log_array($a_output, $i_tab_level = 0) {
 	}
 }
 
+// check if the string haystack ends with the string needle
 function endsWith($haystack, $needle) {
     $length = strlen($needle);
 
@@ -99,6 +106,9 @@ function endsWith($haystack, $needle) {
     (substr($haystack, -$length) === $needle);
 }
 
+// example usage:
+// $a_ids = explodeIds('|1||2||5|', 'intval');
+// returns array of integers: array(1, 2, 5)
 function explodeIds($s_ids, $f_applyFunc = null) {
 	if (!is_string($s_ids))
 		return $s_ids;
@@ -116,6 +126,9 @@ function explodeIds($s_ids, $f_applyFunc = null) {
 	return $a_ids;
 }
 
+// example usage:
+// $s_ids = implodeIds( array(1, 2, 5) );
+// return string '|1||2||5|'
 function implodeIds($a_ids) {
 	if (!is_array($a_ids) || count($a_ids) == 0) {
 		return "";
@@ -132,6 +145,17 @@ function escapeTextVals($a_vals, $a_keys) {
 	return $a_vals2;
 }
 
+// Iterates through a_array, extracting the value si_key from the child arrays.
+// Returns the values as a new, collapsed array.
+// Example usage:
+// $a_weeklyLunches = getValuesOfInnerArraysByKey(array(
+//     'SUN' => array(1200 => 'Stephen', 1700=>'Parents'),
+//     'MON' => array(1200 => 'Marisa'),
+//     'WED' => array(1200 => 'Wilson'),
+//     'THR' => array(0900 => 'Thomas'),
+//     'SAT' => array(0800 => 'Sam', 1200 => 'Sally')
+// ), 1200);
+// Returns array('Stephen', 'Marisa', 'Wilson', 'Sally')
 function getValuesOfInnerArraysByKey($a_array, $si_key) {
 	if (count($a_array) == 0)
 		return array();

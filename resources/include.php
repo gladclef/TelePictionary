@@ -49,7 +49,7 @@ ob_start();
 			}
 		</script>
 <?php
-$s_includeScripts = manage_output(ob_get_contents());
+$s_includeScripts = append_js_timestamps(ob_get_contents());
 ob_end_clean();
 
 
