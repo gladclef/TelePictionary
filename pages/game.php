@@ -891,11 +891,12 @@ $o_game = $o_globalPlayer->getGame();
 		</div>
 	</div>
 	<div class="leaveGame"><div>&#x2B05;</div></div>
-	<div id="gameJoinOnPhone">
+	<div id="gameJoinOnPhone" <?php echo (isMobileDevice()) ? 'style="display: none;"' : ''; ?>>
 		<div class="button" onclick="game.showQrCode();"></div>
 		<div class="code">
 			<div class="qrcode"></div>
-			<a class="link"></a>
+			<a class="link"></a><br /><br />
+			Use your phone to take a picture of your drawing.
 		</div>
 	</div>
 </div>

@@ -300,7 +300,7 @@ class ajax {
 
         // get the new start card
         $i_newStartCard = intval(get_post_var("startCard", "-1"));
-        if ($i_newTurn < 0 || $i_newTurn > 1)
+        if ($i_newStartCard < 0 || $i_newStartCard > 1)
             return new command("showError", "Bad start card type. Must be one of '0' or '1'.");
 
         // update the game and broadcast the change
