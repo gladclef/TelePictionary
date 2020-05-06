@@ -583,7 +583,20 @@ $o_globalGame = $o_globalPlayer->getGame();
 				outgoingMessenger.pushData({
 					command: 'createGame'
 				});
-			}
+			},
+
+			controlRateGameClick: function(s_rating) {
+				var jRateGame = $("#revealRateGame");
+				var jAfterRating = jRateGame.find(".afterRating");
+
+				outgoingMessenger.pushData({
+					command: 'rateGame',
+					roomCode: game.o_cachedGame.roomCode,
+					rating: s_rating
+				});
+
+				jAfterRating.show();
+			},
 		};
 		a_toExec[a_toExec.length] = {
 			"name": "reveal_overrides",
@@ -657,11 +670,14 @@ $o_globalGame = $o_globalPlayer->getGame();
 	<div id="revealRateGame">
 		<span>Did you enjoy this game?</span>
 		<div class="thumbsContainer"
-			 ><input type="button" value="&#x1f44d;" onclick="reveal.rateGame('good');" style="padding-top:3px; left:0;"
-			/><input type="button" value="&#x1f44e;" onclick="reveal.rateGame('bad');" style="padding-bottom:3px; left:41px;"
+			 ><input type="button" value="&#x1f44d;" onclick="reveal.controlRateGameClick('good');" style="padding-top:3px; left:0;"
+			/><input type="button" value="&#x1f44e;" onclick="reveal.controlRateGameClick('bad');" style="padding-bottom:3px; left:41px;"
 		/></div>
 		<div class="afterRating">
-			Thanks! Feel free to <a href="downloadGame.php?<?php echo 'playerId='.$o_globalPlayer->getId().'&roomCode='.$o_globalGame->getRoomCode(); ?>" target="_blank">download this game</a> and <a href="feedback.php" target="_blank">provide feedback</a>!
+			<?php
+			$s_ratingGetVars = 'playerId='.$o_globalPlayer->getId().'&roomCode='.$o_globalGame->getRoomCode();
+			?>
+			Thanks! Feel free to <a href="downloadGame.php?<?php echo $s_ratingGetVars; ?>" target="_blank">download this game</a> and <a href="feedback.php?<?php echo $s_ratingGetVars; ?>" target="_blank">provide feedback</a>!
 		</div>
 	</div>
 	<div id="revealOverlay" style="display: none;" onclick="$(this).hide();">

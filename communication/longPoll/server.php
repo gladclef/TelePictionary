@@ -510,6 +510,32 @@ class ajax {
         return new command("success", "");
     }
 
+    function rateGame() {
+        global $o_globalPlayer;
+
+        $s_roomCode = get_post_var("roomCode");
+        $s_rating = get_post_var("rating");
+
+        // get the reported game
+        $o_game = $o_globalPlayer->getGame();
+        if ($o_game === null)
+            return "Game with roomCode \"{$s_roomCode}\" does not exist!"; // don't report errors for game ratings
+            // return new command("success", "");
+
+        // check to make sure that the player is part of the reported game
+        if (!$o_game->containsPlayer($o_globalPlayer->getId()))
+            return "Player not a part of the game with roomCode \"{$s_roomCode}\"!"; // don't report errors for game ratings
+            // return new command("success", "");
+
+        // update the rating
+        $ob_result = $o_globalPlayer->rateGame($o_game, $s_rating);
+        if ($ob_result !== TRUE)
+            return $ob_result; // don't report errors for game ratings
+            // return new command("success", "");
+        
+        return new command("success", "");
+    }
+
     function pushEvent() {
         $s_event = get_post_var("event");
         $o_event = json_decode($s_event);

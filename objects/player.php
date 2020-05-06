@@ -23,6 +23,7 @@ class player
 	public $a_gameIds = array();
 	public $i_imageId = -1;
 	public $b_isReady = FALSE;
+	public $a_ratings = array();
 
 	function __construct($s_name) {
 		$this->s_name = $s_name;
@@ -75,6 +76,23 @@ class player
 	}
 	public function getImageId() {
 		return $this->i_imageId;
+	}
+	public function getGameRatingIdx($i_gameId) {
+		foreach ($this->a_ratings as $k => $s_rating) {
+			$a_rating = explode(',', $s_rating);
+			if (intval($a_rating[0]) == $i_gameId) {
+				return $k;
+			}
+		}
+		return -1;
+	}
+	public function getGameRating($i_gameId) {
+		$i_ratingIdx = $this->getGameRatingIdx($i_gameId);
+		if ($i_ratingIdx != -1) {
+			$a_rating = explode(',', $this->a_ratings[$i_ratingIdx]);
+			return intval($a_rating[1]);
+		}
+		return -1;
 	}
 	public function getGameState() {
 		if ($this->s_name == '')
@@ -141,6 +159,29 @@ class player
 			$this->i_storyId = -1;
 		}
 	}
+	public function rateGame($o_game, $s_rating) {
+		if ($o_game === null)
+			return "Game can't be null";
+		if ($s_rating !== "good" && $s_rating !== "bad")
+			return "Rating must be one of 'good' or 'bad'";
+
+		// remove the previous rating
+		$i_currIdx = $this->getGameRatingIdx($o_game->getId());
+		if ($i_currIdx != -1) {
+			unset($this->a_ratings[$i_currIdx]);
+		}
+
+		// apply the new rating
+		if ($s_rating == "good") {
+			array_push( $this->a_ratings, "{$o_game->getId()},5" );
+		} else if ($s_rating == "bad") {
+			array_push( $this->a_ratings, "{$o_game->getId()},0" );
+		}
+
+		// save and return
+		$this->save();
+		return TRUE;
+	}
 	public function leaveGame() {
 		$o_game = $this->getGame();
 		if ($o_game !== null)
@@ -190,7 +231,8 @@ class player
 			"gameIds" => implodeIds($this->a_gameIds),
 			"imageId" => $this->i_imageId,
 			"isReady" => ($this->b_isReady ? 1 : 0),
-			"accessTime" => getStringFromDateTime(new DateTime('now'))
+			"accessTime" => getStringFromDateTime(new DateTime('now')),
+			"ratings" => implodeIds($this->a_ratings),
 		);
 		$s_updateClause = array_to_update_clause($a_updateVals);
 
@@ -273,6 +315,7 @@ class player
 			$o_player->a_gameIds = explodeIds($a_players[0]['gameIds'], 'intval');
 			$o_player->i_imageId = intval($a_players[0]['imageId']);
 			$o_player->b_isReady = (intval($a_players[0]['isReady']) == 0) ? FALSE : TRUE;
+			$o_player->a_ratings = explodeIds($a_players[0]['ratings']);
 
 			// update the player
 			$s_accessTime = getStringFromDateTime(new DateTime('now'));

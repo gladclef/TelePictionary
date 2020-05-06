@@ -56,6 +56,9 @@ class game
 	public function getPlayerCount() {
 		return count($this->a_playerIds);
 	}
+	public function containsPlayer($i_playerId) {
+		return in_array($i_playerId, $this->getPlayerIds());
+	}
 	public function getPlayerIds() {
 		return $this->a_playerIds;
 	}
