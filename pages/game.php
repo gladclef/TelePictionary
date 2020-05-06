@@ -1,7 +1,8 @@
 <?php
 
 global $o_globalPlayer;
-$o_game = $o_globalPlayer->getGame();
+global $o_globalGame;
+$o_globalGame = $o_globalPlayer->getGame();
 
 ?><div class="content" id="game" style="display: none;">
 	<script type="text/javascript">
@@ -717,31 +718,31 @@ $o_game = $o_globalPlayer->getGame();
 
 		function drawGame() {
 			global $o_globalPlayer;
+			global $o_globalGame;
 			global $fqdn;
 
 			// always set the fqdn server stat
 			echo "serverStats['fqdn'] = '{$fqdn}'\r\n";
 
 			// get the game instance
-			$o_game = $o_globalPlayer->getGame();
-			if ($o_game === null)
+			if ($o_globalGame === null)
 			{
 				return;
 			}
-			$a_players = $o_game->getPlayers();
+			$a_players = $o_globalGame->getPlayers();
 			$a_encodedPlayers = [];
 			foreach ($a_players as $idx => $a_player) {
 				array_push($a_encodedPlayers, $a_player->toJsonObj());
 			}
 
 			// draw the game
-			$s_game = json_encode(json_encode($o_game->toJsonObj()));
+			$s_game = json_encode(json_encode($o_globalGame->toJsonObj()));
 			$s_players = json_encode(json_encode($a_encodedPlayers));
 			echo "serverStats['game'] = {$s_game};\r\n";
 			echo "serverStats['players'] = {$s_players}\r\n";
 
 			// draw the current card
-			$a_gameState = $o_game->getGameState();
+			$a_gameState = $o_globalGame->getGameState();
 			if ($a_gameState[0] == GAME_GSTATE::IN_PROGRESS) { // game started but not revealing cards yet
 				$o_card = $o_globalPlayer->getCurrentCard();
 				if ($o_card !== null) {
@@ -865,8 +866,8 @@ $o_game = $o_globalPlayer->getGame();
 	<div id="gamePlayer1Control" class="centered" style="width: 700px; display: none;">
 		<div class="centered" gameControl="start">
 			<select class="startCard" onchange="game.controlStartCardChange(this);">
-				<option value="0" <?php echo ($o_game->getCardStartType() == 0) ? 'selected' : '' ?>>Start with Drawing</option>
-				<option value="1" <?php echo ($o_game->getCardStartType() == 1) ? 'selected' : '' ?>>Start with Sentence</option>
+				<option value="0" <?php echo ($o_globalGame->getCardStartType() == 0) ? 'selected' : '' ?>>Start with Drawing</option>
+				<option value="1" <?php echo ($o_globalGame->getCardStartType() == 1) ? 'selected' : '' ?>>Start with Sentence</option>
 			</select>
 			<br class="startGameBreak" />
 			<input type="button" class="startGame" value="Start Game" onclick="game.controlStartClick();" style="display:none;" />

@@ -259,16 +259,16 @@ loadJqueryExtensions = function()
             window.jqueryExtension.smoothScrollIntervals[i_idx] = setInterval(function() {
                 var i_ellapsedMs = i_intervalCount * 30;
                 var f_progress = i_ellapsedMs / i_duration;
-                var f_percent = f_progress;
+                var f_pos = f_progress;
 
                 if (f_progress >= 1) {
                     me[s_scrollFunc](i_scrollPos);
                     clearInterval(window.jqueryExtension.smoothScrollIntervals[i_idx]);
                 } else {
                     if (s_easing === 'swing') {
-                        f_percent = getSwing(f_progress, true);
+                        f_pos = $.easing.swing(f_progress);
                     }
-                    var i_intermediaryScrollPos = i_startScroll + (f_percent * i_scrollAmount);
+                    var i_intermediaryScrollPos = i_startScroll + (f_pos * i_scrollAmount);
                     me[s_scrollFunc](i_intermediaryScrollPos);
                 }
                 i_intervalCount++;
@@ -276,7 +276,22 @@ loadJqueryExtensions = function()
         } else {
             me[s_scrollFunc](i_scrollPos);
         }
-    }
+    };
+
+    $.easing.spring = function(f_progress) {
+        var f_end = Math.PI * 1.3;
+        var f_sin = Math.sin(-0.5*Math.PI + f_progress*f_end);
+
+        // scale f_sin to be in the range 0-1
+        f_sin = (f_sin + 1.0) / 2.0;
+
+        // scale f_sin so that at f_progress it has reached the end
+        var f_endSin = Math.sin(-0.5*Math.PI + f_end);
+        f_endSin = (f_endSin + 1.0) / 2;
+        f_sin *= (1.0 / f_endSin);
+
+        return f_sin;
+    };
 };
 
 a_toExec[a_toExec.length] = {

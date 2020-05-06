@@ -236,20 +236,6 @@ function uploadFile(jelement, files) {
 	return retfunc();
 };
 
-// returns a jquery swing-like easing from a linear f_progress 0-1 value
-function getSwing(f_progress, b_gentle) {
-	if (arguments.length < 2 || b_gentle === undefined || b_gentle === null)
-		b_gentle = false;
-
-	var f_sin = Math.sin(f_progress * Math.PI - 0.5 * Math.PI);
-	var f_swing = (f_sin + 1) / 2;
-	if (!b_gentle)
-		return f_swing;
-
-	var f_gentleSwing = Math.pow(f_swing, 0.9);
-	return f_gentleSwing;
-}
-
 function fitImageSize(jImage, i_maxWidth, i_maxHeight, f_onload) {
 	if (arguments.length < 4 || f_onload === undefined || f_onload === null)
 		f_onload = null;

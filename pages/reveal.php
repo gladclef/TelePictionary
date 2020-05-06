@@ -1,4 +1,10 @@
-<div class="content" id="reveal" style="display: none;">
+<?php
+
+global $o_globalPlayer;
+global $o_globalGame;
+$o_globalGame = $o_globalPlayer->getGame();
+
+?><div class="content" id="reveal" style="display: none;">
 	<script type="text/javascript">
 		reveal = {
 			i_cardWidth: 700,
@@ -49,6 +55,9 @@
 				var jNextStory = jPlayer1Controls.find("input.nextStory");
 				jNextStory.val("Start " + o_story.nextStory);
 				reveal.updatePlayer1Controls();
+
+				// update the rate game controls
+				reveal.updateRateGameControls();
 			},
 
 			getCardId: function(i_playerId) {
@@ -403,12 +412,35 @@
 				if (arguments.length < 3 || b_isGesture === undefined || b_isGesture === null)
 					b_isGesture = false;
 				var jHidyBar = $("#revealHidyBar");
+				var jLeaveGame = $("#reveal").find(".leaveGame");
 
 				// some aesthetic stuff
 				if (i_scrollAmount > 12) {
 					jHidyBar.css({ 'border-bottom-color': '#5555FF' });
 				} else {
 					jHidyBar.css({ 'border-bottom-color': '#8888FF' });
+				}
+				if (jLeaveGame.attr('finalPos') === undefined)
+					jLeaveGame.attr('finalPos', parseInt(jLeaveGame.css('left')));
+				if (i_scrollAmount < 100) {
+					if (jLeaveGame.hasClass('hiding')) {
+						jLeaveGame.removeClass('hiding');
+						jLeaveGame.show();
+						jLeaveGame.css({ 'left': -(jLeaveGame.fullWidth(true, false, true)) + 'px' });
+						jLeaveGame.finish().animate({
+							'left': parseInt(jLeaveGame.attr('finalPos')) + 'px'
+						}, 200, 'spring');
+					}
+				} else {
+					if (!jLeaveGame.hasClass('hiding')) {
+						jLeaveGame.addClass('hiding');
+						jLeaveGame.css({ 'left': parseInt(jLeaveGame.attr('finalPos')) + 'px' });
+						jLeaveGame.finish().animate({
+							'left': -(jLeaveGame.fullWidth(true, false, true)) + 'px'
+						}, 200, 'swing', function() {
+							jLeaveGame.hide();
+						});
+					}
 				}
 
 				// indicate who is active
@@ -505,7 +537,42 @@
 				});
 			},
 
+			updateRateGameControls: function() {
+				var jRateGame = $("#revealRateGame");
+				jRateGame.hide();
+
+				if (playerFuncs.allPlayersReady()) {
+					var b_lastStory = (reveal.o_cachedStory.nextStory == "");
+					if (b_lastStory) {
+						// animate the showing of the rate game
+						if (!jRateGame.hasClass('showing')) {
+							jRateGame.addClass('showing');
+							if (jRateGame.attr('finalPos') === undefined) {
+								jRateGame.attr('finalPos', parseInt(jRateGame.css('right')));
+							}
+
+							jRateGame.hide();
+							setTimeout(function() {
+								jRateGame.show();
+								jRateGame.css({
+									'right': -(jRateGame.width() + jRateGame.paddingLeft()) + 'px'
+								});
+								jRateGame.finish().animate({
+									'right': parseInt(jRateGame.attr('finalPos'))
+								}, 400, 'spring');
+							}, 10000);
+						}
+					}
+				} else {
+					jRateGame.removeClass('showing');
+				}
+			},
+
 			controlNextStoryClick: function() {
+				// Causes the server to push an event with the updated game, story, players, and cards.
+				// We pass the new turn value, rather than just "setNextSharingTurn", so that we don't
+				// accidentally progress multiple turns in the case that the next story button is
+				// clicked multiple times.
 				outgoingMessenger.pushData({
 					command: 'setSharingTurn',
 					turn: (game.o_cachedGame.currentTurn - playerFuncs.playerCount() + 1)
@@ -587,6 +654,16 @@
 		</div>
 	</div>
 	<div class="leaveGame"><div>&#x2B05;</div></div>
+	<div id="revealRateGame">
+		<span>Did you enjoy this game?</span>
+		<div class="thumbsContainer"
+			 ><input type="button" value="&#x1f44d;" onclick="reveal.rateGame('good');" style="padding-top:3px; left:0;"
+			/><input type="button" value="&#x1f44e;" onclick="reveal.rateGame('bad');" style="padding-bottom:3px; left:41px;"
+		/></div>
+		<div class="afterRating">
+			Thanks! Feel free to <a href="downloadGame.php?<?php echo 'playerId='.$o_globalPlayer->getId().'&roomCode='.$o_globalGame->getRoomCode(); ?>" target="_blank">download this game</a> and <a href="feedback.php" target="_blank">provide feedback</a>!
+		</div>
+	</div>
 	<div id="revealOverlay" style="display: none;" onclick="$(this).hide();">
 		<img class="card0 currentImage centered" />
 		<div class="card1 currentText centered"></div>
