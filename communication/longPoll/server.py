@@ -171,14 +171,6 @@ class Room():
 
 # Multithreaded Python server : TCP Server Socket Thread Pool
 class ClientThread(Thread):
-    conn = None
-    ip = "127.0.0.1"
-    port = 0
-    b_abort = False
-    s_roomCode = ""
-    a_latestEvents = []
-    t_createTime = None
-    l_abortLock = None
  
     def __init__(self, conn, ip, port):
         Thread.__init__(self)
@@ -424,12 +416,9 @@ class ClientThread(Thread):
         self.removeMe()
 
 class ClientKiller():
-    a_clients = []
-    t_tickTime = None
-    o_clientKillerNext = None
-    l_clientLock = None
 
     def __init__(self, o_clientKillerNext = None):
+        self.a_clients = []
         self.t_tickTime = datetime.now()
         self.o_clientKillerNext = o_clientKillerNext
         self.l_clientLock = threading.Lock()
