@@ -153,15 +153,17 @@ class ajax {
 
             // respond to this client
             $a_commands = array();
-
+            
             // Don't try to pull from the server during the time it takes to fully redraw the game board,
             // and while waiting for other players to join the game.
             array_push(   $a_commands, new command("noPoll", 2)   );
             // don't execute any events later than the ones already pushed
             array_push(   $a_commands, new command("setLatestEvents", _ajax::getLatestEvents($o_newGame->getRoomCode()))   );
+            // show the game
+            array_push(   $a_commands, new command("showContent", "game")  );
+
             // clear all existing players in preperation for the new incoming players
             array_push(   $a_commands, new command("clearPlayers", "dontClearLocal")   );
-            
             // Push players, then the game, then the players again.
             // We do this because correctly setting up both requires knowledge of the other.
             foreach ($o_newGame->getPlayers() as $i => $o_player) {
@@ -172,9 +174,6 @@ class ajax {
                 array_push(   $a_commands, _ajax::getUpdatePlayerEvent($o_player)   );
             }
             array_push(   $a_commands, new command( "setLocalPlayer", $o_globalPlayer->getId() )   );
-
-            // show the game
-            array_push(   $a_commands, new command("showContent", "game")  );
             array_push(   $a_commands, new command( "setPlayer1", $o_newGame->getPlayer1Id() )   );
 
             return new command("composite", $a_commands);
