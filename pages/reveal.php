@@ -60,6 +60,20 @@ $o_globalGame = $o_globalPlayer->getGame();
 				reveal.updateRateGameControls();
 			},
 
+			updateGame: function(o_game) {
+				var o_player = playerFuncs.getPlayer();
+				var s_ratingLinksGetVars = 'playerId=' + o_player.id + '&roomCode=' + o_game.roomCode;
+				var jRateGame = $("#revealRateGame");
+				var jRatingLinks = jRateGame.find("a");
+
+				$.each(jRatingLinks, function(k, h_link) {
+					var jLink = $(h_link);
+					if (jLink.attr('href_original') === undefined)
+						jLink.attr('href_original', jLink.attr('href'));
+					jLink.attr('href', jLink.attr('href_original') + s_ratingLinksGetVars);
+				});
+			},
+
 			getCardId: function(i_playerId) {
 				if (reveal.o_cachedStory === null || reveal.a_cachedPlayerIdToCardId === null)
 					return -1;
@@ -547,20 +561,40 @@ $o_globalGame = $o_globalPlayer->getGame();
 						// animate the showing of the rate game
 						if (!jRateGame.hasClass('showing')) {
 							jRateGame.addClass('showing');
-							if (jRateGame.attr('finalPos') === undefined) {
-								jRateGame.attr('finalPos', parseInt(jRateGame.css('right')));
-							}
-
 							jRateGame.hide();
-							setTimeout(function() {
-								jRateGame.show();
-								jRateGame.css({
-									'right': -(jRateGame.width() + jRateGame.paddingLeft()) + 'px'
-								});
-								jRateGame.finish().animate({
-									'right': parseInt(jRateGame.attr('finalPos'))
-								}, 400, 'spring');
-							}, 10000);
+
+							var f_showRateGame = function() {
+								var f_actuallyShow = function() {
+									jRateGame.show();
+									jRateGame.css({
+										'right': -(jRateGame.width() + jRateGame.paddingLeft()) + 'px'
+									});
+									jRateGame.finish().animate({
+										'right': parseInt(jRateGame.attr('finalPos'))
+									}, 400, 'spring');
+								};
+
+								var d_timeSinceLoad = Date.timeSinceLoad();
+								if (d_timeSinceLoad < 2000) {
+									// If we've loaded reloaded the page after the end of the game, then just it.
+									f_actuallyShow();
+								} else {
+									// Wait for some time (10s) after the last card is revealed before showing
+									// the rating window.
+									setTimeout(f_actuallyShow, 10000);
+								}
+							};
+
+							if (jRateGame.attr('finalPos') === undefined) {
+								// We're having trouble showing the rating window. Maybe need to wait for the
+								// css 'right' property to be set.
+								setTimeout(function() {
+									jRateGame.attr('finalPos', parseInt(jRateGame.css('right')));	
+									f_showRateGame();
+								}, 2000);
+							} else {
+								f_showRateGame();
+							}
 						}
 					}
 				} else {
@@ -674,11 +708,9 @@ $o_globalGame = $o_globalPlayer->getGame();
 			/><input type="button" value="&#x1f44e;" onclick="reveal.controlRateGameClick('bad');" style="padding-bottom:3px; left:41px;"
 		/></div>
 		<div class="afterRating">
-			<?php
-			$s_ratingGetVars = 'playerId='.$o_globalPlayer->getId().'&roomCode='.$o_globalGame->getRoomCode();
-			?>
-			Thanks! Feel free to <a href="downloadGame.php?<?php echo $s_ratingGetVars; ?>" target="_blank">download this game</a> and <a href="feedback.php?<?php echo $s_ratingGetVars; ?>" target="_blank">provide feedback</a>!
+			Thanks!
 		</div>
+		<span>Feel free to <a href="downloadGame.php?" target="_blank">download this game</a> and <a href="feedback.php?" target="_blank">provide feedback</a>!</span>
 	</div>
 	<div id="revealOverlay" style="display: none;" onclick="$(this).hide();">
 		<img class="card0 currentImage centered" />

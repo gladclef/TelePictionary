@@ -186,3 +186,8 @@ Array.prototype.enqueue = function(value) {
 Array.prototype.dequeue = function() {
     return this.popFront();
 }
+
+if (Date.loadTime === undefined) Date.loadTime = Date.now();
+Date.timeSinceLoad = function() {
+    return Date.now() - Date.loadTime;
+}

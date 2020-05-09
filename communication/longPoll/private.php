@@ -7,12 +7,97 @@ require_once(dirname(__FILE__) . "/../../objects/command.php");
 require_once(dirname(__FILE__) . "/../../objects/game.php");
 
 class _ajax {
+    function serverWrite($socket, $s_command, $o_arguments = null) {
+        $s_msg = "";
+
+        if ($o_arguments != null) {
+            $s_encoded = json_encode($o_arguments);
+            $s_msg = "{$s_command} {$s_encoded}\n";
+        } else {
+            $s_msg = "{$s_command}\n";
+        }
+
+        $s_msg = str_pad("".strlen($s_msg), 10) . $s_msg;
+        socket_write($socket, $s_msg);
+    }
+
+    function serverRead($socket, $o_default = NULL) {
+        socket_set_option($socket,SOL_SOCKET, SO_RCVTIMEO, array("sec"=>0, "usec"=>10000));
+
+        $sbo_ret = false;
+        $i_count = 10 * 100; // 10 seconds, with 100 timeouts per second
+        while ($i_count > 0) {
+            $sbo_ret = socket_read($socket, 10);
+            if ($sbo_ret === "")
+                $sbo_ret = "";
+            if ($sbo_ret !== false)
+            {
+                $s_originalChars = $sbo_ret;
+                socket_set_option($socket,SOL_SOCKET, SO_RCVTIMEO, array("sec"=>1, "usec"=>0));
+
+                // read until we've read the incoming length
+                $s_len = $sbo_ret;
+                $s_part = "";
+                while (strlen($s_len) < 10) {
+                    $s_part = socket_read($socket, 10 - strlen($s_len));
+                    if ($s_part !== false && strlen($s_part) > 0) {
+                        $s_len .= $s_part;
+                    } else {
+                        // error_log("received part of a message " . $s_len . " (s_originalChars \"" . $s_originalChars . "\")");
+                        $s_len = false;
+                        $sbo_ret = false;
+                        break;
+                    }
+                }
+                if ($s_len === false)
+                    break;
+                $i_retlen = intval(substr($s_len, 0, 10));
+                $sbo_ret = (strlen($s_len) <= 10) ? "" : substr($s_len, 10);
+
+                // read the rest of the message
+                $s_msg = "";
+                $s_part = "";
+                while ($s_msg !== false && strlen($s_msg) < $i_retlen)
+                {
+                    $s_part = socket_read($socket, $i_retlen - strlen($s_msg));
+                    if ($s_part !== false)
+                        $s_msg .= $s_part;
+                    else
+                        $s_msg = false;
+                }
+                if ($s_msg !== false)
+                    $sbo_ret = "" . $sbo_ret . $s_msg;
+                else
+                    $sbo_ret = false;
+
+                // done receiving, return event
+                if (is_string($sbo_ret))
+                {
+                    $o_response = json_decode($sbo_ret);
+                    return $o_response;
+                }
+                else if ($o_default !== NULL)
+                {
+                    error_log("Didn't get response from server, returning default value \"{$o_default}\"");
+                    return $o_default;
+                }
+                else
+                {
+                    return $sbo_ret;
+                }
+            }
+            $i_count--;
+        }
+
+        return $sbo_ret;
+    }
+
     /**
      * o_commands should be a command type object (has properties "command" and "action")
      * s_roomCode should either be a 4-letter room code or null (will attempt to grab the room code from the o_globalPlayer's current game)
      * b_showError determines if an error gets logged/returned if either the room code can't be found or the event can't be pushed to the python server
      */
-    function pushEvent($o_command, $s_roomCode = null, $b_showError = true) {
+    function pushEvent($o_command, $s_roomCode = null, $b_showError = true, $b_waitForPropogation = false) {
         global $maindb;
         global $o_globalPlayer;
         
@@ -40,13 +125,35 @@ class _ajax {
         $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
         if(is_resource($socket)) {
             if (socket_connect($socket, "127.0.0.1", 23456)) {
-                $s_encoded = json_encode(array(
+
+                // get the list of current events
+                $a_startingEvents = array();
+                if ($b_waitForPropogation) {
+                    $a_startingEvents = self::getLatestEvents($s_roomCode, $socket);
+                }
+
+                // send the new event
+                self::serverWrite($socket, "push", array(
                     "event" => $o_command,
                     "roomCode" => $s_roomCode
                 ));
-                $s_encoded = "push " . $s_encoded . "\n";
-                $s_encoded = str_pad("".strlen($s_encoded), 10) . $s_encoded;
-                socket_write($socket, $s_encoded);
+                $sbo_response = self::serverRead($socket);
+                error_log($sbo_response);
+
+                // wait for this event to finish propogating
+                $a_newEvents = array();
+                if ($b_waitForPropogation) {
+                    while (TRUE) {
+                        $a_newEvents = _ajax::getLatestEvents($o_newGame->getRoomCode(), $socket);
+                        if (count($a_newEvents) > count($a_startingEvents))
+                            break;
+                        if ($a_newEvents[count($a_newEvents)-1] != $a_startingEvents[count($a_startingEvents)-1])
+                            break;
+                    }
+                }
+
+                // disconnect
+                self::serverWrite($socket, "disconnect");
             } else {
                 $s_msg = "Failed to connect to 127.0.0.1:23456 to propogate message";
                 error_log($s_msg);
@@ -117,96 +224,33 @@ class _ajax {
         return true;
     }
 
-    function getLatestEvents($s_roomCode) {
+    function getLatestEvents($s_roomCode, $socket = null) {
         // send the update event
-        $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
-        if(is_resource($socket)) {
-            if (socket_connect($socket, "127.0.0.1", 23456)) {
-                $s_encoded = json_encode(array(
-                    "roomCode" => $s_roomCode
-                ));
-                $s_encoded = "getLatestEvents " . $s_encoded . "\n";
-                $s_encoded = str_pad("".strlen($s_encoded), 10) . $s_encoded;
-                socket_write($socket, $s_encoded);
-                
-                $sbo_ret = _ajax::getResponse($socket);
-                if (is_string($sbo_ret))
-                {
-                    $sbo_ret = json_decode($sbo_ret);
-                    return $sbo_ret;
-                }
-                else
-                {
-                    return array();
+        if ($socket !== null) {
+            self::serverWrite($socket, "getLatestEvents", array(
+                "roomCode" => $s_roomCode
+            ));
+            $a_response = _ajax::serverRead($socket, array());
+
+            return $a_response;
+        } else {
+            $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
+            if(is_resource($socket)) {
+                if (socket_connect($socket, "127.0.0.1", 23456)) {
+                    $a_ret = self::getLatestEvents($s_roomCode, $socket);
+                    self::serverWrite($socket, "disconnect");
+                    return $a_ret;
+                } else {
+                    $s_msg = "Failed to connect to 127.0.0.1:23456 to get latest events";
+                    error_log($s_msg);
+                    return $s_msg;
                 }
             } else {
-                $s_msg = "Failed to connect to 127.0.0.1:23456 to propogate message";
+                $s_msg = "Failed to create socket to get latest events";
                 error_log($s_msg);
-                return $s_msg;
+                    return $s_msg;
             }
-        } else {
-            $s_msg = "Failed to create socket to propogate message";
-            error_log($s_msg);
-                return $s_msg;
         }
-    }
-
-    function getResponse($socket) {
-        socket_set_option($socket,SOL_SOCKET, SO_RCVTIMEO, array("sec"=>0, "usec"=>10000));
-
-        $sbo_ret = false;
-        $i_count = 10 * 100; // 10 seconds, with 100 timeouts per second
-        while ($i_count > 0) {
-            $sbo_ret = socket_read($socket, 10);
-            if ($sbo_ret === "")
-                $sbo_ret = "";
-            if ($sbo_ret !== false)
-            {
-                $s_originalChars = $sbo_ret;
-                socket_set_option($socket,SOL_SOCKET, SO_RCVTIMEO, array("sec"=>1, "usec"=>0));
-
-                // read until we've read the incoming length
-                $s_len = $sbo_ret;
-                $s_part = "";
-                while (strlen($s_len) < 10) {
-                    $s_part = socket_read($socket, 10 - strlen($s_len));
-                    if ($s_part !== false && strlen($s_part) > 0) {
-                        $s_len .= $s_part;
-                    } else {
-                        // error_log("received part of a message " . $s_len . " (s_originalChars \"" . $s_originalChars . "\")");
-                        $s_len = false;
-                        $sbo_ret = false;
-                        break;
-                    }
-                }
-                if ($s_len === false)
-                    break;
-                $i_retlen = intval(substr($s_len, 0, 10));
-                $sbo_ret = (strlen($s_len) <= 10) ? "" : substr($s_len, 10);
-
-                // read the rest of the message
-                $s_msg = "";
-                $s_part = "";
-                while ($s_msg !== false && strlen($s_msg) < $i_retlen)
-                {
-                    $s_part = socket_read($socket, $i_retlen - strlen($s_msg));
-                    if ($s_part !== false)
-                        $s_msg .= $s_part;
-                    else
-                        $s_msg = false;
-                }
-                if ($s_msg !== false)
-                    $sbo_ret = "" . $sbo_ret . $s_msg;
-                else
-                    $sbo_ret = false;
-
-                // done receiving, return event
-                break;
-            }
-            $i_count--;
-        }
-
-        return $sbo_ret;
     }
 
     function rotateIphonePhotos($imageFile) {

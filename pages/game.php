@@ -74,8 +74,8 @@ $o_globalGame = $o_globalPlayer->getGame();
 					sPlayerToken = $("#gamePlayerTokenTemplate").html().replaceAll("__playerId__", o_player.id);
 					jPlayerToken = $(sPlayerToken);
 					jPlayersCircle.append(jPlayerToken);
-					game.setPlayerTokenPosition(o_player.id, jPlayersCircle.find(".playerToken").length-1);
 				}
+				game.setPlayerTokenPosition(o_player.id, game.getPlayerOrderIndex(o_player));
 				var jPlayerImgPlaceholder = jPlayerToken.find(".playerImagePlaceholder");
 				var jPlayerImage = jPlayerToken.find(".playerImage");
 				var jPlayerImg = jPlayerToken.find(".playerImage");
@@ -176,7 +176,7 @@ $o_globalGame = $o_globalPlayer->getGame();
 					var jPlayerToken = $(playerToken);
 					var i_position = parseInt(jPlayerToken.attr("position"));
 					
-					var radians = 2*Math.PI*(i_position / jaPlayerTokens.length);
+					var radians = 2*Math.PI*(i_position / playerFuncs.playerCount());
 					var x0 = ( Math.sin(radians) + 1 ) / 2;
 					var y0 = ( Math.cos(radians + Math.PI) + 1 ) / 2;
 					var x = x0 * ( canvasWidth - tokenWidth ) + padding;
@@ -187,6 +187,12 @@ $o_globalGame = $o_globalPlayer->getGame();
 						top: y + "px"
 					});
 				});
+			},
+
+			getPlayerOrderIndex: function(o_player) {
+				if (game.o_cachedGame === null)
+					return 0;
+				return game.o_cachedGame.playerOrder.indexOf(o_player.id);
 			},
 
 			setPlayer1: function(i_id) {
@@ -866,8 +872,8 @@ $o_globalGame = $o_globalPlayer->getGame();
 	<div id="gamePlayer1Control" class="centered" style="width: 700px; display: none;">
 		<div class="centered" gameControl="start">
 			<select class="startCard" onchange="game.controlStartCardChange(this);">
-				<option value="0" <?php echo ($o_globalGame->getCardStartType() == 0) ? 'selected' : '' ?>>Start with Drawing</option>
-				<option value="1" <?php echo ($o_globalGame->getCardStartType() == 1) ? 'selected' : '' ?>>Start with Sentence</option>
+				<option value="0" <?php echo ($o_globalGame != null && $o_globalGame->getCardStartType() == 0) ? 'selected' : '' ?>>Start with Drawing</option>
+				<option value="1" <?php echo ($o_globalGame != null && $o_globalGame->getCardStartType() == 1) ? 'selected' : '' ?>>Start with Sentence</option>
 			</select>
 			<br class="startGameBreak" />
 			<input type="button" class="startGame" value="Start Game" onclick="game.controlStartClick();" style="display:none;" />

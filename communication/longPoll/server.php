@@ -69,13 +69,14 @@ class ajax {
         $o_game->save();
 
         // have all the players from the old game join the new game
+        $a_commands = array();
+        array_push( $a_commands, new command("clearPlayers", "dontClearLocal") );
+        array_push( $a_commands, new command("joinGame", $o_game->toJsonObj()) );
+        $o_command = new command("composite", $a_commands);
         if ($b_old)
         {
             // push events to all the listening players
-            $a_commands = array();
-            array_push( $a_commands, new command("clearPlayers", "") );
-            array_push( $a_commands, new command("joinGame", $o_game->toJsonObj()) );
-            return _ajax::pushEvent(new command("composite", $a_commands), $o_oldGame->getRoomCode());
+            return _ajax::pushEvent($o_command, $o_oldGame->getRoomCode());
 
             // Don't need to save the player state.
             // That will happen when the local clients tell us that they have joined
@@ -84,9 +85,10 @@ class ajax {
         else
         {
             // have the player join the game
-            return new command("joinGame", $o_game->toJsonObj());
+            return $o_command;
         }
 
+        error_log("programmer error, should not be able to reach this code");
         return new command("success", "");
     }
 
@@ -124,43 +126,64 @@ class ajax {
             }
         }
 
-        // lock and reload the game
+        // Lock and reload the game.
+        // We lock the game so that only one client can join the game at a time and we don't end up with a weird game state
+        // due to latency between loading the game from MySQL and updating the game row with the new player id in MySQL.
         if (!$o_newGame->lock()) {
             return new command("showError", "Failed to join game. Ran out of time while waiting for access to the game object.");
         }
+        try
+        {
+            // join the game
+            if (!$b_isSameGame) {
+                $o_globalPlayer->joinGame($o_newGame);
+            }
+            $o_globalPlayer->save();
+            $o_newGame->save();
 
-        // join the game
-        if (!$b_isSameGame) {
-            $o_globalPlayer->joinGame($o_newGame);
+            // Push this event to other clients already in the game.
+            // Push players, then the game, then the players again.
+            // We do this because correctly setting up both requires knowledge of the other.
+            $o_command = new command("composite", array(
+                _ajax::getUpdatePlayerEvent($o_globalPlayer),
+                _ajax::getUpdateGameEvent($o_newGame),
+                _ajax::getUpdatePlayerEvent($o_globalPlayer) // updating the 
+            ));
+            _ajax::pushEvent($o_command, $s_newRoomCode);
+
+            // respond to this client
+            $a_commands = array();
+
+            // Don't try to pull from the server during the time it takes to fully redraw the game board,
+            // and while waiting for other players to join the game.
+            array_push(   $a_commands, new command("noPoll", 2)   );
+            // don't execute any events later than the ones already pushed
+            array_push(   $a_commands, new command("setLatestEvents", _ajax::getLatestEvents($o_newGame->getRoomCode()))   );
+            // clear all existing players in preperation for the new incoming players
+            array_push(   $a_commands, new command("clearPlayers", "dontClearLocal")   );
+            
+            // Push players, then the game, then the players again.
+            // We do this because correctly setting up both requires knowledge of the other.
+            foreach ($o_newGame->getPlayers() as $i => $o_player) {
+                array_push(   $a_commands, _ajax::getUpdatePlayerEvent($o_player)   );
+            }
+            array_push(   $a_commands, new command("updateGame", $o_newGame->toJsonObj())   );
+            foreach ($o_newGame->getPlayers() as $i => $o_player) {
+                array_push(   $a_commands, _ajax::getUpdatePlayerEvent($o_player)   );
+            }
+            array_push(   $a_commands, new command( "setLocalPlayer", $o_globalPlayer->getId() )   );
+
+            // show the game
+            array_push(   $a_commands, new command("showContent", "game")  );
+            array_push(   $a_commands, new command( "setPlayer1", $o_newGame->getPlayer1Id() )   );
+
+            return new command("composite", $a_commands);
         }
-        $o_globalPlayer->save();
-        $o_newGame->save();
-
-        // get ready push this event to other clients already in the game
-        $o_command = new command("composite", array(
-            _ajax::getUpdatePlayerEvent($o_globalPlayer),
-            _ajax::getUpdateGameEvent($o_newGame)
-        ));
-        _ajax::pushEvent($o_command, $s_newRoomCode);
-
-        // respond to this client
-        $a_commands = array(
-            new command("noPoll", 2), // don't try to pull from the server during the time it takes to fully redraw the game board, and while waiting for other players to join the game
-            new command("setLatestEvents", _ajax::getLatestEvents($o_newGame->getRoomCode())),
-            new command("clearPlayers", ""),
-            new command("updateGame", $o_newGame->toJsonObj()),
-            new command("showContent", "game"),
-        );
-        foreach ($o_newGame->getPlayers() as $i => $o_player) {
-            array_push(   $a_commands, _ajax::getUpdatePlayerEvent($o_player)   );
+        finally
+        {
+            // unlock the game
+            $o_newGame->unlock();
         }
-        array_push(   $a_commands, new command( "setLocalPlayer", $o_globalPlayer->getId() )   );
-        array_push(   $a_commands, new command( "setPlayer1", $o_newGame->getPlayer1Id() )   );
-
-        // unlock the game
-        $o_newGame->unlock();
-
-        return new command("composite", $a_commands);
     }
 
     function leaveGame() {
@@ -192,7 +215,8 @@ class ajax {
 
         // push the changes to the game to other clients
         array_push($a_commands, _ajax::getUpdateGameEvent($o_game));
-        _ajax::pushEvent(new command("composite", $a_commands), $o_game->getRoomCode());
+        $o_removeCmd = new command("composite", $a_commands);
+        _ajax::pushEvent($o_removeCmd, $o_game->getRoomCode());
 
         // respond to this client
         if ($i_id == $i_globalId) {
@@ -560,17 +584,13 @@ class ajax {
         $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
         if(is_resource($socket)) {
             if (socket_connect($socket, "127.0.0.1", 23456)) {
-                $s_encoded = json_encode(array(
+                _ajax::serverWrite($socket, "subscribe", array(
                     "latestEvents" => $a_latestEvents,
                     "roomCode" => $o_game->getRoomCode()
                 ));
-                $s_encoded = "subscribe " . $s_encoded . "\n";
-                $s_encoded = str_pad("".strlen($s_encoded), 10) . $s_encoded;
-                socket_write($socket, $s_encoded);
-                $sbo_ret = _ajax::getResponse($socket);
-                $s_encoded = "disconnect\n";
-                $s_encoded = str_pad("".strlen($s_encoded), 10) . $s_encoded;
-                socket_write($socket, $s_encoded);
+                $sbo_ret = _ajax::serverRead($socket);
+
+                _ajax::serverWrite($socket, "disconnect");
 
                 if (is_bool($sbo_ret))
                 {

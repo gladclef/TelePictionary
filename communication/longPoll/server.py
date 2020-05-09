@@ -14,14 +14,7 @@ TCP_PORT = 23456
 CLIENT_LIFETIME = 10 # each client connection lives for 10 seconds
 
 class Room():
-    s_roomCode = ""
-    a_clients = []
-    a_events = []
-    t_changeTime = None
-    l_eventLock = None
-    l_clientLock = None
-    l_timeLock = None
-    i_nextEventId = -1
+    l_roomLock = threading.Lock()
 
     def __init__(self, s_roomCode):
         self.s_roomCode = s_roomCode
@@ -32,6 +25,19 @@ class Room():
         self.l_clientLock = threading.Lock()
         self.l_timeLock = threading.Lock()
         self.i_nextEventId = -1
+
+    @staticmethod
+    def getRoom(s_roomCode, b_createIfNotExisting):
+        with Room.l_roomLock:
+            if not (s_roomCode in a_rooms):
+                if (b_createIfNotExisting):
+                    room = Room(s_roomCode)
+                    a_rooms[s_roomCode] = room
+                    return room
+                else:
+                    return None
+            else:
+                return a_rooms[s_roomCode]
 
     def checkTimeKill(self):
         if (self.s_roomCode == ""):
@@ -49,12 +55,29 @@ class Room():
 
     def checkTimeKillAll(self):
         roomsToRemove = []
-        for s_roomCode in a_rooms:
-            room = a_rooms[s_roomCode]
-            if (room.checkTimeKill()):
-                roomsToRemove.append(s_roomCode)
-        for s_roomCode in roomsToRemove:
-            del a_rooms[s_roomCode]
+
+        # create a copy of the a_rooms list to limit the scope of the thread lock
+        a_roomsCopy = {}
+        with Room.l_roomLock:
+            for s_roomCode in a_rooms:
+                a_roomsCopy[s_roomCode] = a_rooms[s_roomCode]
+
+        # look for instances of rooms that need to be removed
+        for s_roomCode in a_roomsCopy:
+            try:
+                room = a_roomsCopy[s_roomCode]
+                if (room.checkTimeKill()):
+                    roomsToRemove.append(s_roomCode)
+            except Exception as e:
+                pass # here in case the room disappears between the copy phase and now
+
+        # remove those instances
+        with Room.l_roomLock:
+            try:
+                for s_roomCode in roomsToRemove:
+                    del a_rooms[s_roomCode]
+            except Exception as e:
+                pass # here in case the room disappears between the copy phase and now
 
     def getClientsListCopy(self):
         with self.l_timeLock:
@@ -96,6 +119,9 @@ class Room():
             for i in range(len(self.a_events)):
                 event = self.a_events[i]
                 a_ids.append(event['i_id'])
+                if (isinstance(a_ids, bool)):
+                    print("a_ids is bool after appending " + str(event['i_id']) + "/" + str(event))
+                    break
         return a_ids
 
     def getMissingEvent(self, a_events):
@@ -169,15 +195,19 @@ class ClientThread(Thread):
         print "[+] New client socket thread started for " + ip + ":" + str(port)
 
     def __del__(self):
-        self.tryRemove()
-        #print("[-] Client connection closed")
+        try:
+            self.tryRemove()
+            #print("[-] Client connection closed")
+        finally:
+            if (self.conn != None):
+                self.conn.close()
+                self.conn = None
 
     def removeMe(self):
         with self.l_abortLock:
             self.b_abort = True
         self.tryRemove()
         o_clientKiller1.appendClient(self)
-        self.conn.close()
         if (self in a_threads):
             a_threads.remove(self)
 
@@ -187,7 +217,9 @@ class ClientThread(Thread):
                 return
             s_roomCode = self.s_roomCode;
         try:
-            a_rooms[s_roomCode].removeClient(self)
+            room = Room.getRoom(s_roomCode, False)
+            if (room != None):
+                room.removeClient(self)
             if (s_roomCode == self.s_roomCode):
                 self.s_roomCode = None
         except Exception as e:
@@ -198,7 +230,7 @@ class ClientThread(Thread):
         if (s_roomCode != self.s_roomCode):
             # print(">>>>>>>>>>>>>>>>>>>")
             self.tryRemove(s_roomCode)
-            room = a_rooms[self.s_roomCode]
+            room = Room.getRoom(self.s_roomCode, True)
             if not room.hasClient(self):
                 room.appendClient(self)
 
@@ -211,11 +243,14 @@ class ClientThread(Thread):
     def checkTimeKillAll(self, s_roomCode, i_timeoutSecs):
         # find the clients that need to be removed
         a_roomClients = []
-        for client in a_rooms[s_roomCode].getClientsListCopy():
-            client.checkTimeKill(s_roomCode, i_timeoutSecs)
+        o_roomLocal = Room.getRoom(s_roomCode, False)
+        o_roomGlobal = Room.getRoom("", True)
+        if (o_roomLocal != None):
+            for client in o_roomLocal.getClientsListCopy():
+                client.checkTimeKill(s_roomCode, i_timeoutSecs)
 
         # run a similar check to see if the room needs to be killed
-        a_rooms[""].checkTimeKillAll()
+        o_roomGlobal.checkTimeKillAll()
 
     def checkConn(self):
         try:
@@ -290,18 +325,13 @@ class ClientThread(Thread):
             return False
 
     def getLatestEvents(self):
-        room = a_rooms[self.s_roomCode]
+        room = Room.getRoom(self.s_roomCode, True)
         a_latestEvents = room.getLatestEvents()
         b_ret = self.trySend(a_latestEvents)
-        if (b_ret):
-            # successfully sent a message, so we know PHP client has disconnected and
-            # is no longer listening remove this instance
-            with self.l_abortLock:
-                self.b_abort = True
         return b_ret
 
     def checkLatestEvents(self):
-        room = a_rooms[self.s_roomCode]
+        room = Room.getRoom(self.s_roomCode, True)
 
         # check for events that I am missing
         missingEvent = room.getMissingEvent(self.a_latestEvents)
@@ -327,17 +357,16 @@ class ClientThread(Thread):
 
     def setRoomCode(self, s_roomCode):
         self.s_roomCode = s_roomCode
-        if not (self.s_roomCode in a_rooms):
-            a_rooms[self.s_roomCode] = Room(self.s_roomCode)
-        room = a_rooms[self.s_roomCode]
+        room = Room.getRoom(self.s_roomCode, True)
         self.checkTimeKillAll(self.s_roomCode, CLIENT_LIFETIME)
         room.appendClient(self)
+        return room
  
     def updateLatestEventIds(self, a_latestEventIds):
         self.a_latestEvents = a_latestEventIds
         if (len(self.a_latestEvents) > 0):
             eventId = max(self.a_latestEvents)
-            room = a_rooms[self.s_roomCode]
+            room = Room.getRoom(self.s_roomCode, True)
             room.updateLatestEventId(eventId)
 
     def run(self):
@@ -377,11 +406,12 @@ class ClientThread(Thread):
                 
                 elif (s_data.startswith("push ")):
                     a_data = json.loads(s_data[len("push "):])
-                    self.setRoomCode(a_data['roomCode'])
-                    room = a_rooms[self.s_roomCode]
+                    room = self.setRoomCode(a_data['roomCode'])
                     o_newEvent = room.appendEvent(a_data['event'])
-                    for client in room.getClientsListCopy():
+                    a_clients = room.getClientsListCopy();
+                    for client in a_clients:
                         client.pushEvent(o_newEvent)
+                    self.trySend(str(len(a_clients)));
             else:
                 time.sleep(0.1)
             
@@ -461,9 +491,9 @@ while True:
         try:
             conn.setblocking(CLIENT_LIFETIME)
             newthread = ClientThread(conn,ip,port)
+            Room.getRoom("", True).appendClient(newthread)
             newthread.start()
             newthread.checkTimeKillAll("", CLIENT_LIFETIME)
-            a_rooms[""].a_clients.append(newthread)
             print("thread count: " + str(len(a_threads)))
             a_threads.append(newthread)
         except Exception as e:

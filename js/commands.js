@@ -94,10 +94,12 @@ commands.showContent = function(s_content)
  *                A P P L I C A T I O N   C O M M A N D S                     *
  *****************************************************************************/
 
-commands.clearPlayers = function()
+commands.clearPlayers = function(s_action)
 {
 	$.each(players.players, function(k, o_player) {
-		commands.removePlayer(o_player);
+		if (s_action !== "dontClearLocal" || !playerFuncs.isLocalPlayer(o_player.id)) {
+			commands.removePlayer(o_player);
+		}
 	});
 }
 
@@ -122,6 +124,7 @@ commands.setPlayer1 = function(i_id)
 commands.updateGame = function(o_game)
 {
 	game.updateGame(o_game);
+	reveal.updateGame(o_game);
 }
 
 commands.joinGame = function(o_game)
