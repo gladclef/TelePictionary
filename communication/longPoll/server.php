@@ -278,12 +278,13 @@ class ajax {
         }
 
         // update the game
-        if ($o_game->setCurrentTurn($i_turn + $o_game->getPlayerCount()))
-        {
+        if ($o_game->setCurrentTurn($i_turn + $o_game->getPlayerCount())) {
             $o_game->save();
 
             // push the changes to the game to other clients
             array_push($a_commands, _ajax::getUpdateGameEvent($o_game));
+        } else {
+            return new command("showError", "Failed to update game sharing state");
         }
 
         // update the players
@@ -294,9 +295,7 @@ class ajax {
         }
 
         // push the story
-        $a_playerIds = $o_game->getPlayerIds();
-        $o_player = player::loadById($a_playerIds[$i_turn]);
-        $o_story = $o_player->getStory();
+        $o_story = $o_game->getStory($i_turn);
         $a_cards = $o_story->getCards();
         array_push($a_commands, _ajax::getUpdateStoryEvent($o_story));
         for ($i = 0; $i < count($a_cards); $i++) {
@@ -579,38 +578,37 @@ class ajax {
         if (($bo_playerInGame = _ajax::isPlayerInGame($o_globalPlayer, $o_game)) !== true)
             return new command("noPoll", 5);
 
-        // listen for the next camera value update
-        $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
-        if(is_resource($socket)) {
-            if (socket_connect($socket, "127.0.0.1", 23456)) {
-                _ajax::serverWrite($socket, "subscribe", array(
-                    "latestEvents" => $a_latestEvents,
-                    "roomCode" => $o_game->getRoomCode()
-                ));
-                $sbo_ret = _ajax::serverRead($socket);
-
-                _ajax::serverWrite($socket, "disconnect");
-
-                if (is_bool($sbo_ret))
-                {
-                    $sbo_ret = new command("success", "no new events");
-                }
-                else if (is_string($sbo_ret))
-                {
-                    $o_command = json_decode($sbo_ret);
-                    if ($o_command !== null) // check if the decode was successful
-                    {
-                        $sbo_ret = $o_command;
-                    }
-                }
-
-                return $sbo_ret;
-            } else {
-                error_log("Failed to connect to 127.0.0.1:23456 to propogate message");
-            }
-        } else {
-            error_log("Failed to create socket to propogate message");
+        // connect to the server
+        if (is_string($so_socket = _ajax::serverConnect("poll new events"))) {
+            return new command("showError", $so_socket);
         }
+
+        // server connected, get any new events
+        $sbo_ret = "failed to connect to events server";
+        try {
+            _ajax::serverWrite($so_socket, "subscribe", array(
+                "latestEvents" => $a_latestEvents,
+                "roomCode" => $o_game->getRoomCode()
+            ));
+            $sbo_ret = _ajax::serverRead($so_socket);
+
+            if (is_bool($sbo_ret))
+            {
+                $sbo_ret = new command("success", "no new events");
+            }
+            else if (is_string($sbo_ret))
+            {
+                $o_command = json_decode($sbo_ret);
+                if ($o_command !== null) // check if the decode was successful
+                {
+                    $sbo_ret = $o_command;
+                }
+            }
+        } finally {
+            _ajax::serverDisconnect($so_socket);
+        }
+
+        return $sbo_ret;
     }
 }
 

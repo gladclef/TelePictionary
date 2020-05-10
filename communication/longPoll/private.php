@@ -7,6 +7,28 @@ require_once(dirname(__FILE__) . "/../../objects/command.php");
 require_once(dirname(__FILE__) . "/../../objects/game.php");
 
 class _ajax {
+    function serverConnect($s_connectionPurpose) {
+        $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
+        if(is_resource($socket)) {
+            if (socket_connect($socket, "127.0.0.1", 23456)) {
+                return $socket;
+            } else {
+                $s_msg = "Failed to connect to 127.0.0.1:23456 to {$s_connectionPurpose}";
+                error_log($s_msg);
+                return $s_msg;
+            }
+        } else {
+            $s_msg = "Failed to create socket to {$s_connectionPurpose}";
+            error_log($s_msg);
+            return $s_msg;
+        }
+    }
+
+    function serverDisconnect($socket) {
+        self::serverWrite($socket, "disconnect");
+        socket_close($socket);
+    }
+
     function serverWrite($socket, $s_command, $o_arguments = null) {
         $s_msg = "";
 
@@ -121,48 +143,45 @@ class _ajax {
         }
         $s_roomCode = $o_game->getRoomCode();
 
-        // send the update event
-        $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
-        if(is_resource($socket)) {
-            if (socket_connect($socket, "127.0.0.1", 23456)) {
+        // connect to the server
+        if (is_string($so_socket = self::serverConnect("propogate message"))) {
+            return new command("showError", $so_socket);
+        }
 
-                // get the list of current events
-                $a_startingEvents = array();
-                if ($b_waitForPropogation) {
-                    $a_startingEvents = self::getLatestEvents($s_roomCode, $socket);
-                }
-
-                // send the new event
-                self::serverWrite($socket, "push", array(
-                    "event" => $o_command,
-                    "roomCode" => $s_roomCode
-                ));
-                $sbo_response = self::serverRead($socket);
-                error_log($sbo_response);
-
-                // wait for this event to finish propogating
-                $a_newEvents = array();
-                if ($b_waitForPropogation) {
-                    while (TRUE) {
-                        $a_newEvents = _ajax::getLatestEvents($o_newGame->getRoomCode(), $socket);
-                        if (count($a_newEvents) > count($a_startingEvents))
-                            break;
-                        if ($a_newEvents[count($a_newEvents)-1] != $a_startingEvents[count($a_startingEvents)-1])
-                            break;
-                    }
-                }
-
-                // disconnect
-                self::serverWrite($socket, "disconnect");
-            } else {
-                $s_msg = "Failed to connect to 127.0.0.1:23456 to propogate message";
-                error_log($s_msg);
-                return new command("showError", $s_msg);
+        // server connected, send the update event
+        try {
+            // get the list of current events
+            $a_startingEvents = array();
+            if ($b_waitForPropogation) {
+                $a_startingEvents = self::getLatestEvents($s_roomCode, $so_socket);
             }
-        } else {
-            $s_msg = "Failed to create socket to propogate message";
-            error_log($s_msg);
-            return new command("showError", $s_msg);
+
+            // send the new event
+            self::serverWrite($so_socket, "push", array(
+                "event" => $o_command,
+                "roomCode" => $s_roomCode
+            ));
+            $sbo_pushedEvent = self::serverRead($so_socket);
+            $sbo_response = self::serverRead($so_socket);
+            ob_start();
+            var_dump($sbo_response);
+            $s_response = ob_get_contents();
+            ob_end_clean();
+            error_log($s_response);
+
+            // wait for this event to finish propogating
+            $a_newEvents = array();
+            if ($b_waitForPropogation) {
+                while (TRUE) {
+                    $a_newEvents = _ajax::getLatestEvents($o_newGame->getRoomCode(), $so_socket);
+                    if (count($a_newEvents) > count($a_startingEvents))
+                        break;
+                    if ($a_newEvents[count($a_newEvents)-1] != $a_startingEvents[count($a_startingEvents)-1])
+                        break;
+                }
+            }
+        } finally {
+            self::serverDisconnect($so_socket);
         }
 
         // error_log("sent event " . print_r($o_command, true));
@@ -230,26 +249,24 @@ class _ajax {
             self::serverWrite($socket, "getLatestEvents", array(
                 "roomCode" => $s_roomCode
             ));
-            $a_response = _ajax::serverRead($socket, array());
+            $a_response = self::serverRead($socket, array());
 
             return $a_response;
         } else {
-            $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
-            if(is_resource($socket)) {
-                if (socket_connect($socket, "127.0.0.1", 23456)) {
-                    $a_ret = self::getLatestEvents($s_roomCode, $socket);
-                    self::serverWrite($socket, "disconnect");
-                    return $a_ret;
-                } else {
-                    $s_msg = "Failed to connect to 127.0.0.1:23456 to get latest events";
-                    error_log($s_msg);
-                    return $s_msg;
-                }
-            } else {
-                $s_msg = "Failed to create socket to get latest events";
-                error_log($s_msg);
-                    return $s_msg;
+            // connect to the server
+            if (is_string($so_socket = self::serverConnect("get latest events"))) {
+                return new command("showError", $so_socket);
             }
+
+            // server connected, get the latest events
+            $a_ret = array();
+            try {
+                $a_ret = self::getLatestEvents($s_roomCode, $so_socket);
+            } finally {
+                self::serverDisconnect($so_socket);
+            }
+            
+            return $a_ret;
         }
     }
 
