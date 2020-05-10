@@ -161,13 +161,8 @@ class _ajax {
                 "event" => $o_command,
                 "roomCode" => $s_roomCode
             ));
-            $sbo_pushedEvent = self::serverRead($so_socket);
-            $sbo_response = self::serverRead($so_socket);
-            ob_start();
-            var_dump($sbo_response);
-            $s_response = ob_get_contents();
-            ob_end_clean();
-            error_log($s_response);
+            $o_pushedEvent = self::serverRead($so_socket);
+            $s_clientCount = self::serverRead($so_socket);
 
             // wait for this event to finish propogating
             $a_newEvents = array();
@@ -265,7 +260,7 @@ class _ajax {
             } finally {
                 self::serverDisconnect($so_socket);
             }
-            
+
             return $a_ret;
         }
     }

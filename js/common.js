@@ -241,32 +241,44 @@ function fitImageSize(jImage, i_maxWidth, i_maxHeight, f_onload) {
 		f_onload = null;
 
 	var limitSize = function(img) {
-		var i_width = parseInt(img.width);
-		var i_height = parseInt(img.height);
-		var ratio = 1;
-
-		if (i_width * ratio < i_maxWidth)
-		{
-			ratio = i_maxWidth / i_width;
-		}
-		if (i_height * ratio < i_maxHeight)
-		{
-			ratio = i_maxHeight / i_height;
-		}
-		if (i_width * ratio > i_maxWidth)
-		{
-			ratio = Math.min(i_maxWidth / i_width, ratio);
-		}
-		if (i_height * ratio > i_maxHeight)
-		{
-			ratio = Math.min(i_maxHeight / i_height);
-		}
-
-		jImage.css({
-			'width': (i_width * ratio) + 'px',
-			'height': (i_height * ratio) + 'px',
-			'margin-top': ((i_maxHeight - (i_height * ratio)) / 2) + 'px'
+		// unset any changes to the image's width and height: let the browser recompute them
+		$(img).css({
+			'width': '',
+			'height': ''
 		});
+
+		// After the browser has had a chance to recompute, then
+		// we will use the new width and to compute our ratio.
+		setTimeout(function() {
+			var i_width = parseInt(img.width);
+			var i_height = parseInt(img.height);
+			var ratio = 1;
+			if (i_width < 1 || i_height < 1)
+				return;
+
+			if (i_width * ratio < i_maxWidth)
+			{
+				ratio = i_maxWidth / i_width;
+			}
+			if (i_height * ratio < i_maxHeight)
+			{
+				ratio = i_maxHeight / i_height;
+			}
+			if (i_width * ratio > i_maxWidth)
+			{
+				ratio = Math.min(i_maxWidth / i_width, ratio);
+			}
+			if (i_height * ratio > i_maxHeight)
+			{
+				ratio = Math.min(i_maxHeight / i_height);
+			}
+
+			jImage.css({
+				'width': (i_width * ratio) + 'px',
+				'height': (i_height * ratio) + 'px',
+				'margin-top': ((i_maxHeight - (i_height * ratio)) / 2) + 'px'
+			});
+		}, 0);
 	}
 
 	jImage.off('load');

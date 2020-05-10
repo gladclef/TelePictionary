@@ -423,6 +423,7 @@ $o_globalGame = $o_globalPlayer->getGame();
 							jHideMeFirsts.show();
 						}
 						
+						var jImg = [];
 						if (o_card.type == 0) { // image card
 							var jCurrentImage = jGameCard.find(".currentImage");
 							var jPreviousText = jGameCard.find(".previousText");
@@ -432,6 +433,7 @@ $o_globalGame = $o_globalPlayer->getGame();
 							jPreviousText[(previousText.trim() == "" ? "hide" : "show")]();
 							jCurrentImage.attr('src', o_card.imageURL);
 							jCurrentImage.show();
+							jImg = jCurrentImage;
 						} else { // text/sentence card
 							var jNewText = jGameCard.find(".newText");
 							var jCurrentText = jGameCard.find(".currentText");
@@ -448,27 +450,24 @@ $o_globalGame = $o_globalPlayer->getGame();
 							jNewText.show();
 							jPreviousImage.attr('src', o_card.imageURL);
 							jPreviousImage.show();
+							jImg = jPreviousImage;
 						}
 
 						// fit the image size to the available card size
-						var jImgs = jGameCard.find("img");
+						var jAllImgs = jGameCard.find("img");
 						var jChildren = jGameCard.children();
 						var maxWidth = jGameCard.width() - 150;
 						var maxHeight = jGameCard.height() - 50;
 
-						jImgs.hide();
+						jAllImgs.hide();
 						$.each(jChildren, function(k, h) {
 							var jChild = $(h);
-							if (jChild.css('display') === 'none')
+							if (jChild.css('display') === 'none' || jChild.hasClass('dontCountHeight'))
 								return;
 							maxHeight -= jChild.fullHeight(true, true, true);
 						});
-						jImgs.show();
-
-						$.each(jImgs, function(k, h_img) {
-							var jImg = $(h_img);
-							fitImageSize(jImg, maxWidth, maxHeight);
-						});
+						jImg.show();
+						fitImageSize(jImg, maxWidth, maxHeight);
 					}
 				} else {
 					// reveal step TODO
@@ -838,7 +837,7 @@ $o_globalGame = $o_globalPlayer->getGame();
 		<?php
 		ob_start(); // export the gameCard as a global variable so that we can use it in phoneRemote.php
 		?>
-		<div class="opaqueEye dontMinimize" onmouseenter="game.makeTransparent(this);" onmouseleave="game.makeOpaque(this);" onclick="game.minimizeGameCard($(this).parent());"></div>
+		<div class="opaqueEye dontMinimize dontCountHeight" onmouseenter="game.makeTransparent(this);" onmouseleave="game.makeOpaque(this);" onclick="game.minimizeGameCard($(this).parent());"></div>
 		<div class="storyDescription centered">Player's Story:</div>
 		<div class="card1" style="display: none;">
 			<span class="hideMeFirst">Write a short description of this image:</span><br />
@@ -859,7 +858,7 @@ $o_globalGame = $o_globalPlayer->getGame();
 				<img src="" class="currentImage centered" command="setCardImage" style="display: none;" />
 			</div>
 		</div>
-		<div id="uploadProgress" class="dontMinimize"><!-- put this inside the gameCard so that it will be included in the phoneRemote.php page -->
+		<div id="uploadProgress" class="dontMinimize dontCountHeight"><!-- put this inside the gameCard so that it will be included in the phoneRemote.php page -->
 			Uploading...
 		</div>
 		<?php
