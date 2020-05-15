@@ -56,8 +56,9 @@ $o_globalGame = $o_globalPlayer->getGame();
 				jGameNameEdit.hide();
 				for (var i = 0; i < o_game.playerOrder.length; i++)
 				{
-					game.setPlayerTokenPosition(o_game.playerOrder[i], i);
+					game.setPlayerTokenPosition(o_game.playerOrder[i], i, false);
 				}
+				game.updatePlayerTokensLayout();
 				game.setCurrentTurn(o_game.currentTurn);
 
 				// call other update functions
@@ -146,7 +147,9 @@ $o_globalGame = $o_globalPlayer->getGame();
 				if (jOtherPlayerToken.length > 0)
 				{
 					var i_otherPlayerId = parseInt(jOtherPlayerToken.attr("playerId"));
-					game.setPlayerTokenPosition(i_otherPlayerId, i_position + 1, false);
+					if (i_otherPlayerId != i_playerId) {
+						game.setPlayerTokenPosition(i_otherPlayerId, i_position + 1, false);
+					}
 				}
 
 				// set this player token position and update token layouts
@@ -707,6 +710,7 @@ $o_globalGame = $o_globalPlayer->getGame();
 				var jqrCode = jCodeContainer.find(".qrcode");
 				var jlink = jCodeContainer.find(".link");
 				var linkText = "https://" + serverStats['fqdn'] + "/phoneRemote.php?playerId=" + playerFuncs.getPlayer().id;
+				jqrCode.children().remove();
 				jqrCode.qrcode(linkText);
 				jlink.attr('href', linkText).text(linkText);
 

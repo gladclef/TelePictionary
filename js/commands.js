@@ -15,24 +15,37 @@ commands.success = function()
 	// nothing explicit to do
 }
 
+commands.lastShownError = "";
 commands.showError = function(s_error) {
 	if ($.type(s_error) == "object") {
 		s_error = s_error.action;
 	}
 	var jGeneralError = $(".generalError");
+	var jGeneralErrorReporter = $(".generalErrorReporter.orig");
+	var jGeneralErrorDismisser = $(".generalErrorDismisser.orig");
+	var jNewReporter = $(jGeneralErrorReporter.parent().html());
+	var jNewDismisser = $(jGeneralErrorDismisser.parent().html());
 	var jBody = $("body");
 	var i_errorWidth = jGeneralError.fullWidth(true, false, true);
 	var i_bodyWidth = jBody.fullWidth(true, false, true);
+	commands.lastShownError = "Error: " + s_error;
 	jGeneralError.css({
 		'left': ((i_bodyWidth - i_errorWidth) / 2) + 'px'
 	});
-	jGeneralError.html("Error: " + s_error);
-	jGeneralError.show(200);
+	jGeneralError.children().remove();
+	jGeneralError.html(commands.lastShownError);
+	jGeneralError.append(jNewReporter);
+	jGeneralError.append(jNewDismisser);
+	jNewReporter.removeClass("orig").show();
+	jNewDismisser.removeClass("orig").show();
+	jGeneralError.finish().show(200);
 
-	clearTimeout(commands.generalErrorTimeout);
-	commands.generalErrorTimeout = setTimeout(function() {
+	jNewReporter.click(function() {
+		eval(jGeneralErrorReporter.attr('onclickExec'));
+	});
+	jNewDismisser.click(function() {
 		jGeneralError.hide();
-	}, 5000);
+	});
 }
 
 commands.composite = function(a_commands)

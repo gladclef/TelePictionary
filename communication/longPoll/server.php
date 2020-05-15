@@ -509,7 +509,7 @@ class ajax {
 
         // check if already revealed
         $a_revealStatus = $o_card->getRevealStatus();
-        if ($a_revealStatus[0] == 1) {
+        if ($a_revealStatus[0] != 0) {
             return new command("showError", $a_revealStatus[1]);
         }
 
@@ -524,7 +524,8 @@ class ajax {
         // push event
         $a_commands = array(
             _ajax::getUpdateCardEvent($o_card),
-            _ajax::getUpdatePlayerEvent($o_globalPlayer)
+            _ajax::getUpdatePlayerEvent($o_globalPlayer),
+            _ajax::getUpdateStoryEvent($o_card->getStory())
         );
         _ajax::pushEvent(new command("composite", $a_commands), $o_game->getRoomCode());
 
@@ -555,6 +556,66 @@ class ajax {
             return $ob_result; // don't report errors for game ratings
             // return new command("success", "");
         
+        return new command("success", "");
+    }
+
+    function reportError() {
+        global $o_globalPlayer;
+        global $maindb;
+        global $feedback_email;
+
+        // rate limiting
+        $s_remoteIp = $_SERVER['REMOTE_ADDR'];
+        $d_now = new DateTime('now');
+        $d_rateLimitTime = $d_now->sub(new DateInterval('PT15M')); // 15 minutes ago
+        $s_rateLimitTime = getStringFromDateTime($d_rateLimitTime);
+        $a_queryVals = array(
+            "ip" => $s_remoteIp,
+            "time" => $s_rateLimitTime,
+        );
+        $a_rateCount = db_query("SELECT COUNT(`id`) AS 'CNT' FROM `{$maindb}`.`reportedErrors` WHERE `ip`='[ip]' AND `time`>'[time]'", $a_queryVals, TRUE);
+        if (is_array($a_rateCount) && intval($a_rateCount[0]['CNT']) > 1) {
+            error_log("TelePictionary error reporting rate limiting in effect");
+            return new command("success", "can't report more than 5 errors in 15 minutes");
+        }
+
+        // collect the reportables
+        $a_reportables = get_post_var('reportables', array());
+        $a_reportables['server-player'] = $o_globalPlayer->toJsonObj();
+        $s_roomCode = "----";
+        if ($o_globalPlayer->getGameState()[0] !== GAME_PSTATE::NOT_READY) {
+            $o_game = $o_globalPlayer->getGame();
+            $a_reportables['server-game'] = $o_game->toJsonObj();
+            $a_reportables['server-latestEvents'] = _ajax::getLatestEvents($o_game->getRoomCode());
+            $s_roomCode = $o_game->getRoomCode();
+        } else {
+            $a_reportables['server-game'] = null;
+            $a_reportables['server-latestEvents'] = array();
+        }
+
+        // log to the database
+        $s_remoteIp = $_SERVER['REMOTE_ADDR'];
+        $s_time = getStringFromDateTime(new DateTime('now'));
+        $a_insertVals = array(
+            "player" => $o_globalPlayer->getId(),
+            "roomCode" => $s_roomCode,
+            "reportables" => json_encode($a_reportables),
+            "ip" => $s_remoteIp,
+            "time" => $s_time
+        );
+        $s_insertVals = array_to_insert_clause($a_insertVals);
+        db_query("INSERT INTO `{$maindb}`.`reportedErrors` {$s_insertVals}", $a_insertVals);
+
+        // send myself an email
+        $a_reportables['server-player'] = $o_globalPlayer->toJsonObj();
+        $a_reportables['server-roomCode'] = $s_roomCode;
+        $a_reportables['ip'] = $s_remoteIp;
+        $a_reportables['time'] = $s_time;
+        $s_subject = "TelePictionary Reported Error";
+        $s_content = array_to_str($a_reportables);
+        $s_headers = 'From: TelePictionary@bbean.us';
+        mail($feedback_email, $s_subject, $s_content, $s_headers);
+
         return new command("success", "");
     }
 

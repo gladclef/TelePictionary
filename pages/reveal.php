@@ -575,9 +575,10 @@ $o_globalGame = $o_globalPlayer->getGame();
 								};
 
 								var d_timeSinceLoad = Date.timeSinceLoad();
-								if (d_timeSinceLoad < 2000) {
-									// If we've loaded reloaded the page after the end of the game, then just it.
-									f_actuallyShow();
+								if (d_timeSinceLoad < 5000) {
+									// If we've loaded reloaded the page after the end of the game, then just show it.
+									// Still have a delay so that the rest of the page can finish loading and the animation will still be smooth.
+									setTimeout(f_actuallyShow, 2000);
 								} else {
 									// Wait for some time (10s) after the last card is revealed before showing
 									// the rating window.
@@ -586,12 +587,8 @@ $o_globalGame = $o_globalPlayer->getGame();
 							};
 
 							if (jRateGame.attr('finalPos') === undefined) {
-								// We're having trouble showing the rating window. Maybe need to wait for the
-								// css 'right' property to be set.
-								setTimeout(function() {
-									jRateGame.attr('finalPos', parseInt(jRateGame.css('right')));	
-									f_showRateGame();
-								}, 2000);
+								jRateGame.attr('finalPos', parseInt(jRateGame.css('right')));	
+								f_showRateGame();
 							} else {
 								f_showRateGame();
 							}

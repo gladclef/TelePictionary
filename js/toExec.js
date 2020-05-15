@@ -34,4 +34,4 @@ execWaitingFuncs = function()
 	}
 	setTimeout(execWaitingFuncs, 100);
 };
-execWaitingFuncs();
+window.addEventListener('load', execWaitingFuncs);

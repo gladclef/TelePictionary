@@ -82,19 +82,30 @@ function append_js_timestamps($s_output) {
 	return $s_output;
 }
 
-// for pretty printing arrays to the error log for quick debugging
-function error_log_array($a_output, $i_tab_level = 0) {
+// for pretty printing arrays
+function array_to_str($a_output, $i_tab_level = 0, $s_newline = "\r\n") {
+	$s_buff = "";
 	$s_tab = str_repeat("  ", $i_tab_level);
 	foreach ($a_output as $k=>$v) {
 		if (is_object($v)) {
 			$v = (array)$v;
 		}
 		if (is_array($v)) {
-			error_log("{$s_tab}{$k}: array:   ****");
-			error_log_array($v, $i_tab_level+1);
+			$s_buff .= "{$s_tab}{$k}: array:   ****" . $s_newline;
+			$s_buff .= array_to_str($v, $i_tab_level+1);
 		} else {
-			error_log("{$s_tab}{$k}: {$v}   ****");
+			$s_buff .= "{$s_tab}{$k}: {$v}   ****" . $s_newline;
 		}
+	}
+	return $s_buff;
+}
+
+// for pretty printing arrays to the error log for quick debugging
+function error_log_array($a_output, $i_tab_level = 0) {
+	$s_arrayStr = array_to_str($a_output, $i_tab_level, "<errorline>");
+	$a_arrayStrs = explode("<errorline>", $s_arrayStr);
+	for ($i = 0; $i < count($a_arrayStrs); $i++) {
+		error_log($a_arrayStrs[$i]);
 	}
 }
 

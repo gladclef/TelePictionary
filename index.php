@@ -63,8 +63,8 @@ if (isset($_GET['refresh']))
 	<body>
 		<?php
 		includeContents();
+		includeGeneralError();
 		?>
-		<div class="centered generalError"></div>
 		<div class="firefoxPlaceholder">placeholder</div>
 	</body>
 </html>

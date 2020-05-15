@@ -7,7 +7,7 @@ function initPushPull(onmessageCallback, pushObj, onerror, onclose)
 	//create a new long-poll object
 	var addr = "https://bbean.us/TelePictionary/communication/longPoll/server.php";
 	var lastSendTime = 0;
-	var latestEvents = serverStats['latestEvents'];
+	var latestEventIds = serverStats['latestEvents'];
 	var sendRate = 50; // 50ms minimum delay between sent messages
 	var delayedUpdated = null;
 	var pollXhrs = [];
@@ -17,6 +17,7 @@ function initPushPull(onmessageCallback, pushObj, onerror, onclose)
 	var pollInterval = null;
 	var pollData = null;
 	pushObj.noPoll = null;
+	pushObj.latestEvents = [];
 
 	stopCurrentPolls = function() {
 		for (var i = 0; i < pollXhrs.length; i++) {
@@ -102,7 +103,7 @@ function initPushPull(onmessageCallback, pushObj, onerror, onclose)
 
 	pushObj.clearLatestEvents = function()
 	{
-		latestEvents.clear();
+		latestEventIds.clear();
 	}
 
 	pushObj.pushData = function(data, successFunc, options, progressCallback)
@@ -248,7 +249,7 @@ function initPushPull(onmessageCallback, pushObj, onerror, onclose)
 		}
 		if (o_command.event.command == "setLatestEvents")
 		{
-			latestEvents = o_command.event.action;
+			latestEventIds = o_command.event.action;
 			return true;
 		}
 
@@ -260,10 +261,14 @@ function initPushPull(onmessageCallback, pushObj, onerror, onclose)
 		if (o_command.b_hasServerTime)
 		{
 			// console.log("received event " + o_command.i_id);
-			latestEvents = latestEvents.enqueue(o_command.i_id);
-			while (latestEvents.length > 100)
-			{
-				var removedEvent = latestEvents.dequeue();
+			pushObj.latestEvents.enqueue(o_command);
+			latestEventIds = latestEventIds.enqueue(o_command.i_id);
+
+			while (pushObj.latestEvents.length > 10) {
+				pushObj.latestEvents.dequeue();
+			}
+			while (latestEventIds.length > 100) {
+				var removedEventId = latestEventIds.dequeue();
 			}
 		}
 	}
@@ -279,7 +284,7 @@ function initPushPull(onmessageCallback, pushObj, onerror, onclose)
 			//prepare json data
 			var data = {
 				'command': 'pull',
-				'latestEvents': JSON.stringify(latestEvents)
+				'latestEvents': JSON.stringify(latestEventIds)
 			};
 			if (pushObj.customData !== undefined && pushObj.customData !== null)
 			{

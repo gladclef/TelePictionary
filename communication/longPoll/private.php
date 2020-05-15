@@ -25,7 +25,19 @@ class _ajax {
     }
 
     function serverDisconnect($socket) {
+        // tell the events server that we're don
+        socket_set_block($socket);
         self::serverWrite($socket, "disconnect");
+
+        // release the socket
+        $i_warningLevel = error_reporting();
+        try {
+            // don't need warnings about not being connected
+            error_reporting(E_ERROR);
+            socket_shutdown($socket, 2);
+        } finally {
+            error_reporting($i_warningLevel);
+        }
         socket_close($socket);
     }
 

@@ -52,6 +52,14 @@ $a_basic_tables_structure = array(
 		"isReady" =>               array("type" => "TINYINT",       "indexed" => FALSE, "isPrimaryKey" => FALSE, "special" => ""),
 		"accessTime" =>            array("type" => "DATETIME",      "indexed" => TRUE,  "isPrimaryKey" => FALSE, "special" => ""),
 		"ratings" =>               array("type" => "VARCHAR(1024)", "indexed" => FALSE, "isPrimaryKey" => FALSE, "special" =>"")
+	),
+	"reportedErrors" => array(
+		"id" =>                    array("type" => "INT",            "indexed" => TRUE,  "isPrimaryKey" => TRUE,  "special" => "AUTO_INCREMENT"),
+		"player" =>                array("type" => "INT",            "indexed" => FALSE, "isPrimaryKey" => FALSE, "special" => ""),
+		"roomCode" =>              array("type" => "VARCHAR(255)",   "indexed" => FALSE, "isPrimaryKey" => FALSE, "special" => ""),
+		"reportables" =>           array("type" => "VARCHAR(60000)", "indexed" => FALSE, "isPrimaryKey" => FALSE, "special" => ""),
+		"ip" =>                    array("type" => "VARCHAR(255)",   "indexed" => TRUE,  "isPrimaryKey" => FALSE, "special" => ""),
+		"time" =>                  array("type" => "DATETIME",       "indexed" => TRUE,  "isPrimaryKey" => FALSE, "special" => "")
 	)
 );
 $a_database_insert_values = array();

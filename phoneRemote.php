@@ -256,6 +256,9 @@ require_once(dirname(__FILE__) . "/resources/include.php");
 		</div>
 		<div class="phoneRemoteContent revealCardBar" id="phoneRemoteReveal">
 		</div>
+		<?php
+		includeGeneralError();
+		?>
 		<div class="firefoxPlaceholder">placeholder</div>
 	</body>
 </html>

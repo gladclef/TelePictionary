@@ -79,6 +79,62 @@ function includeContents()
 
 
 
+function includeGeneralError()
+{
+	ob_start();
+	?>
+	<!-- commands.showError() will:
+		 1. Delete the contents of generalError.
+	     2. Create a copy of generalErrorReporter and generalErrorDismisser inside of generalError.
+	     3. Add a click listener to the new reported to evaluate it's "onclickExec".
+	     4. Add a click listener to the new dismisser to close the error. -->
+	<script type="text/javascript">
+		reportErrorHideTimeout = null;
+		reportError = function(h_reporter) {
+			var jReporter = $(h_reporter);
+			var jGeneralError = jReporter.parent();
+
+			// don't do anything if already reported
+			if (jReporter.hasClass("reported")) {
+				return;
+			}
+
+			// report the error
+			if (outgoingMessenger !== undefined && outgoingMessenger !== null) {
+				var reportables = {
+					'error': jGeneralError.html(),
+					'client-game': ((game !== undefined) ? game.o_cachedGame : null),
+					'client-players': players,
+					'client-events': outgoingMessenger.latestEvents,
+				};
+				outgoingMessenger.pushData({
+					'command': 'reportError',
+					'reportables': reportables,
+				});
+			}
+
+			// show that the error has been reported and close the error
+			jReporter.addClass("reported");
+			jReporter.text("Thanks!");
+			if (reportErrorHideTimeout !== null)
+				clearTimeout(reportErrorHideTimeout);
+			reportErrorHideTimeout = setTimeout(function() {
+				jGeneralError.finish().hide();
+				reportErrorHideTimeout = null;
+			}, 2000);
+		}
+	</script>
+	<div class="centered generalError"></div>
+	<span><span class="generalErrorReporter orig" onclickExec="reportError(this);">Report Error</span></span>
+	<span><span class="generalErrorDismisser orig">X</span></span>
+	<?php
+	$s_includeGeneralError = ob_get_contents();
+	ob_end_clean();
+	echo $s_includeGeneralError;
+}
+
+
+
 function includeServerStats()
 {
 	global $o_globalPlayer;
