@@ -98,6 +98,14 @@ class game
 		$d_now = DateTime('now');
 		return $d_now->getTimestamp() - $this->d_turnStart->getTimestamp();
 	}
+	public function getStories() {
+		$a_stories = array();
+		$i_numStories = $this->getPlayerCount();
+		for ($i = 0; $i < $i_numStories; $i++) {
+			array_push($a_stories, $this->getStory($i));
+		}
+		return $a_stories;
+	}
 	/** Get the story for the given turn (mod player count) */
 	public function getStory($i_turn) {
 		if ($this->getGameState()[0] < GAME_GSTATE::REVEALING)

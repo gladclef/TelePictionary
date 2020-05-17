@@ -47,11 +47,14 @@ class image
 	public function getPlayerId() {
 		return $this->i_playerId;
 	}
+	public function getFullName() {
+		return "{$this->i_alias}.{$this->s_extension}";
+	}
 	public function getURL() {
 		if ($this->i_alias < 0) {
 			return "";
 		}
-		return "images/{$this->i_alias}.{$this->s_extension}";
+		return "images/{$this->getFullName()}";
 	}
 	public function getGame() {
 		$o_story = $this->getPlayer();

@@ -51,6 +51,14 @@ class story
 		}
 		return $a_cards;
 	}
+	public function getPlayersInOrder() {
+		$a_players = array();
+		$a_playerIds = $this->getPlayerOrder();
+		for ($i = 0; $i < count($a_playerIds); $i++) {
+			array_push($a_players, player::loadById($a_playerIds[$i]));
+		}
+		return $a_players;
+	}
 	public function getPlayerOrder() {
 		$a_playerOrder = array();
 		$o_game = $this->getGame();
@@ -60,6 +68,15 @@ class story
 			array_push($a_playerOrder, $i_playerId);
 		}
 		return $a_playerOrder;
+	}
+	public function getCardsInOrder() {
+		$a_cards = array();
+		$o_game = $this->getGame();
+		$i_turns = $o_game->getPlayerCount();
+		for ($i = 0; $i < $i_turns; $i++) {
+			array_push($a_cards, $this->getCard($i));
+		}
+		return $a_cards;
 	}
 	public function getCardIdsInPlayerOrder() {
 		// for now just assume the cards are in the right order
