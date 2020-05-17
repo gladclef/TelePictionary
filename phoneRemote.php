@@ -23,7 +23,7 @@ require_once(dirname(__FILE__) . "/resources/include.php");
 				updatePlayer: function(o_player) {
 					if (playerFuncs.isLocalPlayer(o_player))
 					{
-						var jGameCard = $("#gameCard"); // the renamed #remoteControlGameCard
+						var jGameCard = $("#gameCard"); if (jGameCard.find === undefined) { throw ("jGameCard is " + JSON.stringify(jGameCard) + " in <?php echo (basename(__FILE__) . ':' . __LINE__); ?>"); } // the renamed #remoteControlGameCard
 						var jStoryDescription = jGameCard.find(".storyDescription");
 
 						if (o_player.gameState[0] < 2) { // GAME_PSTATE::WAITING
@@ -33,7 +33,7 @@ require_once(dirname(__FILE__) . "/resources/include.php");
 				},
 
 				setCurrentTurn: function(i_currentTurn) {
-					var jGameCard = $("#gameCard"); // the renamed #remoteControlGameCard
+					var jGameCard = $("#gameCard"); if (jGameCard.find === undefined) { throw ("jGameCard is " + JSON.stringify(jGameCard) + " in <?php echo (basename(__FILE__) . __LINE__); ?>"); } // the renamed #remoteControlGameCard
 					var jStoryDescription = jGameCard.find(".storyDescription");
 					var o_localPlayer = playerFuncs.getPlayer();
 
@@ -175,7 +175,7 @@ require_once(dirname(__FILE__) . "/resources/include.php");
 
 					// show the remote control content
 					$("#gameCard").remove();
-					var jGameCard = $("#remoteControlGameCard");
+					var jGameCard = $("#remoteControlGameCard"); if (jGameCard.find === undefined) { throw ("jGameCard is " + JSON.stringify(jGameCard) + " in <?php echo (basename(__FILE__) . __LINE__); ?>"); }
 					jGameCard.attr("id", "gameCard");
 					jGameCard.addClass("phoneRemote");
 					jGameCard.show();
@@ -194,7 +194,7 @@ require_once(dirname(__FILE__) . "/resources/include.php");
 					}
 
 					// update the size of the game card
-					var jGameCard = $("#gameCard"); // the renamed #remoteControlGameCard
+					var jGameCard = $("#gameCard"); if (jGameCard.find === undefined) { throw ("jGameCard is " + JSON.stringify(jGameCard) + " in <?php echo (basename(__FILE__) . __LINE__); ?>"); } // the renamed #remoteControlGameCard
 					var jRevealCard = $("#phoneRemoteReveal"); // the local reveal content container
 					var jWindow = $(window);
 					var winWidth = jWindow.width();

@@ -18,7 +18,7 @@ $o_globalGame = $o_globalPlayer->getGame();
 				$("#gamePlayersCircle").find(".playerToken").remove();
 				$("#gamePlayer1Control").hide();
 
-				var jGameCard = $("#gameCard");
+				var jGameCard = $("#gameCard"); if (jGameCard.find === undefined) { throw ("jGameCard is " + JSON.stringify(jGameCard) + " in <?php echo (basename(__FILE__) . __LINE__); ?>"); }
 				var jHideMeFirsts = jGameCard.find(".hideMeFirst");
 				var jImgs = jGameCard.find("img");
 				var jPreviousText = jGameCard.find(".previousText");
@@ -350,7 +350,7 @@ $o_globalGame = $o_globalPlayer->getGame();
 			},
 
 			controlUploadSentence: function() {
-				var jGameCard = $("#gameCard");
+				var jGameCard = $("#gameCard"); if (jGameCard.find === undefined) { throw ("jGameCard is " + JSON.stringify(jGameCard) + " in <?php echo (basename(__FILE__) . __LINE__); ?>"); }
 				var jNewText = jGameCard.find(".newText");
 				outgoingMessenger.pushData({
 					'command': 'setCardText',
@@ -410,7 +410,7 @@ $o_globalGame = $o_globalPlayer->getGame();
 				var i_currentTurn = game.o_cachedGame.currentTurn;
 
 				// draw the current card
-				var jGameCard = $("#gameCard");
+				var jGameCard = $("#gameCard"); if (jGameCard.find === undefined) { throw ("jGameCard is " + JSON.stringify(jGameCard) + " in <?php echo (basename(__FILE__) . __LINE__); ?>"); }
 				var jHideMeFirsts = jGameCard.find(".hideMeFirst");
 				if (i_currentTurn < 0) {
 					// game not started yet
@@ -484,7 +484,7 @@ $o_globalGame = $o_globalPlayer->getGame();
 				if (o_story === null || game.o_cachedGame === null)
 					return;
 
-				var jGameCard = $("#gameCard");
+				var jGameCard = $("#gameCard"); if (jGameCard.find === undefined) { throw ("jGameCard is " + JSON.stringify(jGameCard) + " in <?php echo (basename(__FILE__) . __LINE__); ?>"); }
 				var jStoryDescription =	jGameCard.find(".storyDescription");
 
 				if (o_story.startingPlayerName === "" || game.o_cachedGame.currentTurn == 0) {
