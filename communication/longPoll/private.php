@@ -195,6 +195,40 @@ class _ajax {
         return new command("success", "");
     }
 
+    function getEventById($s_roomCode, $i_eventId) {
+        // get the game
+        $o_game = game::loadByRoomCode($s_roomCode);
+        if ($o_game === null) {
+            return new command("showError", "can't find game with room code \"{$s_roomCode}\"");
+        }
+
+        // connect to the server
+        if (is_string($so_socket = _ajax::serverConnect("poll new events"))) {
+            return new command("showError", $so_socket);
+        }
+
+        // server connected, get any new events
+        $sbo_ret = "failed to connect to events server";
+        try {
+            _ajax::serverWrite($so_socket, "getEventById", array(
+                "eventId" => $i_eventId,
+                "roomCode" => $o_game->getRoomCode()
+            ));
+            $sbo_ret = _ajax::serverRead($so_socket);
+
+            if (is_string($sbo_ret)) {
+                $o_command = json_decode($sbo_ret);
+                if ($o_command !== null) { // check if the decode was successful
+                    $sbo_ret = $o_command;
+                }
+            }
+        } finally {
+            _ajax::serverDisconnect($so_socket);
+        }
+
+        return $sbo_ret;
+    }
+
     function getUpdatePlayerEvent($o_player) {
         return new command(
             "updatePlayer",
@@ -368,6 +402,9 @@ class _ajax {
      */
     function uploadFile($s_fileOrigName, $s_fileTmpName, $b_cropSquare, $i_maxWidth = -1, $i_maxHeight = -1) {
         global $maindb;
+
+        // don't let the script time out while the picture uploads
+        set_time_limit(60 * 5);
 
         // verify the file extension and size
         $a_acceptableExtensions = array("jpg", "jpeg", "png", "gif", "bmp", "tiff");

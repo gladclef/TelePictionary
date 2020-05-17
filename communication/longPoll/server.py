@@ -334,7 +334,7 @@ class ClientThread(Thread):
     def getEventById(self, eventId):
         room = Room.getRoom(self.s_roomCode, True)
         o_event = room.getEventById(eventId)
-        b_ret = self.trySend(a_latestEvents)
+        b_ret = self.trySend(o_event)
         return b_ret
 
     def checkLatestEvents(self):
