@@ -60,7 +60,7 @@ class ajax {
         // create a new game
         $o_oldGame = $o_game;
         $b_old = FALSE;
-        if ($o_oldGame != null && $o_oldGame->getPlayer1Id() == $o_globalPlayer->getId()) {
+        if ($bo_playerInGame === TRUE && $o_oldGame != null && $o_oldGame->getPlayer1Id() == $o_globalPlayer->getId()) {
             $o_game = new game($o_globalPlayer->getName() . "'s Game", $o_globalPlayer->getId(), $o_oldGame);
             $b_old = TRUE;
         } else {
