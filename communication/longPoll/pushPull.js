@@ -43,7 +43,7 @@ function initPushPull(onmessageCallback, pushObj, onerror, onclose)
 	 *
 	 * Anything that doesn't match the expected input type is converted to a string and used in a new 'showError' event.
 	 */
-	getCommand = function(data)
+	parseCommand = function(data)
 	{
 		var o_data = null;
 
@@ -146,7 +146,7 @@ function initPushPull(onmessageCallback, pushObj, onerror, onclose)
 			    return xhr;
 			},
 			'success': function(data) {
-				o_command = getCommand(data);
+				o_command = parseCommand(data);
 				if (successFunc !== null)
 					successFunc(o_command, false);
 				if (commands[o_command.event.command] !== undefined)
@@ -224,7 +224,7 @@ function initPushPull(onmessageCallback, pushObj, onerror, onclose)
 
 	pushObj.pushPullInterpret = function(o_command) {
 		if (o_command.event === undefined)
-			o_command = getCommand(o_command);
+			o_command = parseCommand(o_command);
 
 		if (o_command.event.command == 'noPoll')
 		{
@@ -302,7 +302,7 @@ function initPushPull(onmessageCallback, pushObj, onerror, onclose)
 				'type': "POST",
 				'timeout': 15000,
 				'success': function(data) {
-					var o_command = getCommand(data);
+					var o_command = parseCommand(data);
 					pollXhrs[0] = null;
 					if (!pushObj.pushPullInterpret(o_command))
 					{

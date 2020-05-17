@@ -14,16 +14,16 @@ TCP_PORT = 23456
 CLIENT_LIFETIME = 10 # each client connection lives for 10 seconds
 
 class Room():
-    l_roomLock = threading.Lock()
+    l_roomLock = threading.RLock()
 
     def __init__(self, s_roomCode):
         self.s_roomCode = s_roomCode
         self.a_clients = []
         self.a_events = []
         self.t_changeTime = datetime.now()
-        self.l_eventLock = threading.Lock()
-        self.l_clientLock = threading.Lock()
-        self.l_timeLock = threading.Lock()
+        self.l_eventLock = threading.RLock()
+        self.l_clientLock = threading.RLock()
+        self.l_timeLock = threading.RLock()
         self.i_nextEventId = -1
 
     @staticmethod
@@ -139,7 +139,16 @@ class Room():
             return None
 
     def getEventIds(self):
-        return [x['i_id'] for x in self.a_events]
+        with self.l_eventLock:
+            return [x['i_id'] for x in self.a_events]
+
+    def getEventById(self, eventId):
+        with self.l_eventLock:
+            for i in range(len(self.a_events)):
+                event = self.a_events[i]
+                if (event['i_id'] == eventId):
+                    return event;
+        return None;
 
     # puts the given event at the front of the queue
     def appendEvent(self, o_event):
@@ -183,7 +192,7 @@ class ClientThread(Thread):
         self.s_roomCode = ""
         self.a_latestEvents = []
         self.t_createTime = datetime.now()
-        self.l_abortLock = threading.Lock()
+        self.l_abortLock = threading.RLock()
         print "[+] New client socket thread started for " + ip + ":" + str(port)
 
     def __del__(self):
@@ -322,6 +331,12 @@ class ClientThread(Thread):
         b_ret = self.trySend(a_latestEvents)
         return b_ret
 
+    def getEventById(self, eventId):
+        room = Room.getRoom(self.s_roomCode, True)
+        o_event = room.getEventById(eventId)
+        b_ret = self.trySend(a_latestEvents)
+        return b_ret
+
     def checkLatestEvents(self):
         room = Room.getRoom(self.s_roomCode, True)
 
@@ -388,6 +403,12 @@ class ClientThread(Thread):
                     a_data = json.loads(s_data[len("getLatestEvents "):])
                     self.setRoomCode(a_data['roomCode'])
                     self.getLatestEvents()
+
+                elif (s_data.startswith("getEventById ")):
+                    self.tryRemove()
+                    a_data = json.loads(s_data[len("getEventById "):])
+                    self.setRoomCode(a_data['roomCode'])
+                    self.getEventById(int(a_data['eventId']))
 
                 elif (s_data.startswith("subscribe ")):
                     self.tryRemove()

@@ -16,7 +16,11 @@ commands.success = function()
 }
 
 commands.lastShownError = "";
-commands.showError = function(s_error) {
+commands.showError = function(s_error, s_errCommand, s_errAction) {
+	if (arguments.length < 2) {
+		s_errCommand = 'no command';
+		s_errAction = 'no action';
+	}
 	if ($.type(s_error) == "object") {
 		s_error = s_error.action;
 	}
@@ -36,6 +40,7 @@ commands.showError = function(s_error) {
 	jGeneralError.html(commands.lastShownError);
 	jGeneralError.append(jNewReporter);
 	jGeneralError.append(jNewDismisser);
+	jGeneralError.append("<div style='display:none;'>" + JSON.stringify({'errCommand':s_errCommand, 'errAction':s_errAction}) + "</div>");
 	jNewReporter.removeClass("orig").show();
 	jNewDismisser.removeClass("orig").show();
 	jGeneralError.finish().show(200);
@@ -52,6 +57,8 @@ commands.composite = function(a_commands)
 {
 	var firstError = null;
 	var foundErrorCommand = false;
+	var s_errCommand = "";
+	var s_errAction = "";
 
 	for (var i = 0; i < a_commands.length; i++)
 	{
@@ -60,6 +67,10 @@ commands.composite = function(a_commands)
 		{
 			if (outgoingMessenger === undefined || !outgoingMessenger.pushPullInterpret(o_command))
 			{
+				if (firstError == null) {
+					s_errCommand = o_command.command;
+					s_errAction = JSON.stringify(o_command.action);
+				}
 				commands[o_command.command](o_command.action);
 				if (o_command.command == 'showError')
 					foundErrorCommand = true;
@@ -77,7 +88,7 @@ commands.composite = function(a_commands)
 
 	if (firstError != null && foundErrorCommand == false)
 	{
-		commands.showError(firstError);
+		commands.showError(firstError, s_errCommand, s_errAction);
 	}
 }
 
