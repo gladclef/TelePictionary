@@ -435,9 +435,6 @@ $o_globalGame = $o_globalPlayer->getGame();
 							jPreviousText.text(previousText);
 							jPreviousText[(previousText.trim() == "" ? "hide" : "show")]();
 							jCurrentImage.attr('src', o_card.imageURL);
-							jCurrentImage.hide();
-							if (jCurrentImage.attr('src') != '')
-								jCurrentImage.show();
 							jImg = jCurrentImage;
 						} else { // text/sentence card
 							var jNewText = jGameCard.find(".newText");
@@ -454,9 +451,6 @@ $o_globalGame = $o_globalPlayer->getGame();
 							// fitImageSize(jPreviousImage, jGameCard.width() - 150, jGameCard.height() - 250);
 							jNewText.show();
 							jPreviousImage.attr('src', o_card.imageURL);
-							jPreviousImage.hide();
-							if (jPreviousImage.attr('src') != '')
-								jPreviousImage.show();
 							jImg = jPreviousImage;
 						}
 
@@ -473,7 +467,8 @@ $o_globalGame = $o_globalPlayer->getGame();
 								return;
 							maxHeight -= jChild.fullHeight(true, true, true);
 						});
-						jImg.show();
+						if (jImg.attr('src') != '')
+							jImg.show();
 						fitImageSize(jImg, maxWidth, maxHeight);
 					}
 				} else {
