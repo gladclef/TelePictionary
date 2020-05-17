@@ -325,6 +325,7 @@ $o_globalGame = $o_globalPlayer->getGame();
 				if (f_progress >= 1.0) {
 					jProgress.hide();
 				} else {
+					$("body").append(jProgress);
 					var percentText = (f_progress > 0) ? (Math.floor(f_progress * 100) + "%") : "";
 					jProgress.text("Uploading... " + percentText);
 					jProgress.show();
@@ -332,6 +333,7 @@ $o_globalGame = $o_globalPlayer->getGame();
 			},
 
 			uploadImage: function(jImg, a_files) {
+				if (a_files.length == 0) { return; } // no image chosen
 				if (a_files.length !== 1) { alert("Incorrect number of image files (must be 1)."); return; }
 				var f_file = a_files[0];
 				if (f_file.size > 12 * 1048576) { alert("Image is too big! (must be less than 12MB)"); return; }
@@ -339,12 +341,10 @@ $o_globalGame = $o_globalPlayer->getGame();
 				var posts = new FormData();
 				posts.append('command', jImg.attr("command"));
 				posts.append('file', f_file);
-				$.each(outgoingMessenger.customData, function(k, v) {
-					posts.append(k, v);
-				});
 				var options = {
 					"contentType": false,
-					"processData": false
+					"processData": false,
+					"timeout": 5*60*1000, // don't let the upload time out during the upload
 				};
 				outgoingMessenger.pushData(posts, undefined, options, game.uploadProgress);
 			},
