@@ -13,6 +13,42 @@ require_once(dirname(__FILE__) . "/private.php");
 // only functions within this class can be called by ajax
 class ajax {
 
+    function composite() {
+        $o_ajax = $this;
+        $a_ret = array();
+
+        $sa_subcommands = get_post_var("action", "");
+        if (!is_array($sa_subcommands))
+            return new command("showError", "action must be set");
+
+        for ($i = 0; $i < count($sa_subcommands); $i++) {
+            $a_subcommand = $sa_subcommands[$i];
+            $s_command = $a_subcommand['command'];
+
+            if (method_exists($o_ajax, $s_command)) {
+
+                // execute the method
+                foreach ($a_subcommand as $postVarName => $postVarVal) {
+                    if ($postVarName != 'command') {
+                        $_POST[$postVarName] = $postVarVal;
+                    }
+                }
+                $o_ret = $o_ajax->$s_command();
+
+                // return the result
+                if (is_string($o_ret)) {
+                    array_push($a_ret, new command("showError", $o_ret));
+                } else {
+                    array_push($a_ret, $o_ret);
+                }
+            } else {
+                array_push($a_ret, new command("showError", "method {$s_command} does not exist"));
+            }
+        }
+
+        $o_ret = new command("composite", $a_ret);
+    }
+
     function setUsername() {
         global $maindb;
         global $o_globalPlayer;

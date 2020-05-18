@@ -117,7 +117,13 @@ function initPushPull(onmessageCallback, pushObj, onerror, onclose)
 		if (pushObj.customData !== undefined && pushObj.customData !== null)
 		{
 			$.each(pushObj.customData, function(k, v) {
-				data[k] = v;
+				// This works for JavaScript FormData data objects.
+				// This also works for arrays with the "javascriptExtension.js" file.
+				if (data.append !== undefined) {
+					data.append(k, v);
+				} else {
+					data[k] = v;
+				}
 			});
 		}
 
@@ -289,7 +295,13 @@ function initPushPull(onmessageCallback, pushObj, onerror, onclose)
 			if (pushObj.customData !== undefined && pushObj.customData !== null)
 			{
 				$.each(pushObj.customData, function(k, v) {
-					data[k] = v;
+					// This works for JavaScript FormData data objects.
+					// This also works for arrays with the "javascriptExtension.js" file.
+					if (data.append !== undefined) {
+						data.append(k, v);
+					} else {
+						data[k] = v;
+					}
 				});
 			}
 

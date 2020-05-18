@@ -372,18 +372,17 @@ $o_globalGame = $o_globalPlayer->getGame();
 				});
 			},
 
-			controlStartCardChange: function(h_selection) {
-				var jControlStartCard = $(h_selection);
-				outgoingMessenger.pushData({
-					'command': 'setStartCard',
-					'startCard': parseInt(jControlStartCard.val())
-				});
-			},
-
 			controlStartClick: function() {
+				var jPlayer1Control = $("#gamePlayer1Control");
+				var jControlStartCard = jPlayer1Control.find("select.startCard");
 				outgoingMessenger.pushData({
-					'command': 'setGameTurn',
-					'turn': 0
+					'command': 'composite',
+					'action': [
+						{ 'command': 'setStartCard',
+						  'startCard': parseInt(jControlStartCard.val()) },
+						{ 'command': 'setGameTurn',
+						  'turn': 0 },
+					]
 				});
 			},
 
@@ -873,7 +872,7 @@ $o_globalGame = $o_globalPlayer->getGame();
 	</div>
 	<div id="gamePlayer1Control" class="centered" style="width: 700px; display: none;">
 		<div class="centered" gameControl="start">
-			<select class="startCard" onchange="game.controlStartCardChange(this);">
+			<select class="startCard">
 				<option value="0" <?php echo ($o_globalGame != null && $o_globalGame->getCardStartType() == 0) ? 'selected' : '' ?>>Start with Drawing</option>
 				<option value="1" <?php echo ($o_globalGame != null && $o_globalGame->getCardStartType() == 1) ? 'selected' : '' ?>>Start with Sentence</option>
 			</select>

@@ -186,6 +186,18 @@ Array.prototype.enqueue = function(value) {
 Array.prototype.dequeue = function() {
     return this.popFront();
 }
+/** Add the keyish argument (as the value) to this array, or the value with the given key. */
+Array.prototype.append = function(keyish, value) {
+    if (arguments.length == 1) {
+        return this.pushBack(keyish);
+    } else {
+        this[keyish] = value;
+        return this;
+    }
+}
+Array.prototype.prepend = function(value) {
+    return this.pushFront(value);
+};
 
 if (Date.loadTime === undefined) Date.loadTime = Date.now();
 Date.timeSinceLoad = function() {
