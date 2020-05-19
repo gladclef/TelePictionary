@@ -21,8 +21,8 @@ class game
 	public $d_startTime = null;
 	public $i_cardStartType = 0;
 	public $i_player1Id = 0;
-	public $i_drawTimerLen = 60;
-	public $i_textTimerLen = 30;
+	public $i_drawTimerLen = 180;
+	public $i_textTimerLen = 60;
 	public $d_turnStart = null;//new DateTime('now');
 	public $i_currentTurn = -1;
 	public $b_finished = FALSE;
@@ -266,6 +266,9 @@ class game
 
 		array_push($this->a_playerIds, $i_playerId);
 		array_push($this->a_playerOrder, $i_playerId);
+		if ($this->getGameState()[0] == GAME_GSTATE::READY) {
+			$this->i_cardStartType = ($this->getPlayerCount() + 1) % 2; // default end on image card
+		}
 		return array(TRUE, "Player added");
 	}
 	public function removePlayer($i_playerId) {
@@ -281,6 +284,9 @@ class game
 		if ($this->i_player1Id === $i_playerId && count($this->a_playerIds) > 0)
 		{
 			$this->i_player1Id = $this->a_playerIds[0];
+		}
+		if ($this->getGameState()[0] == GAME_GSTATE::READY) {
+			$this->i_cardStartType = ($this->getPlayerCount() + 1) % 2; // default end on image card
 		}
 		return array(TRUE, "Player removed");
 	}
