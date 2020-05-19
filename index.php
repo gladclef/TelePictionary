@@ -53,7 +53,7 @@ if (isset($_GET['refresh']))
 
 			a_toExec[a_toExec.length] = {
 				"name": "index.php",
-				"dependencies": ["jQuery", "jqueryExtension.js", "commands.js", "playerFuncs", "game", "control.js", "reveal_overrides"],
+				"dependencies": ["jQuery", "jqueryExtension.js", "commands.js", "playerFuncs", "gameJsObj", "control.js", "reveal_overrides"],
 				"function": function() {
 					f_commonStartupJs();
 				}

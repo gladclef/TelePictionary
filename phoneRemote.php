@@ -23,7 +23,7 @@ require_once(dirname(__FILE__) . "/resources/include.php");
 				updatePlayer: function(o_player) {
 					if (playerFuncs.isLocalPlayer(o_player))
 					{
-						var jGameCard = $("#gameCard"); if (jGameCard.find === undefined) { throw ("jGameCard is " + JSON.stringify(jGameCard) + " in <?php echo (basename(__FILE__) . ':' . __LINE__); ?>"); } // the renamed #remoteControlGameCard
+						var jGameCard = $("#gameCard"); if (jGameCard.find === undefined) { throw ("jGameCard is " + JSON.stringify(jGameCard) + " in <?php echo (basename(__FILE__) . ':' . __LINE__); ?>"); }
 						var jStoryDescription = jGameCard.find(".storyDescription");
 
 						if (o_player.gameState[0] < 2) { // GAME_PSTATE::WAITING
@@ -33,7 +33,7 @@ require_once(dirname(__FILE__) . "/resources/include.php");
 				},
 
 				setCurrentTurn: function(i_currentTurn) {
-					var jGameCard = $("#gameCard"); if (jGameCard.find === undefined) { throw ("jGameCard is " + JSON.stringify(jGameCard) + " in <?php echo (basename(__FILE__) . __LINE__); ?>"); } // the renamed #remoteControlGameCard
+					var jGameCard = $("#gameCard"); if (jGameCard.find === undefined) { throw ("jGameCard is " + JSON.stringify(jGameCard) + " in <?php echo (basename(__FILE__) . __LINE__); ?>"); }
 					var jStoryDescription = jGameCard.find(".storyDescription");
 					var o_localPlayer = playerFuncs.getPlayer();
 
@@ -55,18 +55,21 @@ require_once(dirname(__FILE__) . "/resources/include.php");
 						}
 					}
 
-					jGameCard.show(); // the game code will hide the game card when the game hasn't started yet
+					// show the game card
+					var jPhoneRemoteGame = $("#phoneRemoteGame");
+					game.showGameCard(jPhoneRemoteGame, o_localPlayer);
 				},
 
-				updateGameCard: function(jCard, o_card) {
-					phoneRemote.updateGameCardSize(jCard);
+				updateGameCard: function(o_card) {
+					phoneRemote.updateGameCardSize();
 				},
 
-				updateGameCardSize: function(jCard) {
-					var jImgs = jCard.find("img");
-					var jChildren = jCard.children();
-					var maxWidth = jCard.width() - 150;
-					var maxHeight = jCard.height() - 150;
+				updateGameCardSize: function() {
+					var jGameCard = $("#gameCard");
+					var jImgs = jGameCard.find("img");
+					var jChildren = jGameCard.children();
+					var maxWidth = jGameCard.width() - 150;
+					var maxHeight = jGameCard.height() - 150;
 
 					jImgs.hide();
 					$.each(jChildren, function(k, h) {
@@ -136,7 +139,7 @@ require_once(dirname(__FILE__) . "/resources/include.php");
 
 			a_toExec[a_toExec.length] = {
 				"name": "index.php", // emulate the index.php value in order to get the game code to execute
-				"dependencies": ["jQuery", "jqueryExtension.js", "commands.js", "playerFuncs", "game", "control.js"],
+				"dependencies": ["jQuery", "jqueryExtension.js", "commands.js", "playerFuncs", "gameJsObj", "control.js"],
 				"function": function() {
 					// show our own content, not the full content
 					var oldShowContent = commands.showContent;
@@ -159,8 +162,8 @@ require_once(dirname(__FILE__) . "/resources/include.php");
 					// do phoneRemote specific things when the game card gets updated
 					var oldUpdateCard = game.updateCard;
 					game.updateCard = function(o_card) {
-						var jCard = oldUpdateCard(o_card);
-						phoneRemote.updateGameCard(jCard, o_card);
+						oldUpdateCard(o_card);
+						phoneRemote.updateGameCardSize();
 					}
 
 					// do phoneRemote specific things when the reveal card gets updated
@@ -174,17 +177,19 @@ require_once(dirname(__FILE__) . "/resources/include.php");
 					f_commonStartupJs();
 
 					// show the remote control content
-					$("#gameCard").remove();
-					var jGameCard = $("#remoteControlGameCard"); if (jGameCard.find === undefined) { throw ("jGameCard is " + JSON.stringify(jGameCard) + " in <?php echo (basename(__FILE__) . __LINE__); ?>"); }
-					jGameCard.attr("id", "gameCard");
-					jGameCard.addClass("phoneRemote");
-					jGameCard.show();
+					var jGameCard = $("#gameCard"); if (jGameCard.find === undefined) { throw ("jGameCard is " + JSON.stringify(jGameCard) + " in <?php echo (basename(__FILE__) . __LINE__); ?>"); }
+					var jGameCardOverlay = $("#gameCardOverlay");
+					var jPhoneRemoteGame = $("#phoneRemoteGame");
+					jPhoneRemoteGame.append(jGameCard);
+					jGameCard.addClass("phoneRemote"); // for specialized css styling
+					jGameCard.show(); // always keep the game card visible for the phoneRemote
+					jGameCardOverlay.hide(); // always keep the overlay hidden for the phoneRemote
 				}
 			};
 
 			a_toExec[a_toExec.length] = {
 				"name": "phoneRemote.php",
-				"dependencies": ["game.php", "reveal"], // to execute after the game has been drawn
+				"dependencies": ["game.php", "revealJsObj"], // to execute after the game has been drawn
 				"function": function() {
 					// do phoneRemote specific things when the current turn changes
 					var oldSetCurrentTurn = game.setCurrentTurn;
@@ -228,7 +233,7 @@ require_once(dirname(__FILE__) . "/resources/include.php");
 					jRevealCard.css(a_size);
 
 					// update the size of everything else to match
-					phoneRemote.updateGameCardSize(jGameCard);
+					phoneRemote.updateGameCardSize();
 
 					// re-update the current turn, since this should have already happened
 					if (game.o_cachedGame !== null && game.o_cachedGame !== undefined) {

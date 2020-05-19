@@ -150,7 +150,110 @@
 	display: initial;
 }
 
-.gameCard {
+#gameCardSmall {
+	display: none;
+	position: absolute;
+	top: 249px;
+	left: 237px;
+	width: 325px;
+	height: 325px;
+	padding: 0;
+	background-color: rgb(180,180,255);
+	border-radius: 700px;
+	overflow: hidden;
+	cursor: pointer;
+}
+
+#gameCardSmall .overlay {
+	display: none;
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background-color: rgba(0,0,0,0.7);
+	color: white;
+	padding-top: 130px;
+	font-size: 40px;
+}
+
+#turnTimerSmall {
+	display: none;
+	position: absolute;
+	top: 241px;
+	left: 229px;
+	width: 341px;
+	height: 341px;
+	border-radius: 700px;
+}
+
+#gameCardSmall:hover .overlay {
+	display: block;
+}
+
+.gameStarted #gameCardSmall {
+	display: block;
+}
+
+.gameStarted #turnTimerSmall {
+	display: block;
+}
+
+#phoneRemoteContent #gameCardSmall .overlay {
+	display: block;
+}
+
+#gameCard {
+	display: none;
+	position: absolute;
+	top: 82px;
+	left: 70px;
+	width: 625px;
+	height: 625px;
+	padding: 17px;
+	background-color: rgb(180,180,255);
+	border-radius: 700px;
+	overflow: hidden;
+}
+
+#gameCard .spaceBottom {
+	margin-bottom: 5px;
+}
+
+#gameCardOverlay {
+	display: none;
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background-color: rgba(0,0,0,0.5);
+	cursor: pointer;
+}
+
+#turnTimerBig {
+	display: none;
+	position: absolute;
+	top: 73px;
+	left: 62px;
+	width: 676px;
+	height: 676px;
+	border-radius: 700px;
+}
+
+.showGameCard #gameCard {
+	display: block;
+}
+
+.showGameCard #gameCardOverlay {
+	display: block;
+}
+
+.showGameCard #turnTimerBig {
+	display: block;
+}
+
+.revealCard {
 	position: absolute;
 	top: 82px;
 	left: 145px;
@@ -162,49 +265,40 @@
 	padding-top: 23px;
 }
 
-.gameCard .opaqueEye {
-	position: absolute;
-	left: 20px;
-	top: 18px;
-	width: 30px;
-	height: 15px;
-	background-image: url('../imagesStatic/eye.png');
-	background-repeat: no-repeat;
-	background-size: contain;
-	opacity: 0.1;
-}
 
-.gameCard .currentImage {
-	width: 450px;
-}
-
-.gameCard .currentText {
+.currentText {
 	width: 400px;
 	background-color: white;
 	padding: 10px;
 	font-size: 34px;
 }
 
-.gameCard .previousText {
-	width: 400px;
+.previousText {
+	width: 100%;
 	background-color: white;
 	padding: 1px;
 	font-size: 34px;
 }
 
-.gameCard.phoneRemote {
+#gameCardSmall .previousText {
+	max-height: 30%;
+	overflow: hidden;
+}
+
+#phoneRemoteGame #gameCard {
 	position: initial;
 	top: auto;
 	left: auto;
-	padding-top: 33px;
+	padding: 33px;
 	font-size: 30px;
+	background-color: rgb(230,230,255);
 }
 
-.gameCard.phoneRemote .opaqueEye {
+#phoneRemoteGame #gameCardOverlay {
 	display: none;
 }
 
-.gameCard.phoneRemote input[type=button] {
+#phoneRemoteGame #gameCard input[type=button] {
 	font-size: 25px;
 	padding: 10px;
 	border-radius: 100px;

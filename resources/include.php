@@ -32,7 +32,7 @@ ob_start();
 			if (window.a_toExec === undefined) window.a_toExec = [];
 			if (window.serverStats === undefined) window.serverStats = {};
 
-			// "dependencies": ["jQuery", "jqueryExtension.js", "commands.js", "playerFuncs", "game", "control.js", "reveal_overrides"],
+			// "dependencies": ["jQuery", "jqueryExtension.js", "commands.js", "playerFuncs", "gameJsObj", "control.js", "reveal_overrides"],
 			window.f_commonStartupJs = function() {
 				// set some things
 				playerFuncs.setLocalPlayer(serverStats['localPlayerId']);
@@ -47,6 +47,18 @@ ob_start();
 				}
 				commands.showContent(s_content);
 			}
+
+			window.getTimeSinceLoad = function() {
+				var d_currTime = new Date();
+				var f_currTime = d_currTime.getTime() / 1000;
+				var f_diffTime = f_currTime - serverStats['clientTime'];
+				return f_diffTime;
+			}
+
+			window.getServerTime = function() {
+				var f_serverTime = serverStats['serverTime'] + getTimeSinceLoad();
+				return f_serverTime;
+			};
 		</script>
 <?php
 $s_includeScripts = append_js_timestamps(ob_get_contents());
@@ -90,6 +102,7 @@ function includeGeneralError()
 	     4. Add a click listener to the new dismisser to close the error. -->
 	<script type="text/javascript">
 		reportErrorHideTimeout = null;
+		/** Sends the error in the generalError div to the server to be mailed to the feedback_email address configured in server.ini. */
 		reportError = function(h_reporter) {
 			var jReporter = $(h_reporter);
 			var jGeneralError = jReporter.parent();
@@ -152,6 +165,7 @@ function includeServerStats()
 	$s_isInReveal = ($b_isInReveal) ? "true" : "false";
 	$s_currentStory = json_encode(json_encode(($o_story !== null) ? $o_story->toJsonObj() : ""));
 	$s_currentCards = json_encode(json_encode($a_cards));
+	$s_serverTime = "" . strtotime("now");
 	echo "serverStats['latestEvents'] = {$s_latestEvents};\r\n";
 	echo "serverStats['hasUsername'] = {$s_hasUsername};\r\n";
 	echo "serverStats['isInGame'] = {$s_isInGame};\r\n";
@@ -160,4 +174,6 @@ function includeServerStats()
 	echo "serverStats['localPlayerId'] = {$o_globalPlayer->getId()};\r\n";
 	echo "serverStats['currentStory'] = {$s_currentStory};\r\n";
 	echo "serverStats['currentCards'] = {$s_currentCards};\r\n";
+	echo "serverStats['serverTime'] = {$s_serverTime};\r\n";
+	echo "serverStats['clientTime'] = (new Date()).getTime() / 1000;\r\n";
 }

@@ -38,6 +38,9 @@
 				});
 			}
 		};
+		// Here to indicate this script has executed.
+		// We do this because the "about" div gets registered as being accessible by javascript.
+		aboutJsObj = true;
 
 		setTimeout(function() {
 			var jPlayerTag = $('#aboutPlayerTag');

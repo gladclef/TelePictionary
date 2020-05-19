@@ -242,12 +242,12 @@ class game
 			"name" => $this->s_name,
 			"playerIds" => $this->a_playerIds,
 			"playerOrder" => $this->a_playerOrder,
-			"startTime" => getStringFromDateTime($this->d_startTime),
+			"startTime" => $this->d_startTime->getTimestamp(),
 			"cardStartType" => $this->i_cardStartType,
 			"player1Id" => $this->i_player1Id,
 			"drawTimerLen" => $this->i_drawTimerLen,
 			"textTimerLen" => $this->i_textTimerLen,
-			"turnStart" => getStringFromDateTime($this->d_turnStart),
+			"turnStart" => $this->d_turnStart->getTimestamp(),
 			"currentTurn" => $this->i_currentTurn
 		);
 	}

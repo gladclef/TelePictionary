@@ -115,8 +115,8 @@ $o_globalGame = $o_globalPlayer->getGame();
 						// find the card that follows this card
 						var i_nextId = a_playerIdsInOrder[i+1];
 						var jRevealCardBar = $("#reveal").find(".revealCardBar");
-						var jCard = jRevealCardBar.find(".gameCard[playerId=" + i_playerId + "]");
-						var jNextCard = jRevealCardBar.find(".gameCard[playerId=" + i_nextId + "]");
+						var jCard = jRevealCardBar.find(".revealCard[playerId=" + i_playerId + "]");
+						var jNextCard = jRevealCardBar.find(".revealCard[playerId=" + i_nextId + "]");
 
 						// reorder things so that this card comes before the next card
 						if (jCard.length > 0 && jNextCard.length > 0) {
@@ -271,7 +271,7 @@ $o_globalGame = $o_globalPlayer->getGame();
 				var jPlayerBar = $("#revealPlayerBar");
 				var jRevealPlayerContainer = jPlayerBar.find(".playerTokenContainer[playerId=" + o_player.id + "]");
 				var jRevealCardBar = $("#reveal").find(".revealCardBar");
-				var jCard = jRevealCardBar.find(".gameCard[playerId=" + o_player.id + "]");
+				var jCard = jRevealCardBar.find(".revealCard[playerId=" + o_player.id + "]");
 				var jCardTemplate = $("#revealCard");
 				var b_isMaximized = false;
 				var jNext = null, jPrev = null;
@@ -629,9 +629,13 @@ $o_globalGame = $o_globalPlayer->getGame();
 				jAfterRating.show();
 			},
 		};
+		// Here to indicate this script has executed.
+		// We do this because the "reveal" div gets registered as being accessible by javascript.
+		revealJsObj = true;
+
 		a_toExec[a_toExec.length] = {
 			"name": "reveal_overrides",
-			"dependencies": ["jQuery", "jqueryExtension.js", "game"],
+			"dependencies": ["jQuery", "jqueryExtension.js", "gameJsObj"],
 			"function": function() {
 				var jWindow = $(window);
 
@@ -716,7 +720,7 @@ $o_globalGame = $o_globalPlayer->getGame();
 
 	<!-- templates -->
 	<div id="revealCard" style="display:none;">
-		<div class="revealCard gameCard centered" cardId="__cardId__">
+		<div class="revealCard centered" cardId="__cardId__">
 			<div class="card0" style="display: none;">
 				<img class="userContents currentImage centered" />
 			</div>

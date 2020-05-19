@@ -292,6 +292,15 @@ loadJqueryExtensions = function()
 
         return f_sin;
     };
+
+    var oldMerge = $.merge;
+    $.merge = function(first, second, ...others) {
+        var ret = oldMerge(first, second);
+        for (var i = 0; i < others.length; i++) {
+            ret = oldMerge(ret, others[i]);
+        }
+        return ret;
+    }
 };
 
 a_toExec[a_toExec.length] = {

@@ -128,13 +128,40 @@ $o_globalGame = $o_globalPlayer->getGame();
 				});
 
 				// update the player token editability if the local player
-				if (o_player.id === playerFuncs.localPlayer)
-				{
-					commands.setLocalPlayer(playerFuncs.localPlayer);
+				if (playerFuncs.isLocalPlayer(o_player.id)) {
+					commands.setLocalPlayer(o_player.id);
 				}
 
 				// update the player1 controls (dependent on player readiness levels)
 				game.updatePlayer1Controls();
+
+				// update the game card visibility based on player readiness
+				var jGame = $("#game");
+				if (playerFuncs.isLocalPlayer(o_player.id)) {
+					game.showGameCard(jGame, o_player);
+				}
+			},
+
+			showGameCard: function(jContainer, o_localPlayer) {
+				jContainer.removeClass("gameStarted");
+				jContainer.removeClass("showGameCard");
+				if (o_localPlayer == null) {
+					return;
+				}
+
+				// GAME_PSTATE::IN_PROGRESS=3
+				if (o_localPlayer.gameState[0] < 3) {
+					// game hasn't started yet
+				} else if (o_localPlayer.gameState[0] == 3) {
+					// game has started
+					jContainer.addClass("gameStarted");
+					if (!o_localPlayer.isReady) {
+						// prompt the user to set their text/upload an image for this turn
+						jContainer.addClass("showGameCard");
+					}
+				} else if (o_localPlayer.gameState[0] > 3) {
+					// currently revealing
+				}
 			},
 
 			setPlayerTokenPosition: function(i_playerId, i_position, b_updatePositions) {
@@ -406,76 +433,130 @@ $o_globalGame = $o_globalPlayer->getGame();
 			},
 
 			updateCard: function(o_card) {
-				var i_currentTurn = game.o_cachedGame.currentTurn;
+				var o_game = game.o_cachedGame;
+				var i_currentTurn = o_game.currentTurn;
+
+				// find the game card
+				var jGameCard = $("#gameCard"); if (jGameCard.find === undefined) { throw ("jGameCard is " + JSON.stringify(jGameCard) + " in <?php echo (basename(__FILE__) . __LINE__); ?>"); }
+				var jGameCardSmall = $("#gameCardSmall");
 
 				// draw the current card
-				var jGameCard = $("#gameCard"); if (jGameCard.find === undefined) { throw ("jGameCard is " + JSON.stringify(jGameCard) + " in <?php echo (basename(__FILE__) . __LINE__); ?>"); }
 				var jHideMeFirsts = jGameCard.find(".hideMeFirst");
 				if (i_currentTurn < 0) {
 					// game not started yet
-				} else if (i_currentTurn < game.o_cachedGame.playerIds.length) {
+				} else if (i_currentTurn < o_game.playerIds.length) {
 					// 1st+ turn of active play
 					// draw the current card
 					if (playerFuncs.isLocalPlayer(o_card.authorId)) {
-						jGameCard.show();
-
 						if (i_currentTurn == 0) {
 							jHideMeFirsts.hide();
 						} else {
 							jHideMeFirsts.show();
 						}
+
+						var jCurrentImages = $.merge(jGameCard.find(".currentImage"), jGameCardSmall.find(".currentImage"));
+						var jPreviousTexts = $.merge(jGameCard.find(".previousText"), jGameCardSmall.find(".previousText"));
+						var jNewTexts = $.merge(jGameCard.find(".newText"), jGameCardSmall.find(".newText"));
+						var jCurrentTexts = $.merge(jGameCard.find(".currentText"), jGameCardSmall.find(".currentText"));
+						var jPreviousImages = $.merge(jGameCard.find(".previousImage"), jGameCardSmall.find(".previousImage"));
+						var jOverlay = jGameCardSmall.find(".overlay");
+						var jImageCardContents = $.merge($('<div>'), jCurrentImages, jPreviousTexts);
+						var jTextCardContents = $.merge($('<div>'), jNewTexts, jCurrentTexts, jPreviousImages);
+						jImageCardContents.hide();
+						jTextCardContents.hide();
 						
-						var jImg = [];
 						if (o_card.type == 0) { // image card
-							var jCurrentImage = jGameCard.find(".currentImage");
-							var jPreviousText = jGameCard.find(".previousText");
+							jImageCardContents.show();
+							jOverlay.text("change image");
+
 							var previousText = (o_card.text.trim() != "") ? '"'+o_card.text.trim()+'"' : "";
-							// fitImageSize(jCurrentImage, jGameCard.width() - 150, jGameCard.height() - 200);
-							jPreviousText.text(previousText);
-							jPreviousText[(previousText.trim() == "" ? "hide" : "show")]();
-							jCurrentImage.attr('src', o_card.imageURL);
-							jImg = jCurrentImage;
+							jPreviousTexts.text(previousText);
+							$(jPreviousTexts[0]).css('width', jGameCard.width() * 0.75 + 'px');
+							jPreviousTexts[(previousText.trim() == "" ? "hide" : "show")]();
+							jCurrentImages.attr('src', o_card.imageURL);
 						} else { // text/sentence card
-							var jNewText = jGameCard.find(".newText");
-							var jCurrentText = jGameCard.find(".currentText");
-							var jPreviousImage = jGameCard.find(".previousImage");
-							jCurrentText.css('width', jGameCard.width() * 0.8 + 'px');
-							jCurrentText.text(o_card.text);
-							if (jNewText.val() == "")
-								jNewText.val(o_card.text);
-							if (jCurrentText.text() == "")
-								jCurrentText.hide();
+							jTextCardContents.show();
+							jOverlay.text("change text");
+
+							$(jCurrentTexts[0]).css('width', jGameCard.width() * 0.75 + 'px');
+							$(jCurrentTexts[1]).css('width', jGameCardSmall.width() + 'px');
+							jCurrentTexts.text(o_card.text);
+							if (jNewTexts.val() == "")
+								jNewTexts.val(o_card.text);
+							if (jCurrentTexts.text() == "")
+								jCurrentTexts.hide();
 							else
-								jCurrentText.show();
-							// fitImageSize(jPreviousImage, jGameCard.width() - 150, jGameCard.height() - 250);
-							jNewText.show();
-							jPreviousImage.attr('src', o_card.imageURL);
-							jImg = jPreviousImage;
+								jCurrentTexts.show();
+							jNewTexts.show();
+							jPreviousImages.attr('src', o_card.imageURL);
 						}
 
 						// fit the image size to the available card size
-						var jAllImgs = jGameCard.find("img");
-						var jChildren = jGameCard.children();
-						var maxWidth = jGameCard.width() - 150;
-						var maxHeight = jGameCard.height() - 50;
-
-						jAllImgs.hide();
-						$.each(jChildren, function(k, h) {
-							var jChild = $(h);
-							if (jChild.css('display') === 'none' || jChild.hasClass('dontCountHeight'))
-								return;
-							maxHeight -= jChild.fullHeight(true, true, true);
-						});
-						if (jImg.attr('src') != '')
-							jImg.show();
-						fitImageSize(jImg, maxWidth, maxHeight);
+						game.fitCardImages(o_card.type);
 					}
 				} else {
-					// reveal step TODO
-					jGameCard.hide();
+					// reveal step
 				}
 
-				return jGameCard;
+				// draw/hide the game card
+				var jGame = $("#game");
+				if (playerFuncs.isLocalPlayer(o_card.authorId)) {
+					game.showGameCard(jGame, playerFuncs.getPlayer());
+				}
+			},
+
+			fitCardImages: function(i_cardType) {
+				// find the game card
+				var jGameCard = $("#gameCard"); if (jGameCard.find === undefined) { throw ("jGameCard is " + JSON.stringify(jGameCard) + " in <?php echo (basename(__FILE__) . __LINE__); ?>"); }
+				var jGameCardSmall = $("#gameCardSmall");
+
+				// find the images
+				var jCurrentImages = $.merge(jGameCard.find(".currentImage"), jGameCardSmall.find(".currentImage"));
+				var jPreviousImages = $.merge(jGameCard.find(".previousImage"), jGameCardSmall.find(".previousImage"));
+				var jActiveImgs = null;
+				if (i_cardType == 0) { // image card
+					jActiveImgs = jCurrentImages;
+				} else { // text/sentence card
+					jActiveImgs = jPreviousImages;
+				}
+
+				// fit the image size to the available card size
+				var fitActiveImgSize = function(k, h_img) {
+					// get the image and the parent game card
+					var jImg = $(h_img);
+					var jParent = jImg;
+					var i = 0;
+					while (jParent.attr("id") != "gameCard" && jParent.attr("id") != "gameCardSmall") {
+						jParent = jParent.parent();
+						i++;
+						if (i >= 100) {
+							console.log("Programmer error: too much recursion in <?php echo __FILE__ . ':' . __LINE__; ?>");
+							return;
+						}
+					}
+
+					// get the contents for determining size
+					var jAllImgs = jParent.find("img");
+					var jChildren = jParent.children();
+					var maxWidth = jParent.width() - parseInt(jParent.attr("subWidth"));
+					var maxHeight = jParent.height() - parseInt(jParent.attr("subHeight"));
+
+					// find the max size
+					jAllImgs.hide();
+					$.each(jChildren, function(k, h) {
+						var jChild = $(h);
+						if (jChild.css('display') === 'none' || jChild.hasClass('dontCountHeight'))
+							return;
+						maxHeight -= jChild.fullHeight(true, true, true);
+					});
+
+					// fit the image to the max size
+					if (jImg.attr('src') != '')
+						jImg.show();
+					var fitType = (jParent.attr('id') == 'gameCard') ? 'fit' : 'fill';
+					fitImageSize(jImg, maxWidth, maxHeight, null, fitType);
+				}
+				$.each(jActiveImgs, fitActiveImgSize);
 			},
 
 			updateStory: function(o_story) {
@@ -546,40 +627,36 @@ $o_globalGame = $o_globalPlayer->getGame();
 					return;
 				}
 
-				// un-minimize the game card
-				var jGameCard = $("#gameCard");
-				if (jGameCard.hasClass('minimized')) {
-					var jopaqueEye = jGameCard.find(".opaqueEye");
-					game.minimizeGameCard(jopaqueEye[0]);
-				}
+				// find the game card and small game card
+				// show and get the current card
+				var jGame = $("#game");
+				var jGameCard = $("#gameCard"); if (jGameCard.find === undefined) { throw ("jGameCard is " + JSON.stringify(jGameCard) + " in <?php echo (basename(__FILE__) . __LINE__); ?>"); }
+				var jGameCardSmall = $("#gameCardSmall");
+				game.showGameCard(jGame, playerFuncs.getPlayer());
 
 				// draw the current card
 				var jHideMeFirsts = jGameCard.find(".hideMeFirst");
 				if (i_currentTurn < 0) {
 					// game not started yet
-					jGameCard.hide();
 				} else if (i_currentTurn < game.o_cachedGame.playerIds.length) {
 					// 1st+ turn of active play
-					// show and get the current card
-					jGameCard.show();
 					jHideMeFirsts.hide();
 
 					var cardType = (game.o_cachedGame.cardStartType + i_currentTurn) % 2;
 					var otherType = (cardType + 1) % 2;
 					var jCurrentCard = jGameCard.find(".card" + cardType);
 					var jOtherCard = jGameCard.find(".card" + otherType);
-					var jCurrentImage = jGameCard.find(".currentImage");
-					var jNewText = jGameCard.find(".newText");
-					var jCurrentText = jGameCard.find(".currentText");
-					jCurrentImage.attr('src', '');
-					jNewText.val('');
-					jCurrentText.val('');
+					var jCurrentImages = $.merge(jGameCard.find(".currentImage"), jGameCardSmall.find(".currentImage"));
+					var jNewTexts = $.merge(jGameCard.find(".newText"), jGameCardSmall.find(".newText"));
+					var jCurrentTexts = $.merge(jGameCard.find(".currentText"), jGameCardSmall.find(".currentText"));
+					jCurrentImages.attr('src', '');
+					jNewTexts.val('');
+					jCurrentTexts.val('');
 					jCurrentCard.show();
 					jOtherCard.hide();
 
 					if (i_currentTurn == 0) {
 						// first turn
-						jGameCard.show();
 						jHideMeFirsts.hide();
 						var jStartingCard = jGameCard.find(".card" + game.o_cachedGame.cardStartType);
 						var jStoryDescription =	jGameCard.find(".storyDescription");
@@ -589,8 +666,7 @@ $o_globalGame = $o_globalPlayer->getGame();
 
 					game.getCurrentCard();
 				} else {
-					// reveal step TODO
-					jGameCard.hide();
+					// reveal step
 				}
 
 				// update the available generic controls
@@ -645,27 +721,6 @@ $o_globalGame = $o_globalPlayer->getGame();
 				jPlayerToken.remove();
 			},
 
-			makeTransparent: function(h_child) {
-				// Runs the animation to make the card mostly transparent.
-				// Counterpart function to makeOpaque.
-				var jchild = $(h_child);
-				var jparent = jchild.parent();
-				if (jchild.attr('old-opacity') === undefined)
-					jchild.attr('old-opacity', jchild.css('opacity'));
-				jchild.finish().animate({ 'opacity': 1 }, 200);
-				jparent.finish().animate({ 'opacity': 0.3 }, 200);
-			},
-
-			makeOpaque: function(h_child) {
-				// Runs the animation to make the card opaque.
-				// Counterpart function to makeTransparent.
-				var jchild = $(h_child);
-				var jparent = jchild.parent();
-				var opacity = parseFloat(jchild.attr('old-opacity'));
-				jchild.finish().animate({ 'opacity': opacity }, 200);
-				jparent.finish().animate({ 'opacity': 1 }, 200);
-			},
-
 			minimizeGameCard: function(jGameCard, i_cardType, o_animationOptions) {
 				if (arguments.length < 2 || i_cardType === undefined || i_cardType === null)
 					i_cardType = (game.o_cachedGame.currentTurn + game.o_cachedGame.cardStartType) % 2;
@@ -713,8 +768,55 @@ $o_globalGame = $o_globalPlayer->getGame();
 				jlink.attr('href', linkText).text(linkText);
 
 				jCodeContainer.toggle();
+			},
+
+			updateTurnTimer: function() {
+				var o_game = game.o_cachedGame;
+				var i_turnType = (o_game.cardStartType + o_game.currentTurn) % 2;
+				var f_turnElapsed = getServerTime() - o_game.turnStart;
+				var f_turnTotal = (i_turnType == 0) ? o_game.drawTimerLen : o_game.textTimerLen;
+				var f_turnRemaining = f_turnTotal - f_turnElapsed;
+				var f_percentElapsed = f_turnElapsed / f_turnTotal;
+
+				var a_color = [0,255,0];
+				var o_localPlayer = playerFuncs.getPlayer();
+				if (o_localPlayer !== null && !o_localPlayer.isReady) {
+					a_color = colorFade(f_percentElapsed, [0,255,0], [255,255,0], [255,0,0]);
+				}
+				var s_color = 'rgb(' + a_color[0] + ',' + a_color[1] + ',' + a_color[2] + ')';
+
+				var drawArc = function(jCanvas, f_ratio, color) {
+					var context = jCanvas[0].getContext("2d");
+					var xPos = jCanvas.width() / 2;
+					var yPos = xPos;
+					var radius = xPos;
+
+					var startAngle = -90;
+					var endAngle = Math.max(Math.min(f_ratio, 1.0), 0) * 360 - 90;
+					var startAngle = startAngle * (Math.PI/180);
+					var endAngle   = endAngle   * (Math.PI/180);
+					var anticlockwise = false;
+					var radius = radius;
+
+					context.strokeStyle = color;
+					context.fillStyle   = color;
+					context.lineWidth   = 1;
+
+					context.clearRect(0, 0, parseInt(jCanvas.attr('width')), parseInt(jCanvas.attr('height')));
+					context.beginPath();
+					context.arc(xPos, yPos, radius, startAngle, endAngle, anticlockwise);
+					context.lineTo(xPos, yPos);
+					context.lineTo(xPos, 0);
+					context.fill();
+					context.stroke();
+				}
+				drawArc($("#turnTimerSmall"), f_percentElapsed, s_color);
+				drawArc($("#turnTimerBig"), f_percentElapsed, s_color);
 			}
 		};
+		// Here to indicate this script has executed.
+		// We do this because the "game" div gets registered as being accessible by javascript.
+		gameJsObj = true;
 
 		<?php
 
@@ -769,10 +871,14 @@ $o_globalGame = $o_globalPlayer->getGame();
 				game.resetGuiState();
 
 				// register event handlers
+				var jGame = $("#game");
 				var jGameNameEdit = $("#gameGameNameEdit");
 				var jGameNameEditText = jGameNameEdit.find("input[type=text]");
 				var jGameNameEditDone = jGameNameEdit.find("input[type=button]");
 				var jLeaveGame = $(".leaveGame");
+				var jGameCard = $("#gameCard");
+				var jGameCardSmall = $("#gameCardSmall");
+				var jGameCardOverlay = $("#gameCardOverlay");
 				jGameNameEditDone.on("click", function() {
 					game.setGameName(jGameNameEditText.val());
 				});
@@ -787,6 +893,11 @@ $o_globalGame = $o_globalPlayer->getGame();
 					jLeaveGame.animate({ 'width': '20px' }, 300, 'linear');
 				});
 				jLeaveGame.off("click").on("click", game.controlLeaveClick);
+				jGameCardSmall.off("click").on("click", function() {
+					jGame.addClass("showGameCard");
+					game.fitCardImages((game.o_cachedGame.cardStartType + game.o_cachedGame.currentTurn) % 2);
+				});
+				jGameCardOverlay.off("click").on("click", function() { jGame.removeClass("showGameCard"); });
 
 				// canvas.mousemove(function(e) {
 				// 	if (windowFocus && mouseDown) {
@@ -825,6 +936,9 @@ $o_globalGame = $o_globalPlayer->getGame();
 					var o_card = JSON.parse(serverStats['currentCard']);
 					commands.updateCard(o_card);
 				}
+
+				// set up drawing the timer
+				setInterval(game.updateTurnTimer, 1000);
 			}
 		};
 	</script>
@@ -835,40 +949,8 @@ $o_globalGame = $o_globalPlayer->getGame();
 	<br />
 	<div id="gamePlayersCircle" class="centered bordered" style="width: 700px; height: 700px;">
 	</div>
-	<div id="gameCard" class="gameCard centered" style="display: none;">
-		<?php
-		ob_start(); // export the gameCard as a global variable so that we can use it in phoneRemote.php
-		?>
-		<div class="opaqueEye dontMinimize dontCountHeight" onmouseenter="game.makeTransparent(this);" onmouseleave="game.makeOpaque(this);" onclick="game.minimizeGameCard($(this).parent());"></div>
-		<div class="storyDescription centered">Player's Story:</div>
-		<div class="card1" style="display: none;">
-			<span class="hideMeFirst">Write a short description of this image:</span><br />
-			<textarea class="newText" placeholder="short sentence" cols="40" rows="3"></textarea><br />
-			<input class="" type="button" value="Submit" onclick="game.controlUploadSentence();" /><br /><br />
-			<img class="previousImage hideMeFirst centered" />
-			<div class="currentText centered"></div>
-		</div>
-		<div class="card0" style="display: none;">
-			<div>
-				<span class="">Draw an image</span>
-				<span class="hideMeFirst">for this description</span>
-				<span class="">and then upload it:</span>
-				<input class="" type="button" value="Upload Image" onclick="$(this).parent().find('input[type=file]').val('').click();" /><br />
-				<span class="previousText centered"></span><br />
-				<input class="" type="file" accept="image/jpg,image/jpeg,image/png,image/gif,image/bmp,image/tiff" style="display: none;" /><!-- calls uploadImage on click, as set in setCurrentTurn -->
-				<br />
-				<img src="" class="currentImage centered" command="setCardImage" style="display: none;" />
-			</div>
-		</div>
-		<div id="uploadProgress" class="dontMinimize dontCountHeight"><!-- put this inside the gameCard so that it will be included in the phoneRemote.php page -->
-			Uploading...
-		</div>
-		<?php
-		global $s_gameCardContents;
-		$s_gameCardContents = ob_get_contents();
-		ob_end_clean();
-		echo $s_gameCardContents;
-		?>
+	<div id="uploadProgress" class="dontMinimize dontCountHeight"><!-- will get moved to the end of the "body" element when used -->
+		Uploading...
 	</div>
 	<div id="gamePlayer1Control" class="centered" style="width: 700px; display: none;">
 		<div class="centered" gameControl="start">
@@ -883,6 +965,52 @@ $o_globalGame = $o_globalPlayer->getGame();
 		</div>
 	</div>
 	<div id="gameGameStatus" class="centered" style="width: 500px;">loading...</div>
+	<div class="leaveGame"><div>&#x2B05;</div></div>
+	<div id="gameJoinOnPhone" <?php echo (isMobileDevice()) ? 'style="display: none;"' : ''; ?>>
+		<div class="button" onclick="game.showQrCode();"></div>
+		<div class="code">
+			<div class="qrcode"></div>
+			<a class="link"></a><br /><br />
+			Use your phone to take a picture of your drawing.
+		</div>
+	</div>
+	<div id="gameCardOverlay"></div>
+	<canvas id="turnTimerSmall" width="341" height="341"></canvas><!-- will get moved to the be in the parent element of gameCardSmall when used -->
+	<canvas id="turnTimerBig" width="676" height="676"></canvas><!-- will get moved to the be in the parent element of gameCardSmall when used -->
+	<div id="gameCardSmall" class="centered" subWidth="0" subHeight="0">
+		<img src="" class="currentImage" command="setCardImage" style="display: none; position: absolute; left: 0;" />
+		<div class="dontCountHeight" style="position: absolute; width: 100%; height: 100%;">
+			<img class="previousImage hideMeFirst centered" />
+			<div class="currentText centered"></div>
+			<div class="previousText centered"></div>
+			<div class="overlay dontCountHeight">change image</div>
+		</div>
+	</div>
+	<div id="gameCard" class="centered" subWidth="150" subHeight="50"><!-- will get moved to phoneRemoteContent when used in the phoneRemote page -->
+		<br />
+		<div class="storyDescription spaceBottom centered">Player's Story:</div>
+		<div class="card1" style="display: none;">
+			<span class="hideMeFirst spaceBottom">Write a short description of this image:</span><br />
+			<textarea class="newText" placeholder="short sentence" cols="40" rows="3"></textarea><br />
+			<input class="" type="button" value="Submit" onclick="game.controlUploadSentence();" /><br /><br />
+			<img class="previousImage hideMeFirst centered" />
+			<div class="currentText centered"></div>
+		</div>
+		<div class="card0" style="display: none;">
+			<div>
+				<div class="spaceBottom" style="max-width: 58%; margin: 0 auto 10px;">
+					<span class="">Draw an image</span>
+					<span class="hideMeFirst">for this description</span>
+					<span class="">and then upload it:</span>
+					<input class="" type="button" value="Upload Image" onclick="$(this).parent().parent().find('input[type=file]').val('').click();" />
+				</div>
+				<div class="previousText centered spaceBottom"></div><br />
+				<div style="height:1px; width:1px; overflow:hidden; display:inline-block;"><input class="" type="file" accept="image/jpg,image/jpeg,image/png,image/gif,image/bmp,image/tiff" /><!-- calls uploadImage on click, as set in setCurrentTurn --></div>
+				<br />
+				<img src="" class="currentImage centered" command="setCardImage" style="display: none;" />
+			</div>
+		</div>
+	</div>
 	<div id="gamePlayerTokenTemplate" style="display: none;">
 		<div class="playerToken" playerid="__playerId__">
 			<div class="player1Crown" style="display: none;"></div>
@@ -896,15 +1024,6 @@ $o_globalGame = $o_globalPlayer->getGame();
 				<input class="player1Control" type="button" value="Kick" onclick="game.controlKickPlayer(__playerId__);" />
 			</div>
 			<img class="readyCheck" src="imagesStatic/checkmark.png" />
-		</div>
-	</div>
-	<div class="leaveGame"><div>&#x2B05;</div></div>
-	<div id="gameJoinOnPhone" <?php echo (isMobileDevice()) ? 'style="display: none;"' : ''; ?>>
-		<div class="button" onclick="game.showQrCode();"></div>
-		<div class="code">
-			<div class="qrcode"></div>
-			<a class="link"></a><br /><br />
-			Use your phone to take a picture of your drawing.
 		</div>
 	</div>
 </div>

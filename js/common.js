@@ -236,23 +236,29 @@ function uploadFile(jelement, files) {
 	return retfunc();
 };
 
-function fitImageSize(jImage, i_maxWidth, i_maxHeight, f_onload) {
+/** Fits the given image into the size of the given width and height, keeping its current height/width ratio.
+ *  If s_fitType is 'fit', then the image is sized so that it matches but does not overflow the space.
+ *  If s_fitType is 'fill', then the image is sized so that it completely fills the space. */
+function fitImageSize(jImage, i_maxWidth, i_maxHeight, f_onload, s_fitType) {
 	if (arguments.length < 4 || f_onload === undefined || f_onload === null)
 		f_onload = null;
+	if (arguments.length < 5 || s_fitType === undefined || s_fitType === null)
+		s_fitType = 'fit';
 
 	var limitSize = function(img) {
 		// unset any changes to the image's width and height: let the browser recompute them
 		$(img).css({
 			'width': '',
-			'height': ''
+			'height': '',
+			'margin-top': ''
 		});
 
 		// After the browser has had a chance to recompute, then
-		// we will use the new width and to compute our ratio.
+		// we will use the new width and height and to compute our ratio.
 		setTimeout(function() {
 			var i_width = parseInt(img.width);
 			var i_height = parseInt(img.height);
-			var ratio = 1;
+			var ratio = 0.01;
 			if (i_width < 1 || i_height < 1)
 				return;
 
@@ -264,13 +270,15 @@ function fitImageSize(jImage, i_maxWidth, i_maxHeight, f_onload) {
 			{
 				ratio = i_maxHeight / i_height;
 			}
-			if (i_width * ratio > i_maxWidth)
-			{
-				ratio = Math.min(i_maxWidth / i_width, ratio);
-			}
-			if (i_height * ratio > i_maxHeight)
-			{
-				ratio = Math.min(i_maxHeight / i_height);
+			if (s_fitType === 'fit') {
+				if (i_width * ratio > i_maxWidth)
+				{
+					ratio = Math.min(i_maxWidth / i_width, ratio);
+				}
+				if (i_height * ratio > i_maxHeight)
+				{
+					ratio = Math.min(i_maxHeight / i_height);
+				}
 			}
 
 			jImage.css({
@@ -278,6 +286,11 @@ function fitImageSize(jImage, i_maxWidth, i_maxHeight, f_onload) {
 				'height': (i_height * ratio) + 'px',
 				'margin-top': ((i_maxHeight - (i_height * ratio)) / 2) + 'px'
 			});
+			if (s_fitType == 'fill') {
+				jImage.css({
+					'margin-left': ((i_maxWidth - (i_width * ratio)) / 2) + 'px'
+				});
+			}
 		}, 0);
 	}
 
