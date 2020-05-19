@@ -966,14 +966,6 @@ $o_globalGame = $o_globalPlayer->getGame();
 	</div>
 	<div id="gameGameStatus" class="centered" style="width: 500px;">loading...</div>
 	<div class="leaveGame"><div>&#x2B05;</div></div>
-	<div id="gameJoinOnPhone" <?php echo (isMobileDevice()) ? 'style="display: none;"' : ''; ?>>
-		<div class="button" onclick="game.showQrCode();"></div>
-		<div class="code">
-			<div class="qrcode"></div>
-			<a class="link"></a><br /><br />
-			Use your phone to take a picture of your drawing.
-		</div>
-	</div>
 	<div id="gameCardOverlay"></div>
 	<canvas id="turnTimerSmall" width="341" height="341"></canvas><!-- will get moved to the be in the parent element of gameCardSmall when used -->
 	<canvas id="turnTimerBig" width="676" height="676"></canvas><!-- will get moved to the be in the parent element of gameCardSmall when used -->
@@ -981,7 +973,7 @@ $o_globalGame = $o_globalPlayer->getGame();
 		<img src="" class="currentImage" command="setCardImage" style="display: none; position: absolute; left: 0;" />
 		<div class="dontCountHeight" style="position: absolute; width: 100%; height: 100%;">
 			<img class="previousImage hideMeFirst centered" />
-			<div class="currentText centered"></div>
+			<div class="currentText centered" style="position: absolute; bottom: 0;"></div>
 			<div class="previousText centered"></div>
 			<div class="overlay dontCountHeight">change image</div>
 		</div>
@@ -1009,6 +1001,15 @@ $o_globalGame = $o_globalPlayer->getGame();
 				<br />
 				<img src="" class="currentImage centered" command="setCardImage" style="display: none;" />
 			</div>
+		</div>
+	</div>
+	<div id="gameJoinOnPhone" <?php echo (isMobileDevice()) ? 'style="display: none;"' : ''; ?>>
+		<div class="button" onclick="game.showQrCode();"></div>
+		<div class="code">
+			<div class="qrcode"></div>
+			<a class="link"></a><br /><br />
+			Point your phone's camera at this QR code to
+			use your phone as a remote for taking pictures.
 		</div>
 	</div>
 	<div id="gamePlayerTokenTemplate" style="display: none;">
