@@ -46,7 +46,7 @@ class ajax {
             }
         }
 
-        $o_ret = new command("composite", $a_ret);
+        return new command("composite", $a_ret);
     }
 
     function setUsername() {
@@ -348,21 +348,40 @@ class ajax {
         return self::setSharingTurn(0);
     }
 
-    function setStartCard() {
+    function setGameSettings() {
         global $o_globalPlayer;
+        $b_updated = FALSE;
 
         // check to make sure that the player is in a game
         $o_game = $o_globalPlayer->getGame();
         if (($bo_playerInGame = _ajax::isPlayerInGame($o_globalPlayer, $o_game)) !== TRUE)
             return $bo_playerInGame;
 
-        // get the new start card
-        $i_newStartCard = intval(get_post_var("startCard", "-1"));
-        if ($i_newStartCard < 0 || $i_newStartCard > 1)
-            return new command("showError", "Bad start card type. Must be one of '0' or '1'.");
+        // apply the new values
+        $a_possibleVals = array(
+            array( "startCard",    "i_cardStartType" ),
+            array( "drawTimerLen", "i_drawTimerLen"  ),
+            array( "textTimerLen", "i_textTimerLen"  )
+        );
+        for ($i = 0; $i < count($a_possibleVals); $i++) {
+            $s_postVar = $a_possibleVals[$i][0];
+            $s_gameVar = $a_possibleVals[$i][1];
+            if (isset($_POST[$s_postVar])) {
+                $s_echo = "updated {$s_gameVar} from {$o_game->$s_gameVar} to ";
+                $o_game->$s_gameVar = intval($_POST[$s_postVar]);
+                $s_echo .= $o_game->$s_gameVar;
+                error_log($s_echo);
+                $b_updated = TRUE;
+            }
+        }
+
+        // check that something changed
+        if (!$b_updated) {
+            return new command("success", "");
+        }
 
         // update the game and broadcast the change
-        $o_game->i_cardStartType = $i_newStartCard;
+        $o_game->save();
         _ajax::pushGame($o_game);
 
         // respond to this client

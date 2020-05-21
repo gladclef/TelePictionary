@@ -402,13 +402,17 @@ $o_globalGame = $o_globalPlayer->getGame();
 			controlStartClick: function() {
 				var jPlayer1Control = $("#gamePlayer1Control");
 				var jControlStartCard = jPlayer1Control.find("select.startCard");
+				var jControlDrawTurnTimer = jPlayer1Control.find("select.drawTurnTimerSelector");
+				var jControlTextTurnTimer = jPlayer1Control.find("select.textTurnTimerSelector");
 				outgoingMessenger.pushData({
 					'command': 'composite',
 					'action': [
-						{ 'command': 'setStartCard',
-						  'startCard': parseInt(jControlStartCard.val()) },
+						{ 'command':      'setGameSettings',
+						  'startCard':    parseInt(jControlStartCard.val()),
+						  'drawTimerLen': parseInt(jControlDrawTurnTimer.val()),
+						  'textTimerLen': parseInt(jControlTextTurnTimer.val()) },
 						{ 'command': 'setGameTurn',
-						  'turn': 0 },
+						  'turn':    0 },
 					]
 				});
 			},
@@ -574,23 +578,26 @@ $o_globalGame = $o_globalPlayer->getGame();
 			},
 
 			updatePlayer1Controls: function() {
-				if (game.o_cachedGame === undefined || game.o_cachedGame === null || playerFuncs === undefined) {
+				var o_game = game.o_cachedGame;
+				if (o_game === undefined || o_game === null || playerFuncs === undefined) {
 					return;
 				}
 
 				// This function updates the player1 controls at the bottom of the screen.
 				// It is not just a part of the setPlayer1 function because it is also dependent
 				// on the current turn and the players readiness.
-				var i_currentTurn = game.o_cachedGame.currentTurn;
+				var i_currentTurn = o_game.currentTurn;
 				var jPlayer1Control = $("#gamePlayer1Control");
 				var jControlStartCard = jPlayer1Control.find("select.startCard");
-				var jStartBreak = jPlayer1Control.find(".startGameBreak");
+				var jControlDrawTurnTimer = jPlayer1Control.find("select.drawTurnTimerSelector");
+				var jControlTextTurnTimer = jPlayer1Control.find("select.textTurnTimerSelector");
+				var jStartGroup = jPlayer1Control.find(".startGameGroup");
 				var jControlStart = jPlayer1Control.find("input.startGame");
 				var jControlNextTurn = jPlayer1Control.find("input.nextTurn");
 				var jControlStartReviewing = jPlayer1Control.find(".finishGame");
 				jPlayer1Control.show();
 				jControlStartCard.hide();
-				jStartBreak.hide();
+				jStartGroup.hide();
 				jControlStart.hide();
 				jControlNextTurn.hide();
 				jControlStartReviewing.hide();
@@ -603,7 +610,7 @@ $o_globalGame = $o_globalPlayer->getGame();
 				// show certain controls to player1
 				else if (i_currentTurn == -1) {
 					jControlStartCard.show();
-					jStartBreak.show();
+					jStartGroup.show();
 					jControlStart.show();
 				} else if (!playerFuncs.allPlayersReady()) {
 					jPlayer1Control.hide();
@@ -614,8 +621,16 @@ $o_globalGame = $o_globalPlayer->getGame();
 				}
 
 				// update some the controls based on the game object
-				if (game.o_cachedGame.cardStartType != parseInt(jControlStartCard.val())) {
-					jControlStartCard.val(game.o_cachedGame.cardStartType + '');
+				var a_startGameUpdates = [
+					[jControlStartCard,     o_game.cardStartType],
+					[jControlDrawTurnTimer, o_game.drawTimerLen],
+					[jControlTextTurnTimer, o_game.textTimerLen],
+				];
+				for (var i = 0; i < a_startGameUpdates.length; i++) {
+					var a_update = a_startGameUpdates[i];
+					if (a_update[1] != parseInt(a_update[0].val())) {
+						a_update[0].val(a_update[1] + '');
+					}
 				}
 			},
 
@@ -771,13 +786,21 @@ $o_globalGame = $o_globalPlayer->getGame();
 			},
 
 			updateTurnTimer: function() {
+				// get the turn timer elapsed percentage
 				var o_game = game.o_cachedGame;
 				var i_turnType = (o_game.cardStartType + o_game.currentTurn) % 2;
 				var f_turnElapsed = getServerTime() - o_game.turnStart;
 				var f_turnTotal = (i_turnType == 0) ? o_game.drawTimerLen : o_game.textTimerLen;
 				var f_turnRemaining = f_turnTotal - f_turnElapsed;
-				var f_percentElapsed = f_turnElapsed / f_turnTotal;
+				var f_percentElapsed = f_turnElapsed / Math.max(f_turnTotal, 1);
+				if (f_turnTotal <= 0) {
+					f_percentElapsed = 0;
+				}
 
+				// find the turn timers
+				var jTurnTimers = $.merge($("#turnTimerSmall"), $("#turnTimerBig"));
+
+				// get the color for the timer ring
 				var a_color = [0,255,0];
 				var o_localPlayer = playerFuncs.getPlayer();
 				if (o_localPlayer !== null && !o_localPlayer.isReady) {
@@ -785,6 +808,7 @@ $o_globalGame = $o_globalPlayer->getGame();
 				}
 				var s_color = 'rgb(' + a_color[0] + ',' + a_color[1] + ',' + a_color[2] + ')';
 
+				// draw the timer rings
 				var drawArc = function(jCanvas, f_ratio, color) {
 					var context = jCanvas[0].getContext("2d");
 					var xPos = jCanvas.width() / 2;
@@ -797,21 +821,34 @@ $o_globalGame = $o_globalPlayer->getGame();
 					var endAngle   = endAngle   * (Math.PI/180);
 					var anticlockwise = false;
 					var radius = radius;
+					var ringSize = jCanvas.attr('ringSize');
+					ringSize = (ringSize === undefined || ringSize === '') ? null : parseInt(ringSize);
 
-					context.strokeStyle = color;
-					context.fillStyle   = color;
-					context.lineWidth   = 1;
+					context.strokeStyle   = color;
+					if (ringSize === null) {
+						context.fillStyle = color;
+						context.lineWidth = 1;
+					} else {
+						context.fillStyle = 'transparent';
+						context.lineWidth = ringSize;
+						radius -= ringSize / 2;
+					}
 
 					context.clearRect(0, 0, parseInt(jCanvas.attr('width')), parseInt(jCanvas.attr('height')));
-					context.beginPath();
-					context.arc(xPos, yPos, radius, startAngle, endAngle, anticlockwise);
-					context.lineTo(xPos, yPos);
-					context.lineTo(xPos, 0);
-					context.fill();
-					context.stroke();
+					if (f_ratio > 0.001) {
+						context.beginPath();
+						context.arc(xPos, yPos, radius, startAngle, endAngle, anticlockwise);
+						if (ringSize === null) {
+							context.lineTo(xPos, yPos);
+							context.lineTo(xPos, 0);
+						}
+						context.fill();
+						context.stroke();
+					}
 				}
-				drawArc($("#turnTimerSmall"), f_percentElapsed, s_color);
-				drawArc($("#turnTimerBig"), f_percentElapsed, s_color);
+				$.each(jTurnTimers, function(k, h_turnTimer) {
+					drawArc($(h_turnTimer), f_percentElapsed, s_color);
+				});
 			}
 		};
 		// Here to indicate this script has executed.
@@ -939,6 +976,37 @@ $o_globalGame = $o_globalPlayer->getGame();
 
 				// set up drawing the timer
 				setInterval(game.updateTurnTimer, 1000);
+
+				// set the turn timer ring size
+				var a_ttBigPair = [$("#turnTimerBig"),   $("#gameCard")];
+				var a_ttSmlPair = [$("#turnTimerSmall"), $("#gameCardSmall")];
+				var f_setRingSize = function(a_ttPair, i_ringSize, b_inside) {
+					var jtt = a_ttPair[0];
+					var jCard = a_ttPair[1];
+
+					// take care of 'innie' vs 'outie' rings
+					if (b_inside) {
+						jtt.attr('ringSize', i_ringSize);
+						jtt.insertAfter(jCard);
+						i_ringSize = 0;
+					} else {
+						jtt.attr('ringSize', '');
+						jtt.insertBefore(jCard);
+					}
+
+					jtt.css({
+						'top': (parseInt(jCard.css('top')) - i_ringSize) + 'px',
+						'left': (parseInt(jCard.css('left')) - i_ringSize) + 'px',
+						'width': (parseInt(jCard.fullWidth(true, false, true)) + i_ringSize*2) + 'px',
+						'height': (parseInt(jCard.fullHeight(true, false, true)) + i_ringSize*2) + 'px',
+					});
+					jtt.attr('width', parseInt(jtt.css('width')));
+					jtt.attr('height', parseInt(jtt.css('height')));
+				}
+				var i_ringSize = 4;
+				var b_inside = false;
+				f_setRingSize(a_ttBigPair, i_ringSize, b_inside);
+				f_setRingSize(a_ttSmlPair, i_ringSize, b_inside);
 			}
 		};
 	</script>
@@ -954,11 +1022,42 @@ $o_globalGame = $o_globalPlayer->getGame();
 	</div>
 	<div id="gamePlayer1Control" class="centered" style="width: 700px; display: none;">
 		<div class="centered" gameControl="start">
-			<select class="startCard">
-				<option value="0" <?php echo ($o_globalGame != null && $o_globalGame->getCardStartType() == 0) ? 'selected' : '' ?>>Start with Drawing</option>
-				<option value="1" <?php echo ($o_globalGame != null && $o_globalGame->getCardStartType() == 1) ? 'selected' : '' ?>>Start with Sentence</option>
-			</select>
-			<br class="startGameBreak" />
+			<div class="startGameGroup">
+				<select class="startCard">
+					<option value="0" <?php echo ($o_globalGame != null && $o_globalGame->getCardStartType() == 0) ? 'selected' : '' ?>>Start with Drawing</option>
+					<option value="1" <?php echo ($o_globalGame != null && $o_globalGame->getCardStartType() == 1) ? 'selected' : '' ?>>Start with Sentence</option>
+				</select>
+				<span style="display: inline-block; width: 8px;"></span>
+
+				Drawing timer:
+				<select class="drawTurnTimerSelector">
+					<option value='0'>No timer</option>
+					<?php
+					$s_plural = "";
+					$s_tabs = "\t\t\t\t\t";
+					for ($i = 1; $i < 11; $i++) {
+						$i_seconds = $i * 60;
+						echo "{$s_tabs}<option value='{$i_seconds}'>{$i} minute{$s_plural}</option>\n";
+						$s_plural = "s";
+					}
+					?>
+				</select>
+				<span style="display: inline-block; width: 8px;"></span>
+
+				Text timer:
+				<select class="textTurnTimerSelector">
+					<option value='0'>No timer</option>
+					<?php
+					$s_plural = "";
+					$s_tabs = "\t\t\t\t\t";
+					for ($i = 1; $i < 11; $i++) {
+						$i_seconds = $i * 60;
+						echo "{$s_tabs}<option value='{$i_seconds}'>{$i} minute{$s_plural}</option>\n";
+						$s_plural = "s";
+					}
+					?>
+				</select>
+			</div>
 			<input type="button" class="startGame" value="Start Game" onclick="game.controlStartClick();" style="display:none;" />
 			<input type="button" class="nextTurn" value="Next Turn" onclick="game.controlNextTurnClick();" style="display:none;" />
 			<div class="finishGame" style="display:none;">End this round and <input type="button" value="Start Sharing" onclick="game.controlStartSharingClick();" /></div>
@@ -967,8 +1066,8 @@ $o_globalGame = $o_globalPlayer->getGame();
 	<div id="gameGameStatus" class="centered" style="width: 500px;">loading...</div>
 	<div class="leaveGame"><div>&#x2B05;</div></div>
 	<div id="gameCardOverlay"></div>
-	<canvas id="turnTimerSmall" width="341" height="341"></canvas><!-- will get moved to the be in the parent element of gameCardSmall when used -->
-	<canvas id="turnTimerBig" width="676" height="676"></canvas><!-- will get moved to the be in the parent element of gameCardSmall when used -->
+	<canvas id="turnTimerSmall"></canvas><!-- will get moved to the be in the parent element of gameCardSmall when used -->
+	<canvas id="turnTimerBig"></canvas><!-- will get moved to the be in the parent element of gameCardSmall when used -->
 	<div id="gameCardSmall" class="centered" subWidth="0" subHeight="0">
 		<img src="" class="currentImage" command="setCardImage" style="display: none; position: absolute; left: 0;" />
 		<div class="dontCountHeight" style="position: absolute; width: 100%; height: 100%;">

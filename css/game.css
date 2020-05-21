@@ -180,10 +180,10 @@
 #turnTimerSmall {
 	display: none;
 	position: absolute;
-	top: 241px;
+	/*top: 241px; these values will be set by the f_setRingSize function in pages/game.php
 	left: 229px;
 	width: 341px;
-	height: 341px;
+	height: 341px;*/
 	border-radius: 700px;
 }
 
@@ -234,10 +234,10 @@
 #turnTimerBig {
 	display: none;
 	position: absolute;
-	top: 73px;
+	/*top: 73px; these values will be set by the f_setRingSize function in pages/game.php
 	left: 62px;
 	width: 676px;
-	height: 676px;
+	height: 676px;*/
 	border-radius: 700px;
 }
 
@@ -317,4 +317,8 @@
 	text-align: center;
 	vertical-align: middle;
 	padding-top: 365px;
+}
+
+#gamePlayer1Control .startGameGroup {
+	padding: 4px 0;
 }
